@@ -77,10 +77,14 @@ foco). Hay que hacer clic en otro elemento. Los alumnos no se topan con esto por
 fuera de forma natural, pero está dicho explícitamente en las instrucciones del notebook.
 
 ### Estado de la migración de datos
-- `01_sql/public/sample_data.parquet` (465 KB) es la copia que se sirve; el export de marimo la copia
-  automáticamente al sitio. Va **versionada en git** (el `.gitignore` solo excluye `data/*.parquet`).
-- `01_introduccion_sql.py` y `02_agregaciones_joins.py` ya migrados a `DATA_URL`. Ambos corren en
-  local con exit 0.
+- `01_sql/public/sample_data.parquet` (465 KB) es **la única copia versionada** y la que se sirve al
+  navegador; el export de marimo la copia automáticamente al sitio.
+- `data/*.parquet` está ignorado por completo: es solo el área de trabajo de `download_data.py`.
+  Se quitó la excepción `!data/sample_data.parquet` que había antes, para no tener dos copias del
+  mismo archivo que se desincronicen sin que nadie lo note.
+- ⚠️ **Al regenerar los datos**, `download_data.py` escribe en `data/`. Hay que copiar el resultado
+  a `01_sql/public/` a mano, o el sitio seguirá sirviendo la muestra vieja.
+- Los 3 notebooks ya usan `DATA_URL`. Los 3 corren en local con exit 0.
 
 ---
 
@@ -110,13 +114,38 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 - **Validación**: Los notebooks tienen sintaxis correcta de Python/Marimo, las consultas de DuckDB se ejecutaron sin problemas sobre los datos locales, y el servidor de Marimo levantó correctamente.
 - **Deployment**: scripts configurados para WASM + GitHub Pages (`export_wasm.ps1` y `deploy-pages.yml`).
 
+- **Publicación (2026-08-11)**: repo inicializado y subido a
+  [jmtoral/cdii](https://github.com/jmtoral/cdii) (rama `main`, commit `1dd6f60`).
+  GitHub Pages habilitado con origen *GitHub Actions*. URL del sitio:
+  **https://jmtoral.github.io/cdii/**
+- **`export_wasm.ps1` ejecutado y verificado**: construye las 3 páginas con sus datos.
+  Prueba de humo con Playwright sobre `site/`: las 3 cargan datos (tablas visibles), el
+  notebook 01 muestra su slider y su dropdown, y el ejercicio muestra sus 7 editores SQL.
+
 ### 🔄 En Progreso
-- Nada pendiente en este momento
+- Nada en curso.
 
 ### ❌ Pendiente / Sin Hacer
-- **Git y GitHub**: No hay repositorio git inicializado ni GitHub Pages configurado.
-- **WASM no probado localmente**: el script `export_wasm.ps1` no se ha ejecutado.
-- **Temas 2, 3 y 4** son solo placeholders (`README.md` con ideas, sin desarrollo aún).
+
+**1. Subir el workflow de Pages** *(bloqueado por permisos, requiere 1 comando del usuario)*
+El push rechazó `.github/workflows/deploy-pages.yml` porque el token de `gh` no tiene el
+scope `workflow`. El archivo **está en disco, corregido y sin commitear**. Para completarlo:
+
+```bash
+gh auth refresh -s workflow      # abre el navegador y pide confirmar
+git add .github && git commit -m "CI: workflow de GitHub Pages" && git push
+```
+
+Hasta que eso pase, Pages está habilitado pero no hay build que lo alimente: el sitio
+todavía no existe. Alternativa sin consola: crear el archivo desde la web de GitHub
+(*Add file → Create new file*) pegando el contenido local.
+
+**2. Configurar el endpoint de entregas**
+`ENDPOINT` en `01_sql/ejercicio_01.py` está vacío a propósito → el botón de enviar sale
+deshabilitado y solo funciona la descarga. Seguir `scripts/apps_script/README.md` (~10 min)
+y pegar la URL.
+
+**3. Temas 2, 3 y 4** son solo placeholders (`README.md` con ideas, sin desarrollo aún).
 
 ---
 
