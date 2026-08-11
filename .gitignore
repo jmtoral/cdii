@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Datos descargados (no versionar archivos grandes)
+data/*.parquet
+data/*.csv
+data/measuring-hate-speech/
+
+# OJO: la muestra que SÍ va versionada es 01_sql/public/sample_data.parquet (465 KB).
+# Es la que se sirve al navegador: los notebooks la piden por URL relativa y marimo
+# copia la carpeta public/ al exportar. data/ es solo el área de trabajo del script
+# de descarga; no la versionamos para no tener dos copias que se desincronicen.
+
+# Caché de sesión de marimo (se regenera solo)
+__marimo__/
+
+# WASM export output
+_wasm_output/
+site/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter (por si acaso)
+.ipynb_checkpoints/
+*.ipynb
+
+# Cache de HuggingFace
+.cache/
