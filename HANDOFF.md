@@ -92,6 +92,111 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
+## 🛑 DÓNDE RETOMAR (fin de sesión 2026-08-12)
+
+### La decisión pendiente: `--mode run` vs `--mode edit` para las lecciones
+
+Es lo único que bloquea. Está **todo medido**, solo falta elegir y verificar.
+
+**Cómo llegamos aquí.** El profesor dijo *"sigue sin poderse correr"* y señaló la causa
+real: *"no corres el sql directo, sino que usas `correr(ejemplos["todo"], tabla_comentarios)`"*.
+Tenía razón — envolver el SQL en un helper de Python mata las **celdas SQL nativas** de
+marimo, que son las que traen botón de ▶ ejecutar. También autorizó explícitamente:
+*"no me importa que los alumnos vean las respuestas"*.
+
+**Lo que se hizo:** `01_introduccion_sql.py` se reescribió con `mo.sql()` nativo (sin
+helpers) y los exports se configuraron por notebook: lecciones en `edit`, ejercicio en `run`.
+
+**Lo medido, con Playwright contra el sitio construido:**
+
+| | `--mode run` | `--mode edit` |
+|---|---|---|
+| Celdas se ejecutan solas al abrir | ✅ | ❓ **sin verificar** |
+| Botón ▶ de ejecutar | ❌ | ✅ (122 botones `data-testid*=run`) |
+| Editar el SQL de una celda | ❌ | ✅ `Ctrl+Enter` funciona |
+| Widgets (asistencia, slider, buscador) | ✅ todos | ❌ no aparecieron **a los 25 s** |
+| Celda que falla a propósito no tumba al resto | — | ✅ |
+
+⚠️ **La casilla ❓ es la que hay que cerrar mañana.** En modo `edit` los widgets no
+aparecieron en 25 segundos, **pero el notebook tarda ~30 s solo en cargar los datos**, así
+que probablemente sea impaciencia mía y no un fallo. Una corrida anterior con espera larga
+(`verificar_edit.py`, hasta 200 s) **sí** vio tablas y resultados en modo `edit`.
+
+**Primer paso mañana:** correr `scratchpad/probar_asistencia.py` (ya tiene la espera
+alargada a 300 s) contra el build en modo `edit`. Según el resultado:
+- Si los widgets aparecen → dejar `edit` en las lecciones. Es la mejor opción: SQL nativo,
+  botón de ejecutar y todo interactivo.
+- Si no aparecen → volver las lecciones a `run` y recuperar los editores del commit
+  `d0237d0`, que sí eran ejecutables aunque sin botón visible.
+
+### ⚠️ Nada de esto está subido
+
+`git status` tiene 3 archivos modificados **y sin commitear**:
+`01_sql/01_introduccion_sql.py`, `.github/workflows/deploy-pages.yml`, `scripts/export_wasm.ps1`.
+
+**A propósito.** Lo que está publicado en https://jmtoral.github.io/cdii/ es el commit
+`d35656c`, que funciona. Subir esto ahora publicaría el modo `edit` sin verificar, o —si se
+cambia a `run`— un notebook con celdas SQL nativas que **no** se pueden editar, que sería un
+retroceso frente a lo que ya está en vivo. Decidir primero, subir después.
+
+### ⚠️⚠️ marimo se come las ediciones del archivo
+
+**Pasó de verdad en esta sesión:** con `marimo edit` abierto sobre
+`01_introduccion_sql.py`, marimo escribió su versión en memoria encima y **borró las celdas
+de asistencia recién añadidas**. Hubo que reaplicarlas.
+
+**Regla: cierra `marimo edit` antes de que nadie más toque ese archivo.** Y si algo
+"desaparece", revisa `git diff` antes de suponer que nunca se escribió.
+
+### Otros hallazgos de la sesión
+
+- **`sql_output="native"` rompe en local.** marimo lo agrega solo al abrir el notebook en
+  su editor, pero con esa opción el resultado sale como relación de DuckDB y truena con
+  `ModuleNotFoundError: No module named 'duckdb.typing'`. Está quitado, con un comentario
+  en el archivo para que no se vuelva a colar.
+- **`python 01_introduccion_sql.py` ahora sale con código 1**, y está bien: la sección 5
+  incluye una celda que **falla a propósito** (`WHERE count(*) > 3`) para enseñar el orden
+  de ejecución. Como script, un error aborta todo; en el navegador marimo la marca y sigue
+  con las demás (verificado). **Ese notebook ya no se puede validar con `python archivo.py`.**
+- **La asistencia funciona.** Se probó de extremo a extremo contra el Apps Script real en
+  modo `run`: botón deshabilitado sin datos, se habilita al llenarlos, y la página confirmó
+  *"Asistencia registrada"*.
+
+### 🧹 Filas de prueba que hay que borrar de la hoja
+
+| nombre | matrícula |
+|---|---|
+| `PRUEBA AUTOMATICA - borrar` | `TEST-000` |
+| `Fermín Ramírez` / `Ana Torres` | (pruebas del endpoint falso, puede que no llegaran) |
+| `PRUEBA ASISTENCIA - borrar` | `TEST-ASIST` |
+
+---
+
+## 📋 Toma de asistencia en el notebook 01 (2026-08-12)
+
+A petición del profesor: *"añade al intro lo de enviar para tomar lista en clase con mi
+archivo"*.
+
+Sección **"📋 Pasa lista"** al inicio de `01_introduccion_sql.py`: nombre + matrícula y un
+botón que hace POST al **mismo Apps Script** de las entregas.
+
+**No hace falta tocar el Apps Script.** La asistencia llega a la misma hoja `respuestas`,
+con las columnas `p1`…`bonus` vacías, y se distingue por la columna `ejercicio`:
+
+| `ejercicio` | Qué es |
+|---|---|
+| `asistencia_01_intro_sql` | Pase de lista |
+| `ejercicio_01_sql` | Entrega del ejercicio evaluado |
+
+Para pasar lista, filtra la hoja por esa columna. Si prefieres una pestaña aparte, hay que
+editar `Codigo.gs` para enrutar por `ejercicio` **y volver a implementar una versión nueva**
+(guardar no basta, ver `scripts/apps_script/README.md`).
+
+Reusa el mismo candado anti-reenvío por número de clic que el ejercicio: editar el nombre
+después de registrarse **no** genera una segunda fila.
+
+---
+
 ## ▶️ Los ejemplos de la lección son ejecutables (2026-08-12)
 
 **Crítica del profesor:** *"no me permite correr en ningún lado"*. Correcta: el helper

@@ -111,10 +111,14 @@ $IndexHtml = @"
 $IndexHtml | Out-File -FilePath (Join-Path $OutputDir "index.html") -Encoding UTF8
 
 # Buscar y exportar todos los notebooks .py de Marimo
+# Las LECCIONES van en modo edit: es lo único que le da al alumno el botón de ▶ ejecutar
+# y las celdas SQL nativas de marimo. En ese modo se ve todo el código, incluidas las
+# soluciones de los acordeones, y está aceptado a cambio de que puedan correr las consultas.
+# El EJERCICIO evaluado va en modo run, para que no puedan desarmar la entrega.
 $Notebooks = @(
-    @{ Path = "01_sql\01_introduccion_sql.py"; Name = "01_introduccion_sql" },
-    @{ Path = "01_sql\02_agregaciones_joins.py"; Name = "02_agregaciones_joins" },
-    @{ Path = "01_sql\ejercicio_01.py"; Name = "ejercicio_01" }
+    @{ Path = "01_sql\01_introduccion_sql.py"; Name = "01_introduccion_sql"; Modo = "edit" },
+    @{ Path = "01_sql\02_agregaciones_joins.py"; Name = "02_agregaciones_joins"; Modo = "edit" },
+    @{ Path = "01_sql\ejercicio_01.py"; Name = "ejercicio_01"; Modo = "run" }
 )
 
 $Fallos = @()
@@ -129,11 +133,8 @@ foreach ($nb in $Notebooks) {
         continue
     }
 
-    Write-Host "  📄 Exportando $($nb.Name)..." -ForegroundColor Yellow
-    # SIN --show-code: esa bandera ignora los hide_code=True y expone el andamiaje de
-    # Python y las soluciones de los ejercicios. El SQL se muestra desde el notebook
-    # con el helper `mostrar()`.
-    marimo export html-wasm $FullPath -o $OutPath --mode run
+    Write-Host "  📄 Exportando $($nb.Name) (modo $($nb.Modo))..." -ForegroundColor Yellow
+    marimo export html-wasm $FullPath -o $OutPath --mode $nb.Modo
 
     # OJO: no revisamos $LASTEXITCODE. `marimo export` devuelve 255 desde PowerShell
     # aunque el export salga bien (artefacto de PowerShell con comandos nativos).

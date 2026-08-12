@@ -46,15 +46,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p site
+
+          # Las LECCIONES van en --mode edit: es lo único que le da al alumno el botón
+          # de ▶ ejecutar y las celdas SQL nativas de marimo, que es el punto de la clase.
+          # Sí, en ese modo se ve todo el código (incluidas las soluciones en los
+          # acordeones), y está aceptado: pesa más que puedan correr las consultas.
+          #
+          # El EJERCICIO evaluado va en --mode run: ahí el alumno escribe en widgets
+          # controlados y no queremos que pueda desarmar la maquinaria de entrega.
+          declare -A MODO=(
+            [01_introduccion_sql]=edit
+            [02_agregaciones_joins]=edit
+            [ejercicio_01]=run
+          )
+
           for nb in 01_introduccion_sql 02_agregaciones_joins ejercicio_01; do
-            echo "::group::Exportando $nb"
-            # SIN --show-code, a propósito. Esa bandera IGNORA los hide_code=True del
-            # notebook y enseña todo el andamiaje de Python (imports, mo.callout, los
-            # helpers) y —lo grave— el código de las celdas de solución, con la
-            # respuesta a la vista. El SQL se le muestra al alumno desde el propio
-            # notebook, con el helper `mostrar()`, que imprime la consulta y su
-            # resultado. Ver 01_sql/01_introduccion_sql.py.
-            marimo export html-wasm "01_sql/$nb.py" -o "site/$nb" --mode run
+            echo "::group::Exportando $nb (${MODO[$nb]})"
+            marimo export html-wasm "01_sql/$nb.py" -o "site/$nb" --mode "${MODO[$nb]}"
             test -f "site/$nb/index.html" \
               || { echo "::error::$nb no generó index.html"; exit 1; }
             ls "site/$nb/public/"*.parquet \
