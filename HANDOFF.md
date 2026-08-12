@@ -92,6 +92,81 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
+## 🚨 Defectos del contenido pedagógico (medidos el 2026-08-12)
+
+Origen: `BRIEF-agente-cdii.md`, generado por otro agente. **Sus afirmaciones sobre los datos se
+revalidaron una por una contra `01_sql/public/sample_data.parquet` y todas resultaron correctas.**
+
+### Lo que está roto y por qué
+
+La muestra se construyó con `df.sample(n=5000)` sobre **filas**, pero el grano real del dataset es
+la **anotación**: cada comentario fue evaluado por varias personas. El muestreo de filas destruyó
+esa estructura.
+
+| Medición | Valor |
+|---|---|
+| Filas / columnas | 5,000 / 143 |
+| `comment_id` distintos | 3,356 → **no es llave** |
+| `annotator_id` distintos | 3,770 |
+| Máx. anotaciones por anotador | **5** |
+| Códigos en `platform` | 4 (sin codebook publicado) |
+
+**Tres ejercicios devuelven cero filas** (verificado ejecutándolos):
+
+| Ubicación | Consulta | Filas |
+|---|---|---|
+| `ejercicio_01.py` P5 (20 pts) | `HAVING COUNT(*) > 50` por `annotator_id` | **0** |
+| `02_agregaciones_joins.py` §3 | `HAVING COUNT(*) > 50 AND AVG(...) > 0` | **0** |
+| `02_agregaciones_joins.py` ej. 2 | `HAVING COUNT(*) >= 10` por `annotator_id` | **0** |
+
+El alumno puede escribir el SQL perfecto y ver una tabla vacía, sin manera de saber que la culpa es
+de los datos. **Arreglo: agrupar por comentario, no por anotador** (57 comentarios tienen >15
+anotaciones).
+
+El top 20 por `hate_speech_score` de la P1 son en realidad **9 comentarios distintos** repetidos.
+
+### Error conceptual: `target_*` no es atributo del comentario
+
+Verificado contando valores distintos por grupo:
+- **Constantes dentro de `comment_id`**: `text`, `platform`, `hate_speech_score` → son del comentario.
+- **Varían dentro de `comment_id`** (hasta 2 valores): las 8 `target_*` y las 10 etiquetas ordinales
+  (`respect`, `sentiment`, `insult`…) → son de la **anotación**, no del comentario.
+- **Constantes dentro de `annotator_id`**: los 6 demográficos `annotator_*` → son de la persona.
+
+El material dice "comentarios cuyo objetivo fue por motivos de raza", tratando `target_race` como
+propiedad del texto. No lo es: es el juicio de cada anotador, y los anotadores **discrepan**. Ese
+desacuerdo es la premisa del corpus (*data perspectivism*), material de clase, no un error a corregir
+en silencio.
+
+### Otros defectos confirmados
+- `data/download_data.py`: el bloque "muestra WASM" **pisa incondicionalmente** `sample_data.parquet`
+  después del bloque `if args.sample`, así que `--sample 20000` produce 5,000 filas sin avisar.
+- **Las soluciones están escritas debajo de "Escribe tu código aquí"** en los ejercicios de práctica
+  de `01_introduccion_sql.py`. Deben ir en un `mo.accordion` colapsado.
+- `README.md:81` sigue con el placeholder `https://[tu-usuario].github.io/cdii/`.
+- `ejecutar()` en `ejercicio_01.py` corre SQL arbitrario: un `DROP TABLE` rompe el notebook.
+  Envolver en `SELECT * FROM ( ... ) LIMIT 500` para forzar que solo sea un SELECT.
+- Ningún notebook tiene aviso de contenido, pese a que el corpus trae slurs explícitos.
+- La sección de JOINs de `02_agregaciones_joins.py` es falsa: cruza un agregado de la misma tabla
+  consigo mismo y crea una vista que nunca usa.
+- Umbrales del `CASE WHEN` inventados (`>2`). El brief afirma que el corpus documenta cortes reales
+  (0.5 y −1); **eso no se ha verificado contra la fuente** — hacerlo antes de usarlos.
+
+### Sobre el brief y su ZIP
+`~/Downloads/cdii-corregido.zip` existe y su sección 0 propone descomprimirlo sobre el repo.
+**No hacerlo así**: pisaría el deploy ya verificado y trae un workflow distinto al que está en verde.
+Extraer por partes y verificar.
+
+El brief también propone **normalizar en 4 tablas** (`comentarios`, `anotaciones`, `anotadores`,
+`plataformas`) y reescribir los 3 notebooks. Tiene mérito —con una tabla plana no se pueden enseñar
+JOINs de verdad— pero es una decisión **curricular**, no un arreglo de bug, y obliga a re-verificar
+todo en navegador. Decisión pendiente del profesor.
+
+Nota: sus números de la §7.2 (191, 133, 8) están calculados sobre la tabla `comentarios`
+**deduplicada**, no sobre la plana. Comparados contra la tabla correcta, cuadran exactos.
+
+---
+
 ## 📍 Estado Actual
 
 ### ✅ Completado
@@ -118,10 +193,19 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 - **Validación**: Los notebooks tienen sintaxis correcta de Python/Marimo, las consultas de DuckDB se ejecutaron sin problemas sobre los datos locales, y el servidor de Marimo levantó correctamente.
 - **Deployment**: scripts configurados para WASM + GitHub Pages (`export_wasm.ps1` y `deploy-pages.yml`).
 
-- **Publicación (2026-08-11)**: repo inicializado y subido a
-  [jmtoral/cdii](https://github.com/jmtoral/cdii) (rama `main`, commit `1dd6f60`).
-  GitHub Pages habilitado con origen *GitHub Actions*. URL del sitio:
+- **Publicación (2026-08-12): el sitio está VIVO y verificado en producción** →
   **https://jmtoral.github.io/cdii/**
+  Repo en [jmtoral/cdii](https://github.com/jmtoral/cdii), Pages con origen *GitHub Actions*
+  (se habilitó por API: `gh api repos/jmtoral/cdii/pages -X POST -f build_type=workflow`).
+  Prueba de humo con Playwright **contra la URL pública**: las 3 páginas cargan datos, el
+  notebook 01 muestra su slider y su dropdown, el ejercicio muestra sus 7 editores SQL.
+- **El workflow requirió `gh auth refresh -s workflow`**: el token de `gh` no puede subir
+  archivos en `.github/workflows/` sin ese scope, ni por push ni por la API de contenidos
+  (que responde un 404 engañoso).
+- ⚠️ **`marimo export html-wasm` necesita `uv` instalado.** Sin él aborta a medias: copia los
+  assets pero no genera `index.html`. El primer build de CI falló exactamente por esto, y lo
+  detectamos **porque se quitó el `|| true`** — con el workflow viejo se habría publicado un
+  sitio roto en silencio.
 - **`export_wasm.ps1` ejecutado y verificado**: construye las 3 páginas con sus datos.
   Prueba de humo con Playwright sobre `site/`: las 3 cargan datos (tablas visibles), el
   notebook 01 muestra su slider y su dropdown, y el ejercicio muestra sus 7 editores SQL.
@@ -131,40 +215,9 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ### ❌ Pendiente / Sin Hacer
 
-**1. Subir el workflow de Pages** *(bloqueado por permisos — requiere 1 comando del usuario)*
-
-⚠️ **El sitio https://jmtoral.github.io/cdii/ responde 404 y va a seguir así hasta que
-esto se resuelva.** Diagnóstico confirmado por API el 2026-08-11:
-
-```
-gh api repos/jmtoral/cdii/pages        -> build_type: workflow, status: null
-gh api repos/jmtoral/cdii/pages/builds -> 0 builds
-gh api repos/jmtoral/cdii/actions/workflows -> 0 workflows
-```
-
-Es decir: Pages está **habilitado y esperando** que un workflow le entregue el sitio,
-pero no hay ninguno. No es un problema del sitio ni de los notebooks — es que nunca se
-ha construido.
-
-Causa: el push rechazó `.github/workflows/deploy-pages.yml` con
-*"refusing to allow an OAuth App to create or update workflow without `workflow` scope"*.
-El archivo **está en disco, corregido y sin commitear** (`git status` lo muestra como `?? .github/`).
-Crear el archivo por la API de contenidos falla igual (404 que enmascara el permiso).
-
-Para completarlo:
-
-```bash
-gh auth refresh -s workflow      # abre el navegador y pide confirmar
-git add .github && git commit -m "CI: workflow de GitHub Pages" && git push
-```
-
-Alternativas si eso no es viable:
-- **Sin consola**: crear el archivo desde la web de GitHub (*Add file → Create new file*,
-  ruta `.github/workflows/deploy-pages.yml`) pegando el contenido local. Mismo resultado.
-- **Rama `gh-pages`**: subir `site/` ya construido y cambiar Pages a `build_type: legacy`.
-  Publica sin permisos extra, pero mete **81 MB al historial de git para siempre**
-  (marimo empaqueta ~27 MB de assets por notebook) y obliga a reconstruir y subir a mano
-  en cada cambio. Descartado salvo que se necesite el sitio de inmediato.
+**1. Arreglar los defectos pedagógicos** — ver la sección 🚨 arriba. Lo urgente, en orden:
+los 3 ejercicios de cero filas, esconder las soluciones, el lenguaje sobre `target_*`,
+el sandbox de SQL, el aviso de contenido, el README y el bug de `download_data.py`.
 
 **2. Configurar el endpoint de entregas**
 `ENDPOINT` en `01_sql/ejercicio_01.py` está vacío a propósito → el botón de enviar sale
