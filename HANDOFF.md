@@ -92,6 +92,41 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
+## ▶️ Los ejemplos de la lección son ejecutables (2026-08-12)
+
+**Crítica del profesor:** *"no me permite correr en ningún lado"*. Correcta: el helper
+`mostrar()` pintaba el SQL en un bloque de markdown **muerto**, y lo único ejecutable
+estaba en el playground del final.
+
+Ahora los **16 ejemplos del notebook 01 son editores**: el alumno cambia el umbral, las
+columnas o el `ORDER BY` del propio ejemplo y se re-ejecuta al hacer clic afuera. El texto
+lo invita explícitamente ("cambia el `0.5` por `3` y mira cuántas filas quedan"). Esto
+resuelve el "play" **sin** recurrir a `--mode edit`, que filtraría las soluciones.
+
+### El patrón, que tiene una sutileza de marimo
+
+```python
+# Celda A: TODOS los editores juntos
+ejemplos = mo.ui.dictionary({"pieza2": mo.ui.code_editor(...), ...})
+
+# Celda B: mostrarlo y leer su valor A LA VEZ (se puede porque se definió en otra celda)
+correr(ejemplos["pieza2"], tabla_comentarios)
+```
+
+marimo prohíbe leer `.value` de un elemento **en la celda que lo define**, pero no en otra.
+Definirlos todos juntos en un `mo.ui.dictionary` permite que cada celda de ejemplo muestre
+su editor y su resultado sin partirse en dos.
+
+Las consultas que arma un widget (buscador de columnas, slider del comentario 20014,
+búsqueda libre) siguen con `mostrar()` en modo lectura: ahí el SQL lo genera el control,
+no el alumno.
+
+⚠️ **`textwrap.dedent` no es opcional.** Las cadenas triples de Python arrastran la
+sangría del código, y el bloque renderizado salía con `FROM` recorrido debajo de `SELECT`.
+Todo pasa por `limpiar()`.
+
+---
+
 ## 🗂️ Corpus completo y documentación del dataset (2026-08-12)
 
 **Se abandonó la muestra.** Ahora se usa el corpus completo: `01_sql/public/hate_speech.parquet`,
