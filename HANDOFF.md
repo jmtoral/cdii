@@ -92,6 +92,55 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
+## 🗂️ Corpus completo y documentación del dataset (2026-08-12)
+
+**Se abandonó la muestra.** Ahora se usa el corpus completo: `01_sql/public/hate_speech.parquet`,
+**135,556 filas / 39,565 comentarios / 7,912 anotadores**, 6.8 MB. Carga en el navegador en
+unos 30 segundos. Todas las cifras citadas en el texto se recalcularon.
+
+### Hallazgo: el corpus NO es homogéneo
+| Evaluaciones por comentario | Comentarios |
+|---|---|
+| 1 / 2 / 3 / 4 | 10,077 / 12,136 / 11,362 / 5,709 |
+| 5 – 6 | 211 |
+| **243 – 815** | **70** ← son exactamente los de `platform = 1` |
+
+Esos 70 son un **conjunto de calibración**. Está convertido en sección del notebook 01: si
+promedias sobre toda la tabla, esos 70 comentarios pesan como 25,000 filas.
+
+⚠️ **Corrige una suposición del BRIEF**: decía que regenerar desde el corpus completo
+arreglaría los ejercicios de `HAVING` por anotador. **Es falso** — en el corpus completo
+ningún anotador supera las **26** evaluaciones (mediana 17). Agrupar por comentario, que es
+lo que se hizo, era la única salida.
+
+### ⚠️ Corrección: los umbrales 0.5 y −1 NO están documentados
+El BRIEF los daba como cortes documentados por los autores y yo los propagué al material
+como tales. **No aparecen ni en el paper (arXiv:2009.10277) ni en la ficha de HuggingFace.**
+Ahora se presentan como **decisión nuestra**, con el rango real a la vista (−8.34 a 6.30) y
+la advertencia de que cambiar el umbral cambia las conclusiones. Enseña mejor el punto.
+
+### Procedencia (verificada en la fuente)
+D-Lab de UC Berkeley. *"Measuring a hate speech spectrum with faceted Rasch item response
+theory and perspective-aware, explainable-by-design deep learning"*, de **Chris J. Kennedy,
+Geoff Bacon, Alexander Sahn y Claudia von Vacano**. Comentarios de YouTube, Twitter y Reddit
+evaluados por trabajadores de Mechanical Turk. `hate_speech_score` sale de un modelo Rasch/IRT
+sobre 10 etiquetas ordinales, y el paper describe el espectro *"desde genocida hasta discurso
+de apoyo"*.
+
+**Por qué varios evaluadores** (está explicado en el notebook 01): para medir el desacuerdo en
+vez de esconderlo, y para estimar y descontar la severidad de cada anotador.
+
+### Sistema de entregas: CONECTADO ✅
+`ENDPOINT` ya apunta al Apps Script del profesor y se probó de extremo a extremo desde el
+navegador: la página confirmó "Entrega recibida". Quedó una fila de prueba en la hoja
+(`PRUEBA AUTOMATICA - borrar`).
+
+⚠️ **No pruebes el endpoint con `curl`**: Apps Script redirige el POST y curl pierde el
+cuerpo (411) o el método (405). Hay que probarlo desde el navegador, que es como lo usan
+los alumnos.
+
+---
+
 ## 📚 Rediseño del notebook 01 para licenciatura (2026-08-12)
 
 **Crítica del profesor:** *"no les explica ni paso por paso, ni les permite cargar la
