@@ -28,17 +28,39 @@ def _(mo):
     esta sesión vas a poder abrir una tabla que nunca has visto, entender qué contiene y
     sacarle respuestas.
 
-    ### Cómo se usa esta página
-
-    Cada bloque de SQL es una **celda ejecutable de verdad**. Puedes cambiarle lo que
-    quieras y volver a correrla:
-
-    - **`Ctrl + Enter`** ejecuta la celda donde tengas el cursor.
-    - O pasa el mouse sobre la celda y usa el **botón ▶ de ejecutar** que aparece.
-
-    Nada de lo que hagas se guarda ni afecta a nadie más: si dejas una celda hecha un
-    desastre, recarga la página y todo vuelve al original.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.callout(
+        mo.md("""
+        ## 🚦 Antes que nada: enciende el notebook
+
+        Esta página abre **apagada**: verás el código pero ningún resultado. Es normal.
+
+        ### 👉 Presiona `Ctrl` + `Shift` + `R` para ejecutar todo
+
+        Tarda cerca de **medio minuto** la primera vez, porque tu navegador está bajando
+        Python y los 135 mil comentarios. Ten paciencia: solo pasa una vez.
+
+        Cuando termine vas a ver tablas con datos debajo de cada consulta. A partir de
+        ahí ya puedes trabajar:
+
+        | Para… | Haz esto |
+        |---|---|
+        | Ejecutar **una** celda | Pon el cursor dentro y `Ctrl` + `Enter` |
+        | Ejecutar **todo** otra vez | `Ctrl` + `Shift` + `R` |
+        | Ejecutar con el mouse | Pasa el cursor sobre la celda y usa el botón **▶** |
+
+        **Puedes cambiar cualquier consulta.** Esa es la idea: modifica los números, las
+        columnas, los filtros, y vuelve a ejecutar para ver qué pasa. Nada de lo que
+        hagas se guarda ni afecta a nadie: si dejas una celda hecha un desastre, recarga
+        la página y todo vuelve al original.
+        """),
+        kind="info",
+    )
     return
 
 

@@ -57,6 +57,24 @@ def _(mo):
 def _(mo):
     mo.callout(
         mo.md("""
+        ## 🚦 Antes que nada: enciende el notebook
+
+        Igual que en el notebook anterior, esta página abre **apagada**.
+
+        ### 👉 Presiona `Ctrl` + `Shift` + `R` para ejecutar todo
+
+        Tarda cerca de medio minuto la primera vez. Después, `Ctrl` + `Enter` ejecuta la
+        celda donde tengas el cursor, y puedes cambiar cualquier consulta para ver qué pasa.
+        """),
+        kind="info",
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.callout(
+        mo.md("""
         **Aviso de contenido.** El corpus contiene insultos y lenguaje ofensivo explícito.
         Todos los ejercicios de este notebook se resuelven con columnas numéricas: **no
         hace falta leer la columna `text`**.
