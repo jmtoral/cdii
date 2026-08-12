@@ -34,8 +34,12 @@ export por HTTP). Resultados medidos, no supuestos:
    celda no funciona. La solución es `mo.ui.code_editor`, que sigue siendo interactivo en modo `run`
    y además expone `.value` (la respuesta del alumno queda capturable para la entrega).
 
-Harness de verificación: `scratchpad/drive.py`, `dump.py`, `widgets2.py`, `reactividad.py`
-(Playwright, usa el Edge instalado con `channel="msedge"`; no requiere descargar navegadores).
+**Harness de verificación reutilizable**: se destiló todo esto en una skill en
+`~/.claude/skills/marimo-wasm/`, con un script `scripts/verificar_wasm.py` que exporta un
+notebook, lo sirve por HTTP y lo abre en un navegador real comprobando que carguen los datos
+y los widgets. Usa el Edge del sistema (`channel="msedge"`), no descarga navegadores.
+Correr eso **antes** de dar por bueno cualquier cambio: `python notebook.py` devuelve 0
+aunque en el navegador no se vea nada.
 
 ⚠️ **Trampa al verificar widgets**: marimo monta los widgets en **shadow DOM** y los custom elements
 `<marimo-*>` usan `display:contents`, así que `getBoundingClientRect()` sobre ellos da 0×0 y parece
@@ -127,18 +131,40 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ### ❌ Pendiente / Sin Hacer
 
-**1. Subir el workflow de Pages** *(bloqueado por permisos, requiere 1 comando del usuario)*
-El push rechazó `.github/workflows/deploy-pages.yml` porque el token de `gh` no tiene el
-scope `workflow`. El archivo **está en disco, corregido y sin commitear**. Para completarlo:
+**1. Subir el workflow de Pages** *(bloqueado por permisos — requiere 1 comando del usuario)*
+
+⚠️ **El sitio https://jmtoral.github.io/cdii/ responde 404 y va a seguir así hasta que
+esto se resuelva.** Diagnóstico confirmado por API el 2026-08-11:
+
+```
+gh api repos/jmtoral/cdii/pages        -> build_type: workflow, status: null
+gh api repos/jmtoral/cdii/pages/builds -> 0 builds
+gh api repos/jmtoral/cdii/actions/workflows -> 0 workflows
+```
+
+Es decir: Pages está **habilitado y esperando** que un workflow le entregue el sitio,
+pero no hay ninguno. No es un problema del sitio ni de los notebooks — es que nunca se
+ha construido.
+
+Causa: el push rechazó `.github/workflows/deploy-pages.yml` con
+*"refusing to allow an OAuth App to create or update workflow without `workflow` scope"*.
+El archivo **está en disco, corregido y sin commitear** (`git status` lo muestra como `?? .github/`).
+Crear el archivo por la API de contenidos falla igual (404 que enmascara el permiso).
+
+Para completarlo:
 
 ```bash
 gh auth refresh -s workflow      # abre el navegador y pide confirmar
 git add .github && git commit -m "CI: workflow de GitHub Pages" && git push
 ```
 
-Hasta que eso pase, Pages está habilitado pero no hay build que lo alimente: el sitio
-todavía no existe. Alternativa sin consola: crear el archivo desde la web de GitHub
-(*Add file → Create new file*) pegando el contenido local.
+Alternativas si eso no es viable:
+- **Sin consola**: crear el archivo desde la web de GitHub (*Add file → Create new file*,
+  ruta `.github/workflows/deploy-pages.yml`) pegando el contenido local. Mismo resultado.
+- **Rama `gh-pages`**: subir `site/` ya construido y cambiar Pages a `build_type: legacy`.
+  Publica sin permisos extra, pero mete **81 MB al historial de git para siempre**
+  (marimo empaqueta ~27 MB de assets por notebook) y obliga a reconstruir y subir a mano
+  en cada cambio. Descartado salvo que se necesite el sitio de inmediato.
 
 **2. Configurar el endpoint de entregas**
 `ENDPOINT` en `01_sql/ejercicio_01.py` está vacío a propósito → el botón de enviar sale
