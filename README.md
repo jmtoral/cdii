@@ -78,9 +78,19 @@ Los notebooks exportados se publican automáticamente en GitHub Pages via GitHub
 
 Los ejercicios están disponibles como apps interactivas en:
 
-> **https://[tu-usuario].github.io/cdii/**
+> **https://jmtoral.github.io/cdii/**
 
-No requiere instalación — corre directamente en el navegador.
+No requiere instalación: corre entero en el navegador del alumno. No hay servidor —
+GitHub Pages solo entrega archivos, y el Python real se ejecuta dentro de la pestaña
+gracias a Pyodide (CPython compilado a WebAssembly) con DuckDB al lado.
+
+La primera carga tarda decenas de segundos porque descarga el intérprete de Python.
+Después queda en caché. **Vale la pena avisarles**, o van a creer que se trabó.
+
+> ⚠️ **Aviso de contenido.** El corpus *Measuring Hate Speech* contiene insultos y
+> lenguaje ofensivo explícito: es un corpus de discurso de odio y ese es justamente su
+> objeto de estudio. Los ejercicios están diseñados para poder resolverse sin necesidad
+> de leer la columna `text`.
 
 ## 📋 Temas del Curso
 

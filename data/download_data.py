@@ -73,20 +73,41 @@ def main():
     size_mb = full_path.stat().st_size / (1024 * 1024)
     print(f"💾 Dataset completo guardado: {full_path} ({size_mb:.1f} MB)")
 
-    # Guardar muestra si se solicita
-    if args.sample:
-        sample_df = df.sample(n=min(args.sample, len(df)), seed=42)
-        sample_path = output_dir / "sample_data.parquet"
-        sample_df.write_parquet(sample_path)
-        sample_size_mb = sample_path.stat().st_size / (1024 * 1024)
-        print(f"💾 Muestra guardada: {sample_path} ({args.sample:,} filas, {sample_size_mb:.1f} MB)")
+    # Una sola escritura de sample_data.parquet.
+    # Antes había dos: el bloque `if args.sample` escribía el archivo y justo después
+    # otro bloque lo pisaba incondicionalmente con 5,000 filas. Resultado: `--sample 20000`
+    # producía 5,000 filas en silencio.
+    n_muestra = min(args.sample or 5000, len(df))
+    sample_df = df.sample(n=n_muestra, seed=42)
+    sample_path = output_dir / "sample_data.parquet"
+    sample_df.write_parquet(sample_path)
+    size_kb = sample_path.stat().st_size / 1024
+    print(f"💾 Muestra guardada: {sample_path} ({n_muestra:,} filas, {size_kb:.0f} KB)")
 
-    # Siempre crear una muestra pequeña para WASM
-    wasm_sample = df.sample(n=min(5000, len(df)), seed=42)
-    wasm_path = output_dir / "sample_data.parquet"
-    wasm_sample.write_parquet(wasm_path)
-    wasm_size_kb = wasm_path.stat().st_size / 1024
-    print(f"💾 Muestra WASM guardada: {wasm_path} (5,000 filas, {wasm_size_kb:.0f} KB)")
+    # ⚠️ El archivo que se sirve al navegador es 01_sql/public/sample_data.parquet,
+    # NO este. Hay que copiarlo a mano o el sitio seguirá publicando la muestra vieja.
+    destino_web = Path(__file__).resolve().parents[1] / "01_sql" / "public"
+    if destino_web.is_dir():
+        import shutil
+
+        shutil.copy2(sample_path, destino_web / "sample_data.parquet")
+        print(f"💾 Copiado a {destino_web / 'sample_data.parquet'} (es el que se publica)")
+    else:
+        print(f"⚠️  No encontré {destino_web}: copia el parquet a mano antes de publicar.")
+
+    # ⚠️ ADVERTENCIA sobre el muestreo, importante para los ejercicios:
+    # esto muestrea FILAS, pero el grano del dataset es la ANOTACIÓN (cada comentario
+    # fue evaluado por varias personas). Muestrear filas rompe esa estructura: con
+    # n=5000 el máximo de anotaciones por anotador queda en 5, así que cualquier
+    # ejercicio de HAVING sobre conteos por anotador devuelve CERO filas.
+    # Al regenerar los datos hay que revisar estos números y revalidar los ejercicios.
+    print("\n📊 Distribución de anotaciones (de esto dependen los ejercicios de HAVING):")
+    por_anotador = sample_df.group_by("annotator_id").len()["len"]
+    por_comentario = sample_df.group_by("comment_id").len()["len"]
+    for etiqueta, serie in [("por anotador", por_anotador), ("por comentario", por_comentario)]:
+        print(f"   {etiqueta}: máx={serie.max()}, media={serie.mean():.1f}")
+        for corte in (3, 5, 10, 20, 50):
+            print(f"      con más de {corte:>2}: {(serie > corte).sum():,}")
 
     print("\n✅ ¡Listo! Los datos están en el directorio data/")
     print("\nPara usar en Marimo:")

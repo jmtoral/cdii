@@ -48,6 +48,12 @@ jobs:
           mkdir -p site
           for nb in 01_introduccion_sql 02_agregaciones_joins ejercicio_01; do
             echo "::group::Exportando $nb"
+            # SIN --show-code, a propósito. Esa bandera IGNORA los hide_code=True del
+            # notebook y enseña todo el andamiaje de Python (imports, mo.callout, los
+            # helpers) y —lo grave— el código de las celdas de solución, con la
+            # respuesta a la vista. El SQL se le muestra al alumno desde el propio
+            # notebook, con el helper `mostrar()`, que imprime la consulta y su
+            # resultado. Ver 01_sql/01_introduccion_sql.py.
             marimo export html-wasm "01_sql/$nb.py" -o "site/$nb" --mode run
             test -f "site/$nb/index.html" \
               || { echo "::error::$nb no generó index.html"; exit 1; }

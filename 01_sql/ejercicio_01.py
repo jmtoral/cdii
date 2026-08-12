@@ -41,8 +41,7 @@ def _(mo):
     # Ejercicio 01 — Fundamentos de SQL
 
     Bienvenida/o al primer ejercicio evaluado de **Ciencia de Datos para la Toma de
-    Decisiones II**. Vas a trabajar sobre el dataset *Measuring Hate Speech* del
-    UC Berkeley D-Lab, ya cargado en una tabla llamada `comments`.
+    Decisiones II**.
 
     **Cómo funciona:**
 
@@ -53,6 +52,18 @@ def _(mo):
       botón de entrega al final.
     4. Al terminar, completa tus datos y entrega.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.callout(
+        mo.md("""
+        **Aviso de contenido.** El corpus contiene insultos y lenguaje ofensivo explícito.
+        **Las siete preguntas se resuelven sin necesidad de leer la columna `text`.**
+        """),
+        kind="warn",
+    )
     return
 
 
@@ -76,7 +87,7 @@ def _(mo):
 def _(DATA_URL, mo):
     _carga = mo.sql(
         f"""
-        CREATE OR REPLACE TABLE comments AS
+        CREATE OR REPLACE TABLE anotaciones AS
         SELECT * FROM read_parquet('{DATA_URL}')
         """,
         output=False,
@@ -85,13 +96,46 @@ def _(DATA_URL, mo):
 
 
 @app.cell(hide_code=True)
-def _(comments, mo):
-    _muestra = mo.sql("SELECT * FROM comments LIMIT 5", output=False)
+def _(anotaciones, mo):
+    _dedup = mo.sql(
+        """
+        CREATE OR REPLACE TABLE comentarios AS
+        SELECT DISTINCT comment_id, text, platform AS platform_id, hate_speech_score
+        FROM anotaciones
+        """,
+        output=False,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(anotaciones, comentarios, mo):
+    _tamanos = mo.sql(
+        """
+        SELECT 'anotaciones' AS tabla, count(*) AS filas FROM anotaciones
+        UNION ALL SELECT 'comentarios', count(*) FROM comentarios
+        """,
+        output=False,
+    )
     mo.vstack(
         [
-            mo.md("### Los datos con los que vas a trabajar"),
-            mo.md(f"La tabla `comments` tiene **{len(_muestra.columns)} columnas**. Una muestra:"),
-            mo.ui.table(_muestra, selection=None, page_size=5),
+            mo.md("""
+            ### Tus dos tablas
+
+            Igual que en las lecciones, tienes **dos** tablas, y elegir la correcta es
+            parte de cada pregunta:
+
+            - **`anotaciones`** — una fila por *cada evaluación*. Un mismo comentario
+              aparece varias veces, una por cada persona que lo evaluó. Aquí viven
+              `annotator_id`, las columnas `target_*` y las etiquetas como `respect`
+              o `insult`.
+            - **`comentarios`** — una fila por *comentario*, sin repeticiones. Aquí viven
+              `comment_id`, `text`, `platform_id` y `hate_speech_score`.
+
+            ⚠️ Si una pregunta habla de **comentarios**, usar `anotaciones` te dará
+            números inflados por las repeticiones.
+            """),
+            mo.ui.table(_tamanos, selection=None),
         ]
     )
     return
@@ -99,6 +143,8 @@ def _(comments, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
+    import re
+
     def ejecutar(consulta: str):
         """Corre el SQL del alumno y devuelve una tabla, o un error legible."""
         texto = (consulta or "").strip()
@@ -114,8 +160,13 @@ def _(mo):
                 mo.md("Escribe tu consulta en el editor de arriba."), kind="neutral"
             )
 
+        # Envolver la consulta dentro de un SELECT la vuelve de solo lectura: un
+        # DROP, DELETE o UPDATE deja de ser sintácticamente válido dentro de un FROM
+        # y falla con un error, en vez de destruir las tablas del ejercicio.
+        blindada = f"SELECT * FROM (\n{re.sub(r';\s*$', '', texto)}\n) AS respuesta LIMIT 500"
+
         try:
-            resultado = mo.sql(texto, output=False)
+            resultado = mo.sql(blindada, output=False)
         except Exception as e:  # noqa: BLE001 - queremos mostrar cualquier error de SQL
             return mo.callout(
                 mo.md(f"""
@@ -185,9 +236,10 @@ def _(pregunta):
     pregunta(
         "1",
         10,
-        "Selecciona las columnas `comment_id`, `text` y `hate_speech_score` de los "
-        "**20 comentarios con mayor `hate_speech_score`**.",
-        "`SELECT` con los nombres de columna, `FROM comments`, `ORDER BY ... DESC` y `LIMIT`.",
+        "Muestra `comment_id` y `hate_speech_score` de los **20 comentarios con mayor "
+        "`hate_speech_score`**, del más alto al más bajo.",
+        "Piensa bien de qué tabla los sacas: si usas `anotaciones` verás el mismo "
+        "comentario repetido y no serán 20 comentarios distintos.",
     )
     return
 
@@ -209,9 +261,11 @@ def _(pregunta):
     pregunta(
         "2",
         15,
-        "Encuentra los comentarios donde `target_race` sea `TRUE` **y** el "
-        "`hate_speech_score` sea mayor a `2.0`. Muestra `text` y `hate_speech_score`.",
-        "`WHERE` combinando dos condiciones con `AND`.",
+        "Encuentra las **evaluaciones** en las que el anotador marcó `target_race` como "
+        "`TRUE` **y** el `hate_speech_score` es mayor a `2.0`. Muestra `comment_id`, "
+        "`annotator_id` y `hate_speech_score`.",
+        "`WHERE` con dos condiciones unidas por `AND`. Como habla de evaluaciones y de "
+        "`annotator_id`, la tabla es `anotaciones`.",
     )
     return
 
@@ -233,9 +287,11 @@ def _(pregunta):
     pregunta(
         "3",
         15,
-        "Encuentra comentarios cuyo texto contenga la palabra *hate* (sin importar si "
-        "hay texto antes o después). Muestra las primeras 15 filas.",
-        "El operador `LIKE` con comodines `%`. ¿Y si la palabra está en mayúsculas? Prueba `ILIKE`.",
+        "Encuentra **comentarios** cuyo texto contenga la palabra *hate*, sin importar "
+        "mayúsculas ni lo que haya antes o después. Muestra `comment_id` y "
+        "`hate_speech_score`, solo las primeras 15 filas.",
+        "El comodín `%` va a los dos lados. Usa `ILIKE` para que no importen las "
+        "mayúsculas, y la tabla sin repeticiones.",
     )
     return
 
@@ -257,8 +313,10 @@ def _(pregunta):
     pregunta(
         "4",
         15,
-        "¿Cuántos comentarios hay por cada plataforma (`platform`)? Ordena de mayor a menor.",
-        "`GROUP BY platform` junto con `COUNT(*)`.",
+        "¿Cuántos **comentarios** hay por cada plataforma (`platform_id`)? Ordena de "
+        "mayor a menor cantidad.",
+        "`GROUP BY platform_id` con `count(*)`. Recuerda que los códigos de plataforma "
+        "no tienen diccionario publicado: puedes contarlos, pero no decir qué red es cuál.",
     )
     return
 
@@ -280,9 +338,10 @@ def _(pregunta):
     pregunta(
         "5",
         20,
-        "Encuentra los anotadores (`annotator_id`) que evaluaron **más de 50 comentarios**. "
-        "Muestra el `annotator_id` y su conteo.",
-        "Agrupa por `annotator_id` y filtra los grupos con `HAVING` (no con `WHERE`).",
+        "Encuentra los **comentarios que recibieron más de 20 evaluaciones**. Muestra "
+        "`comment_id` y cuántas evaluaciones tuvo, del más evaluado al menos evaluado.",
+        "Agrupa por `comment_id` sobre la tabla `anotaciones` y filtra los grupos con "
+        "`HAVING` (no con `WHERE`: cuando `WHERE` corre, los grupos aún no existen).",
     )
     return
 
@@ -304,9 +363,12 @@ def _(pregunta):
     pregunta(
         "6",
         25,
-        "Calcula el promedio de `hate_speech_score` agrupado por `target_religion` "
-        "(`TRUE` / `FALSE`). ¿Cuál grupo tiene el promedio más alto?",
-        "`GROUP BY target_religion` con `AVG(hate_speech_score)`.",
+        "Sobre `anotaciones`, calcula el promedio de `hate_speech_score` agrupado por "
+        "`target_religion` (`TRUE` / `FALSE`), junto con cuántas evaluaciones hay en "
+        "cada grupo. ¿Cuál grupo tiene el promedio más alto?",
+        "`GROUP BY target_religion` con `avg(hate_speech_score)` y `count(*)`. "
+        "Agrega el conteo siempre que reportes un promedio: un promedio de 3 filas y "
+        "uno de 3,000 no merecen la misma confianza.",
     )
     return
 
@@ -328,9 +390,12 @@ def _(pregunta):
     pregunta(
         "BONUS",
         15,
-        "Usando un **CTE** (`WITH`), encuentra los 5 comentarios con mayor "
-        "`hate_speech_score` que además tengan `target_gender = TRUE`, y muestra su texto.",
-        "Un CTE se define con `WITH nombre AS (SELECT ...)` y después consultas sobre él.",
+        "Usando un **CTE** (`WITH`), encuentra los **5 comentarios distintos** con mayor "
+        "`hate_speech_score` que algún anotador haya marcado con `target_gender = TRUE`. "
+        "Muestra `comment_id` y `hate_speech_score`.",
+        "Un CTE se define con `WITH nombre AS (SELECT ...)` y después consultas sobre él. "
+        "Ojo con los repetidos: si un comentario fue marcado por 3 personas, aparecerá "
+        "3 veces salvo que uses `DISTINCT` o agrupes.",
     )
     return
 

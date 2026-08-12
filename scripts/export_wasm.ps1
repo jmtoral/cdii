@@ -130,6 +130,9 @@ foreach ($nb in $Notebooks) {
     }
 
     Write-Host "  📄 Exportando $($nb.Name)..." -ForegroundColor Yellow
+    # SIN --show-code: esa bandera ignora los hide_code=True y expone el andamiaje de
+    # Python y las soluciones de los ejercicios. El SQL se muestra desde el notebook
+    # con el helper `mostrar()`.
     marimo export html-wasm $FullPath -o $OutPath --mode run
 
     # OJO: no revisamos $LASTEXITCODE. `marimo export` devuelve 255 desde PowerShell
