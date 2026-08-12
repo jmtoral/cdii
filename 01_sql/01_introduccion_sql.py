@@ -13,27 +13,29 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    # En local es una ruta de disco; en el navegador (WASM) es una URL del sitio.
-    # DuckDB lee las dos.
     DATA_URL = str(mo.notebook_location() / "public" / "sample_data.parquet")
     return (DATA_URL,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
+    import re
+
     def mostrar(_tabla, consulta: str, filas: int = 10):
         """Muestra la consulta SQL tal cual, y debajo su resultado.
 
-        Existe para que el alumno LEA el SQL. No usamos la bandera `--show-code` del
-        export porque esa ignora los `hide_code=True` y acabaría enseñando también el
-        andamiaje de Python y las soluciones de los ejercicios.
-
-        `_tabla` no se usa dentro de la función: está en la firma para que marimo sepa
-        que esta celda depende de esa tabla y la ejecute después de crearla. marimo
-        deduce las dependencias leyendo el código, y aquí el nombre de la tabla vive
-        dentro de un string, donde no puede verlo.
+        `_tabla` no se usa: está en la firma para que marimo sepa que esta celda
+        depende de esa tabla y la ejecute después de crearla.
         """
-        resultado = mo.sql(consulta, output=False)
+        try:
+            resultado = mo.sql(consulta, output=False)
+        except Exception as e:
+            return mo.vstack(
+                [
+                    mo.md(f"```sql\n{consulta.strip()}\n```"),
+                    mo.callout(mo.md(f"**Error:**\n\n```\n{e}\n```"), kind="danger"),
+                ]
+            )
         return mo.vstack(
             [
                 mo.md(f"```sql\n{consulta.strip()}\n```"),
@@ -42,7 +44,42 @@ def _(mo):
             ]
         )
 
-    return (mostrar,)
+    def ejecutar(_tabla, consulta: str):
+        """Corre el SQL que escribió el alumno, de forma segura."""
+        texto = (consulta or "").strip()
+        util = [ln for ln in texto.splitlines() if ln.strip() and not ln.strip().startswith("--")]
+        if not util:
+            return mo.callout(mo.md("Escribe una consulta arriba y haz clic afuera."), kind="neutral")
+
+        # Envolverla en un SELECT la vuelve de solo lectura: un DROP o un DELETE
+        # deja de ser válido dentro de un FROM y falla sin tocar las tablas.
+        blindada = f"SELECT * FROM (\n{re.sub(r';\s*$', '', texto)}\n) AS r LIMIT 500"
+        try:
+            resultado = mo.sql(blindada, output=False)
+        except Exception as e:
+            return mo.callout(
+                mo.md(f"**Algo no cuadra en tu consulta**\n\n```\n{e}\n```\n\n"
+                      "Tranquilo: equivocarse aquí no rompe nada."),
+                kind="danger",
+            )
+        if len(resultado) == 0:
+            return mo.callout(
+                mo.md("Corrió bien, pero **no devolvió ninguna fila**. Revisa el filtro."), kind="warn"
+            )
+        return mo.vstack(
+            [
+                mo.md(f"→ **{len(resultado)} filas**"),
+                mo.ui.table(resultado, selection=None, page_size=10),
+            ]
+        )
+
+    def solucion(sql: str, explicacion: str = ""):
+        cuerpo = f"```sql\n{sql.strip()}\n```"
+        if explicacion:
+            cuerpo += f"\n\n{explicacion}"
+        return mo.accordion({"🔑 Ver solución": mo.md(cuerpo)})
+
+    return ejecutar, mostrar, solucion
 
 
 @app.cell(hide_code=True)
@@ -52,12 +89,12 @@ def _(mo):
 
     Bienvenida/o a **Ciencia de Datos para la Toma de Decisiones II**.
 
-    Hoy aprendemos **SQL**, el lenguaje con el que se le pregunta cosas a una base de
-    datos. La idea de esta clase no es que memorices comandos, sino que veas cómo una
-    consulta **se arma por pedazos**: empiezas con algo mínimo y le vas agregando piezas
-    hasta que responde justo lo que querías.
+    SQL es el lenguaje con el que se le hacen preguntas a una base de datos. Al terminar
+    esta sesión vas a poder abrir una tabla que nunca has visto, entender qué contiene y
+    sacarle respuestas.
 
-    En cada paso vas a ver **el SQL exacto** que se ejecutó y el resultado que produjo.
+    Vas a ver **el SQL exacto** de cada paso, y a partir de la sección 3 vas a escribir
+    el tuyo. Todo corre aquí en tu navegador: puedes equivocarte cuantas veces quieras.
     """)
     return
 
@@ -66,13 +103,12 @@ def _(mo):
 def _(mo):
     mo.callout(
         mo.md("""
-        **Aviso sobre el contenido.** Vamos a trabajar con el corpus *Measuring Hate
-        Speech* de UC Berkeley. Son comentarios reales de redes sociales y **contienen
-        insultos y lenguaje ofensivo explícito**. No están censurados a propósito: son el
-        objeto de estudio, y esconderlos haría imposible el análisis.
+        **Sobre el contenido.** Trabajamos con el corpus *Measuring Hate Speech* de UC
+        Berkeley: comentarios reales de redes sociales, **sin censurar**, que incluyen
+        insultos y lenguaje ofensivo. Vas a leerlos, porque analizarlos es el punto de
+        la clase y no se puede analizar lo que no se mira.
 
-        Todos los ejercicios se pueden resolver **sin abrir la columna `text`**. Si
-        prefieres no leer los comentarios, trabaja con las columnas numéricas.
+        Si en algún momento te resulta pesado, avísale a quien imparte la clase.
         """),
         kind="warn",
     )
@@ -90,23 +126,39 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo, nombre_alumno):
-    mo.md(f"¡Hola **{nombre_alumno.value or 'estudiante'}**! Empecemos. 👇")
+    mo.md(f"¡Vamos, **{nombre_alumno.value or 'estudiante'}**! 👇")
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 1. Cargar los datos
+    ---
+    ## 1. Cargar la tabla
 
-    Los datos están en un archivo **Parquet**, un formato de almacenamiento por columnas
-    muy eficiente para análisis. Con una sola instrucción lo convertimos en una tabla
-    llamada `comentarios` que ya podemos consultar:
+    Los datos viven en un archivo **Parquet**: un formato que guarda la información *por
+    columnas* en vez de por filas, lo que lo hace muy rápido para análisis.
+
+    Esta es la instrucción que carga el archivo y lo convierte en una tabla llamada
+    `comentarios`, que es la que vamos a consultar todo el día:
 
     ```sql
     CREATE OR REPLACE TABLE comentarios AS
     SELECT * FROM read_parquet('.../sample_data.parquet')
     ```
+
+    Léela por partes:
+
+    | Pedazo | Qué hace |
+    |---|---|
+    | `read_parquet('...')` | Abre el archivo |
+    | `SELECT *` | Toma **todas** sus columnas |
+    | `CREATE OR REPLACE TABLE comentarios AS` | Guarda el resultado con el nombre `comentarios` |
+
+    `CREATE OR REPLACE` significa "créala, y si ya existía, reemplázala". Es cómodo
+    porque puedes volver a ejecutarla sin que truene.
+
+    Vamos a comprobar que cargó:
     """)
     return
 
@@ -124,34 +176,11 @@ def _(DATA_URL, mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## 2. Lo más importante de esta clase: ¿qué es una fila?
-
-    Antes de escribir una sola consulta hay que entender **qué representa cada fila**.
-    Si te equivocas aquí, todas tus consultas darán números que parecen correctos pero
-    responden a otra pregunta.
-
-    En esta tabla, **cada fila NO es un comentario. Cada fila es la evaluación que una
-    persona hizo sobre un comentario.**
-
-    El corpus se armó así: se tomaron comentarios de redes sociales y **varias personas
-    distintas** (anotadores) evaluaron cada uno. Si 5 personas evaluaron el mismo
-    comentario, ese comentario aparece en **5 filas**.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
 def _(mostrar, tabla_comentarios):
     mostrar(
         tabla_comentarios,
         """
-        -- ¿Cuántas filas hay, y cuántos comentarios distintos?
-        SELECT
-            count(*)                     AS filas,
-            count(DISTINCT comment_id)   AS comentarios_distintos,
-            count(DISTINCT annotator_id) AS personas_que_evaluaron
+        SELECT count(*) AS filas_cargadas
         FROM comentarios
         """,
     )
@@ -161,43 +190,14 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Hay muchas más filas que comentarios. Esa diferencia es la que hay que tener en la
-    cabeza todo el tiempo.
+    ---
+    ## 2. ¿Qué hay dentro?
 
-    ### Tres tipos de columna
+    Antes de preguntar nada hay que mirar. `SELECT *` trae **todas** las columnas, y
+    `LIMIT 5` pide solo las primeras cinco filas para no ahogarnos.
 
-    | Tipo | Ejemplos | ¿De quién es el dato? |
-    |---|---|---|
-    | Del **comentario** | `text`, `platform`, `hate_speech_score` | Se repite igual en todas las filas del mismo comentario |
-    | De la **persona** que evaluó | `annotator_gender`, `annotator_ideology` | Se repite en todas las filas de ese anotador |
-    | De la **evaluación** | `target_race`, `respect`, `insult`, `sentiment` | Cambia entre filas del mismo comentario |
-
-    ⚠️ **Ojo con `target_race` y sus hermanas.** No dicen "este comentario ataca por
-    motivos de raza". Dicen: **"esta persona en particular consideró que el comentario
-    ataca por motivos de raza"**. Y los anotadores **no siempre coinciden**.
-
-    Eso no es un error del dataset: es su hallazgo central. Cuando algo es ofensivo o no
-    depende de quién lo lee, y el corpus se diseñó justamente para medir ese desacuerdo.
-    Volveremos a esto en el último ejercicio.
-
-    En cambio `hate_speech_score` **sí es del comentario**: es un puntaje calculado
-    combinando todas sus evaluaciones. Por eso se repite idéntico en todas sus filas.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## 3. Armando una consulta pieza por pieza
-
-    Aquí está el corazón de la clase. Vamos a construir **una sola consulta**, agregándole
-    una pieza a la vez. Lee el SQL de cada paso y fíjate en qué cambia en el resultado.
-
-    ### Pieza 1 — `SELECT` y `FROM`: qué columnas y de dónde
-
-    Lo mínimo que necesita una consulta: **qué** quieres ver (`SELECT`) y **de dónde**
-    (`FROM`). El `*` significa "todas las columnas".
+    👉 En la tabla del resultado puedes **desplazarte a la derecha** para ver más
+    columnas, y hacer clic en una celda de `text` para leer el comentario completo.
     """)
     return
 
@@ -219,10 +219,8 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Son 143 columnas: demasiadas para entender nada. **Pedir solo lo que necesitas** no es
-    solo buena práctica, es lo que hace legible el resultado.
-
-    ### Pieza 2 — nombrar las columnas en lugar de `*`
+    Son **143 columnas**: demasiadas para mirarlas así. Veamos primero las que más
+    vamos a usar, esas sí legibles:
     """)
     return
 
@@ -234,8 +232,204 @@ def _(mostrar, tabla_comentarios):
         """
         SELECT
             comment_id,
+            annotator_id,
+            text,
             hate_speech_score,
-            target_race
+            respect,
+            insult
+        FROM comentarios
+        LIMIT 8
+        """,
+        filas=8,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Explora las 143 columnas
+
+    `DESCRIBE` es una instrucción que no devuelve datos, sino **la lista de columnas** de
+    una tabla con su tipo. Escribe abajo un pedazo de nombre para filtrarlas: prueba con
+    `target`, con `annotator`, o déjalo vacío para verlas todas.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    filtro_columnas = mo.ui.text(
+        label="Buscar columna:", placeholder="target, annotator, score...", full_width=True
+    )
+    filtro_columnas
+    return (filtro_columnas,)
+
+
+@app.cell(hide_code=True)
+def _(filtro_columnas, mostrar, tabla_comentarios):
+    # Duplicamos las comillas simples para que el texto del alumno no pueda
+    # cerrar la cadena y modificar la consulta. Se explica en la sección 6.
+    _busca = (filtro_columnas.value or "").replace("'", "''")
+    mostrar(
+        tabla_comentarios,
+        f"""
+        SELECT column_name AS columna, column_type AS tipo
+        FROM (DESCRIBE comentarios)
+        WHERE column_name ILIKE '%{_busca}%'
+        """,
+        filas=15,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+    ## 3. La pregunta clave: ¿por qué se repiten las filas?
+
+    Si buscaste `annotator` habrás visto muchas columnas sobre *quién* evaluó. Eso es una
+    pista de algo fundamental:
+
+    > **Cada fila NO es un comentario. Cada fila es la evaluación que UNA persona hizo
+    > sobre UN comentario.**
+
+    El corpus se construyó pidiéndole a **varias personas distintas** que evaluaran cada
+    comentario. Si a un comentario lo evaluaron 9 personas, ese comentario ocupa **9
+    filas**, con el mismo texto repetido y con juicios que pueden diferir.
+
+    Comprobémoslo contando de dos maneras:
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mostrar, tabla_comentarios):
+    mostrar(
+        tabla_comentarios,
+        """
+        SELECT
+            count(*)                     AS filas,
+            count(DISTINCT comment_id)   AS comentarios_distintos,
+            count(DISTINCT annotator_id) AS personas_que_evaluaron
+        FROM comentarios
+        """,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **5,000 filas pero solo 3,356 comentarios.** La diferencia son las repeticiones.
+
+    `count(*)` cuenta filas. `count(DISTINCT columna)` cuenta **valores diferentes**. Si
+    alguien te pregunta "¿cuántos comentarios hay?" y respondes 5,000, tu respuesta está
+    inflada.
+
+    ### Míralo con un comentario concreto
+
+    Este comentario fue evaluado por **32 personas**. Mueve el control para ver más o
+    menos evaluaciones suyas, y **compara las columnas entre sí**:
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    cuantas_ver = mo.ui.slider(
+        start=3, stop=32, step=1, value=8,
+        label="¿Cuántas evaluaciones de ese mismo comentario quieres ver?",
+        show_value=True, full_width=True,
+    )
+    cuantas_ver
+    return (cuantas_ver,)
+
+
+@app.cell(hide_code=True)
+def _(cuantas_ver, mostrar, tabla_comentarios):
+    mostrar(
+        tabla_comentarios,
+        f"""
+        SELECT
+            annotator_id,
+            respect,
+            insult,
+            target_race,
+            hate_speech_score
+        FROM comentarios
+        WHERE comment_id = 20053
+        ORDER BY annotator_id
+        LIMIT {cuantas_ver.value}
+        """,
+        filas=int(cuantas_ver.value),
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Fíjate en lo que acabas de ver. El comentario es **el mismo** en todas las filas:
+
+    > *"No, the chances of a muslim shooting you in America is almost nil. There are over
+    > 50K gun deaths every year christian USA. We should be focusing our attention on
+    > Christians and less on peace loving Muslims."*
+
+    Y sin embargo:
+
+    - `respect` **cambia** de una fila a otra: las 32 personas usaron **cinco** valores distintos.
+    - `target_race` **cambia**: unas consideraron que ataca por raza y otras no.
+    - `hate_speech_score` es **idéntico** en todas.
+
+    ### Por qué esto importa (y mucho)
+
+    Hay **tres tipos de columna** mezclados en la misma tabla:
+
+    | Tipo | Ejemplos | Comportamiento |
+    |---|---|---|
+    | Del **comentario** | `text`, `platform`, `hate_speech_score` | Igual en todas sus filas |
+    | De la **persona** que evaluó | `annotator_gender`, `annotator_ideology` | Igual en todas las filas de esa persona |
+    | Del **juicio** | `respect`, `insult`, `target_race`… | **Distinto** entre filas del mismo comentario |
+
+    ⚠️ Por eso `target_race` **no significa** "este comentario ataca por motivos de raza".
+    Significa **"esta persona consideró que ataca por motivos de raza"**. Y no se ponen
+    de acuerdo.
+
+    Eso no es un error del dataset: es su hallazgo principal. **Si algo resulta ofensivo
+    depende de quién lo lee.** `hate_speech_score` existe precisamente para resumir todas
+    esas opiniones en un número por comentario, y por eso sí es constante.
+
+    Cuando en tu trabajo veas una columna que parece un hecho objetivo, pregúntate quién
+    la produjo y si otra persona habría escrito lo mismo.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+    ## 4. Tu primera consulta, pieza por pieza
+
+    Vamos a construir **una sola consulta** agregando una pieza a la vez. Lee el SQL de
+    cada paso y fíjate qué cambia en el resultado.
+
+    ### Pieza 1 — `SELECT` y `FROM`
+
+    Lo mínimo: **qué** quieres ver y **de dónde**. Pedir solo las columnas que necesitas
+    (en vez de `*`) es lo que hace legible un resultado.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mostrar, tabla_comentarios):
+    mostrar(
+        tabla_comentarios,
+        """
+        SELECT text, hate_speech_score
         FROM comentarios
         LIMIT 5
         """,
@@ -247,14 +441,13 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Pieza 3 — `WHERE`: quedarnos solo con algunas filas
+    ### Pieza 2 — `WHERE`: quedarte solo con algunas filas
 
-    `WHERE` es un filtro: solo pasan las filas que cumplen la condición.
+    Un filtro: solo pasan las filas que cumplen la condición.
 
-    ¿Qué umbral usar en `hate_speech_score`? No lo inventamos: **los autores del corpus
-    documentan que por encima de `0.5` el comentario es aproximadamente discurso de odio**,
-    y por debajo de `-1` es discurso de apoyo o contra-discurso. En medio queda la zona
-    ambigua.
+    ¿Qué umbral usar? No lo inventamos. Los autores del corpus documentan que por encima
+    de **0.5** el comentario es aproximadamente discurso de odio, y por debajo de **−1**
+    es discurso de apoyo o contra-discurso. En medio, zona ambigua.
     """)
     return
 
@@ -264,10 +457,7 @@ def _(mostrar, tabla_comentarios):
     mostrar(
         tabla_comentarios,
         """
-        SELECT
-            comment_id,
-            hate_speech_score,
-            target_race
+        SELECT text, hate_speech_score
         FROM comentarios
         WHERE hate_speech_score > 0.5      -- 👈 la pieza nueva
         LIMIT 5
@@ -280,9 +470,9 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Pieza 4 — `AND`: dos condiciones a la vez
+    ### Pieza 3 — `AND`: dos condiciones a la vez
 
-    Con `AND` exigimos que se cumplan ambas. Con `OR` bastaría con una.
+    `AND` exige que se cumplan las dos. `OR` se conforma con una.
     """)
     return
 
@@ -292,13 +482,10 @@ def _(mostrar, tabla_comentarios):
     mostrar(
         tabla_comentarios,
         """
-        SELECT
-            comment_id,
-            hate_speech_score,
-            target_race
+        SELECT text, hate_speech_score, insult
         FROM comentarios
         WHERE hate_speech_score > 0.5
-          AND target_race = true           -- 👈 la pieza nueva
+          AND insult > 2                   -- 👈 la pieza nueva
         LIMIT 5
         """,
         filas=5,
@@ -309,13 +496,13 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### Pieza 5 — `ORDER BY`: poner orden
+    ### Pieza 4 — `ORDER BY`: poner orden
 
-    Hasta ahora las 5 filas que veíamos eran **cualesquiera**. Sin `ORDER BY`, la base de
-    datos no promete ningún orden: puede devolverte filas distintas cada vez que corras la
-    misma consulta. Si el orden te importa, tienes que pedirlo.
+    Hasta ahora las 5 filas eran **cualesquiera**. Sin `ORDER BY` la base de datos no
+    promete ningún orden y puede devolverte filas distintas cada vez. Si el orden te
+    importa, **pídelo**.
 
-    `DESC` es de mayor a menor; `ASC` (el default) de menor a mayor.
+    `DESC` de mayor a menor, `ASC` (el default) de menor a mayor.
     """)
     return
 
@@ -325,13 +512,10 @@ def _(mostrar, tabla_comentarios):
     mostrar(
         tabla_comentarios,
         """
-        SELECT
-            comment_id,
-            hate_speech_score,
-            target_race
+        SELECT text, hate_speech_score, insult
         FROM comentarios
         WHERE hate_speech_score > 0.5
-          AND target_race = true
+          AND insult > 2
         ORDER BY hate_speech_score DESC    -- 👈 la pieza nueva
         LIMIT 5
         """,
@@ -343,22 +527,16 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### La consulta completa, y el orden en que se escribe
-
-    Esas cinco piezas son la consulta terminada. **El orden de las cláusulas no es
-    negociable**: si escribes `WHERE` antes que `FROM`, es un error de sintaxis.
+    Ahí está tu primera consulta completa. Cinco piezas, y **el orden en que se escriben
+    no es negociable**:
 
     ```sql
-    SELECT   columnas          -- 1. qué quiero ver
-    FROM     tabla             -- 2. de dónde lo saco
-    WHERE    condición         -- 3. con qué filas me quedo
-    ORDER BY columna DESC      -- 4. en qué orden las muestro
-    LIMIT    n                 -- 5. cuántas muestro
+    SELECT   columnas       -- 1. qué quiero ver
+    FROM     tabla          -- 2. de dónde
+    WHERE    condición      -- 3. con qué filas me quedo
+    ORDER BY columna DESC   -- 4. en qué orden
+    LIMIT    n              -- 5. cuántas
     ```
-
-    Un truco para leer una consulta ajena: **empieza por el `FROM`**, no por el `SELECT`.
-    Primero entiendes de dónde salen los datos, luego cómo se filtran, y al final qué
-    columnas se muestran. Es el orden en que la base de datos realmente trabaja.
     """)
     return
 
@@ -366,13 +544,30 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 4. Buscar dentro del texto: `LIKE` e `ILIKE`
+    ---
+    ## 5. El orden de ejecución (esto explica la mitad de los errores)
 
-    El comodín `%` significa "cualquier cosa, o nada". Así que `'%people%'` encuentra la
-    palabra en cualquier posición del texto.
+    Acabas de ver el orden en que se **escribe** una consulta. Pero la base de datos la
+    **ejecuta en otro orden**, y entender eso te va a ahorrar muchísimo tiempo:
 
-    `LIKE` distingue mayúsculas de minúsculas; **`ILIKE` no** (la `I` es de
-    *insensitive*). En la práctica casi siempre quieres `ILIKE`.
+    ```
+    1. FROM      →  primero busca la tabla
+    2. WHERE     →  descarta filas
+    3. GROUP BY  →  agrupa las que quedan        (lo verás en el notebook 2)
+    4. HAVING    →  descarta grupos              (lo verás en el notebook 2)
+    5. SELECT    →  recién aquí calcula las columnas
+    6. ORDER BY  →  ordena el resultado
+    7. LIMIT     →  y al final corta
+    ```
+
+    **Se escribe empezando por `SELECT`, pero se ejecuta empezando por `FROM`.**
+
+    De ahí sale un consejo práctico: para entender una consulta ajena, **empieza a leerla
+    por el `FROM`**, no por arriba.
+
+    Y de ahí sale también este error, que vas a cometer tarde o temprano. `count(*)` es
+    una cuenta que solo existe **después** de agrupar (paso 3), así que no puedes usarla
+    en el `WHERE` (paso 2). Mira lo que pasa:
     """)
     return
 
@@ -382,15 +577,13 @@ def _(mostrar, tabla_comentarios):
     mostrar(
         tabla_comentarios,
         """
-        SELECT
-            comment_id,
-            hate_speech_score
+        -- ❌ Esto NO funciona: WHERE se ejecuta ANTES de agrupar,
+        --    así que en ese momento count(*) todavía no existe.
+        SELECT comment_id
         FROM comentarios
-        WHERE text ILIKE '%people%'
-        ORDER BY hate_speech_score DESC
-        LIMIT 5
+        WHERE count(*) > 3
+        GROUP BY comment_id
         """,
-        filas=5,
     )
     return
 
@@ -398,47 +591,102 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 5. Exploración interactiva
+    *"WHERE clause cannot contain aggregates!"* — el error te lo dice tal cual.
 
-    Los controles de abajo modifican la consulta **en vivo**. Muévelos y observa cómo
-    cambia el SQL que aparece debajo, y con él el resultado.
+    La solución es `HAVING`, que es el filtro que corre **después** de agrupar. Lo verás
+    a fondo en el siguiente notebook, pero aquí está funcionando:
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mostrar, tabla_comentarios):
+    mostrar(
+        tabla_comentarios,
+        """
+        -- ✅ HAVING sí puede: se ejecuta DESPUÉS de agrupar
+        SELECT comment_id, count(*) AS evaluaciones
+        FROM comentarios
+        GROUP BY comment_id
+        HAVING count(*) > 3
+        ORDER BY evaluaciones DESC
+        """,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.accordion(
+        {
+            "🤔 Entonces, ¿por qué DuckDB me deja hacer cosas que 'no se pueden'?": mo.md(r"""
+            Buena observación si lo notaste. DuckDB es más permisivo que el estándar: por
+            ejemplo, te deja usar en el `WHERE` un alias que definiste en el `SELECT`,
+            aunque según el orden de ejecución ese alias "todavía no existe".
+
+            Es una comodidad de DuckDB, no una regla de SQL. **Esa misma consulta puede
+            fallar** en PostgreSQL, SQL Server u Oracle.
+
+            Moraleja: apóyate en el orden de ejecución para razonar, no en lo que tu base
+            de datos te tolere hoy. El código que escribes suele sobrevivirte y acabar
+            corriendo en otro motor.
+            """)
+        }
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+    ## 6. Busca lo que tú quieras
+
+    `LIKE` compara texto usando el comodín `%`, que significa "cualquier cosa, o nada".
+    Así, `'%odio%'` encuentra la palabra en cualquier posición.
+
+    `LIKE` distingue mayúsculas de minúsculas; **`ILIKE` no** (la `I` es de *insensitive*).
+    En la práctica casi siempre quieres `ILIKE`.
+
+    **Escribe abajo la palabra que se te ocurra** y mira qué encuentra. Prueba con
+    `people`, `women`, `trump`, `god`, `love`… o con lo que te dé curiosidad:
     """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    slider_score = mo.ui.slider(
-        start=-5.0,
-        stop=5.0,
-        step=0.5,
-        value=0.5,
-        label="Umbral mínimo de hate_speech_score",
-        show_value=True,
+    palabra = mo.ui.text(
+        label="**Buscar esta palabra en los comentarios:**",
+        value="people",
+        placeholder="escribe una palabra",
         full_width=True,
     )
-    dropdown_objetivo = mo.ui.dropdown(
-        options=["target_race", "target_religion", "target_gender", "target_origin"],
-        value="target_race",
-        label="Tipo de objetivo señalado por el anotador",
+    orden_busqueda = mo.ui.dropdown(
+        options={
+            "Los de mayor odio primero": "hate_speech_score DESC",
+            "Los de menor odio primero": "hate_speech_score ASC",
+            "Sin ordenar": "comment_id",
+        },
+        value="Los de mayor odio primero",
+        label="Ordenar por",
     )
-    mo.vstack([slider_score, dropdown_objetivo], gap=1)
-    return dropdown_objetivo, slider_score
+    mo.vstack([palabra, orden_busqueda], gap=0.5)
+    return orden_busqueda, palabra
 
 
 @app.cell(hide_code=True)
-def _(dropdown_objetivo, mostrar, slider_score, tabla_comentarios):
+def _(mostrar, orden_busqueda, palabra, tabla_comentarios):
+    # Duplicar las comillas simples evita que lo que escriba el alumno cierre la
+    # cadena y cambie el sentido de la consulta. Ver la nota de abajo.
+    _p = (palabra.value or "").replace("'", "''")
     mostrar(
         tabla_comentarios,
         f"""
-        SELECT
-            comment_id,
-            hate_speech_score,
-            {dropdown_objetivo.value} AS marcado_por_el_anotador
+        SELECT text, hate_speech_score, insult
         FROM comentarios
-        WHERE hate_speech_score >= {slider_score.value}
-          AND {dropdown_objetivo.value} = true
-        ORDER BY hate_speech_score DESC
+        WHERE text ILIKE '%{_p}%'
+        ORDER BY {orden_busqueda.value}
         LIMIT 10
         """,
     )
@@ -449,22 +697,33 @@ def _(dropdown_objetivo, mostrar, slider_score, tabla_comentarios):
 def _(mo):
     mo.accordion(
         {
-            "⚠️ Un momento: ¿no es peligroso meter variables dentro de una consulta?": mo.md(r"""
-            Muy buena pregunta, y sí: **lo es**, en general. Pegar texto dentro de una
-            consulta SQL es la puerta de entrada de la **inyección SQL**, una de las
-            vulnerabilidades más viejas y más explotadas que existen.
+            "⚠️ ¿No es peligroso meter dentro de la consulta lo que escribe el usuario?": mo.md(r"""
+            Sí, y es de las cosas más importantes que te vas a llevar de esta clase.
 
-            Si el valor viniera de una caja de texto libre, alguien podría escribir algo
-            que cierre la consulta y agregue instrucciones propias.
+            Pegar texto de un usuario dentro de una consulta es la puerta de la
+            **inyección SQL**, una de las vulnerabilidades más viejas y más explotadas que
+            existen. Si alguien escribiera una comilla en la caja de búsqueda, podría
+            cerrar la cadena de texto y añadir instrucciones propias a tu consulta.
 
-            Aquí es seguro por una razón concreta: el valor **no lo escribe el usuario**.
-            Sale de un `dropdown` con una lista cerrada de cuatro opciones que definimos
-            nosotros, y del `slider`, que solo produce números. A eso se le llama
-            **lista blanca**: el usuario elige entre opciones válidas, no las inventa.
+            Aquí se hace **una cosa concreta** para evitarlo, y está en el código de arriba:
 
-            La regla práctica: si el valor viene de una lista que tú controlas, puedes
-            interpolarlo. Si viene de texto libre, **nunca** lo pegues — se usan
-            *consultas parametrizadas*.
+            ```python
+            palabra.value.replace("'", "''")
+            ```
+
+            Duplicar cada comilla simple hace que SQL la lea como *un carácter dentro del
+            texto* en vez de como *el fin del texto*. Si escribes `' OR 1=1 --` en la caja,
+            la consulta busca literalmente esa cadena y devuelve cero resultados, en vez
+            de ejecutarla.
+
+            El dropdown de orden es un caso distinto y también seguro, pero por otra razón:
+            el alumno **no escribe** el valor, solo elige entre tres opciones que definimos
+            nosotros. A eso se le llama **lista blanca**.
+
+            En un sistema de verdad no se escapa a mano: se usan **consultas
+            parametrizadas**, donde el valor viaja aparte de la consulta y el motor nunca
+            lo confunde con instrucciones. La regla es simple: **el texto del usuario es
+            un dato, nunca es código.**
             """)
         }
     )
@@ -474,70 +733,59 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 6. Ejercicios
+    ---
+    ## 7. Ahora tú: escribe SQL libre
 
-    Ahora te toca escribir a ti. Escribe tu consulta en el editor y **haz clic fuera de
-    él** (o presiona `Ctrl+Enter`) para ejecutarla. El resultado aparece justo debajo.
+    Este es tu espacio para probar. Escribe **cualquier** consulta y haz clic fuera del
+    editor (o `Ctrl+Enter`) para ejecutarla.
 
-    Puedes equivocarte todas las veces que quieras: no se guarda ni se califica nada.
-    Cada ejercicio trae la solución escondida — **inténtalo antes de abrirla**.
+    Ideas para empezar:
+
+    - `SELECT text FROM comentarios WHERE insult > 3 LIMIT 10`
+    - `SELECT text, respect FROM comentarios ORDER BY respect ASC LIMIT 5`
+    - `SELECT count(*) FROM comentarios WHERE target_religion = true`
+
+    No puedes romper nada: solo se permiten consultas de lectura.
     """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    import re
+    playground = mo.ui.code_editor(
+        value="SELECT text, hate_speech_score\nFROM comentarios\nWHERE text ILIKE '%school%'\nLIMIT 10",
+        language="sql",
+        debounce=True,
+    )
+    playground
+    return (playground,)
 
-    def ejecutar(consulta: str):
-        """Corre el SQL del alumno de forma segura y muestra el resultado o el error."""
-        texto = (consulta or "").strip()
-        util = [
-            ln for ln in texto.splitlines() if ln.strip() and not ln.strip().startswith("--")
-        ]
-        if not util:
-            return mo.callout(mo.md("Escribe tu consulta en el editor de arriba."), kind="neutral")
 
-        # Envolver la consulta en un SELECT la vuelve de solo lectura: un DROP o un
-        # DELETE deja de ser válido dentro de un FROM y falla sin tocar las tablas.
-        blindada = f"SELECT * FROM (\n{re.sub(r';\s*$', '', texto)}\n) AS r LIMIT 500"
-
-        try:
-            resultado = mo.sql(blindada, output=False)
-        except Exception as e:
-            return mo.callout(
-                mo.md(f"**Tu consulta tiene un error**\n\n```\n{e}\n```"), kind="danger"
-            )
-
-        if len(resultado) == 0:
-            return mo.callout(
-                mo.md("Corrió bien, pero **no devolvió ninguna fila**. Revisa el filtro."),
-                kind="warn",
-            )
-        return mo.vstack(
-            [
-                mo.md(f"→ **{len(resultado)} filas**"),
-                mo.ui.table(resultado, selection=None, page_size=10),
-            ]
-        )
-
-    def solucion(sql: str, explicacion: str = ""):
-        cuerpo = f"```sql\n{sql.strip()}\n```"
-        if explicacion:
-            cuerpo += f"\n\n{explicacion}"
-        return mo.accordion({"🔑 Ver solución": mo.md(cuerpo)})
-
-    return ejecutar, solucion
+@app.cell(hide_code=True)
+def _(ejecutar, playground, tabla_comentarios):
+    ejecutar(tabla_comentarios, playground.value)
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
-    ### Ejercicio 1 — Los más respetuosos
+    ## 8. Ejercicios
 
-    Encuentra las **3 evaluaciones con mayor nivel de respeto** (columna `respect`).
-    Muestra `comment_id` y `respect`.
+    Ahora en serio. Cada ejercicio trae la solución escondida: **inténtalo antes de
+    abrirla**, que para eso está el editor.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Ejercicio 1 — Los más irrespetuosos
+
+    Muestra el **texto** y el `respect` de los **5 comentarios con menor nivel de
+    respeto**. Ojo: menor significa que hay que ordenar de forma ascendente.
     """)
     return
 
@@ -551,7 +799,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(ej1, ejecutar, tabla_comentarios):
-    ejecutar(ej1.value) if tabla_comentarios is not None else None
+    ejecutar(tabla_comentarios, ej1.value)
     return
 
 
@@ -559,13 +807,13 @@ def _(ej1, ejecutar, tabla_comentarios):
 def _(solucion):
     solucion(
         """
-        SELECT comment_id, respect
+        SELECT text, respect
         FROM comentarios
-        ORDER BY respect DESC
-        LIMIT 3
+        ORDER BY respect ASC
+        LIMIT 5
         """,
-        "Las tres piezas de siempre: `SELECT` para las columnas, `ORDER BY ... DESC` "
-        "para poner los más altos arriba, y `LIMIT` para quedarte con los primeros.",
+        "`ASC` ordena de menor a mayor. Como es el comportamiento por omisión, "
+        "también funciona sin escribirlo — pero ponerlo hace tu intención explícita.",
     )
     return
 
@@ -573,11 +821,10 @@ def _(solucion):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ---
-    ### Ejercicio 2 — Dos condiciones
+    ### Ejercicio 2 — Buscar y filtrar a la vez
 
-    Encuentra 5 evaluaciones donde el texto contenga la palabra *stupid* **y** el puntaje
-    de insulto (`insult`) sea mayor a 1. Muestra `comment_id` e `insult`.
+    Encuentra comentarios que contengan la palabra **women** y cuyo `hate_speech_score`
+    sea mayor a 1. Muestra `text` y `hate_speech_score`, los 10 más altos primero.
     """)
     return
 
@@ -591,7 +838,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(ej2, ejecutar, tabla_comentarios):
-    ejecutar(ej2.value) if tabla_comentarios is not None else None
+    ejecutar(tabla_comentarios, ej2.value)
     return
 
 
@@ -599,14 +846,15 @@ def _(ej2, ejecutar, tabla_comentarios):
 def _(solucion):
     solucion(
         """
-        SELECT comment_id, insult
+        SELECT text, hate_speech_score
         FROM comentarios
-        WHERE text ILIKE '%stupid%'
-          AND insult > 1
-        LIMIT 5
+        WHERE text ILIKE '%women%'
+          AND hate_speech_score > 1
+        ORDER BY hate_speech_score DESC
+        LIMIT 10
         """,
-        "`ILIKE` en vez de `LIKE` para que no importen las mayúsculas, y `AND` "
-        "para exigir las dos condiciones.",
+        "`ILIKE` para que no importen las mayúsculas, `AND` para exigir las dos "
+        "condiciones, y `ORDER BY ... DESC` con `LIMIT` para quedarte con el top.",
     )
     return
 
@@ -614,43 +862,12 @@ def _(solucion):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ---
-    ### Ejercicio 3 — El desacuerdo entre anotadores
+    ### Ejercicio 3 — Contar sin repetir
 
-    Este ejercicio es el más importante de la clase, porque no se trata de sintaxis.
+    ¿Cuántos **comentarios distintos** hay con `hate_speech_score` mayor a 2?
 
-    Elige **un solo comentario** y muestra **todas sus evaluaciones**: filtra por un
-    `comment_id` concreto y muestra `annotator_id`, `target_race`, `respect` e `insult`.
-
-    Después mira el resultado y pregúntate: **¿todas las personas evaluaron igual el
-    mismo texto?**
-
-    Para elegir un buen candidato, usa la consulta de aquí abajo:
+    Cuidado con la trampa de la sección 3: si cuentas filas, vas a contar de más.
     """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mostrar, tabla_comentarios):
-    mostrar(
-        tabla_comentarios,
-        """
-        -- Comentarios donde los anotadores MÁS discreparon entre sí.
-        -- count(DISTINCT x) cuenta cuántos valores diferentes se usaron: si da 1,
-        -- todos evaluaron igual; si da más, hubo desacuerdo.
-        SELECT
-            comment_id,
-            count(*)                     AS cuantas_evaluaciones,
-            count(DISTINCT target_race)  AS opiniones_sobre_target_race,
-            count(DISTINCT respect)      AS niveles_de_respect_distintos
-        FROM comentarios
-        GROUP BY comment_id
-        HAVING count(*) >= 10
-        ORDER BY niveles_de_respect_distintos DESC, cuantas_evaluaciones DESC
-        LIMIT 5
-        """,
-        filas=5,
-    )
     return
 
 
@@ -663,7 +880,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(ej3, ejecutar, tabla_comentarios):
-    ejecutar(ej3.value) if tabla_comentarios is not None else None
+    ejecutar(tabla_comentarios, ej3.value)
     return
 
 
@@ -671,21 +888,62 @@ def _(ej3, ejecutar, tabla_comentarios):
 def _(solucion):
     solucion(
         """
-        SELECT annotator_id, target_race, respect, insult
+        SELECT count(DISTINCT comment_id) AS comentarios
         FROM comentarios
-        WHERE comment_id = 20053
-        ORDER BY annotator_id
+        WHERE hate_speech_score > 2
         """,
-        "Puedes cambiar el `comment_id` por cualquiera de la lista de arriba.\n\n"
-        "**Lo que deberías ver** con el 20053: 32 personas evaluaron el mismo texto. "
-        "Unas marcaron `target_race` y otras no. En `respect` usaron **cinco** valores "
-        "distintos, y en `insult`, cuatro.\n\n"
-        "Eso no es ruido ni error de captura: es el resultado principal del corpus. "
-        "*Si algo es ofensivo depende de quién lo lee.* Por eso `target_race` describe a "
-        "la **evaluación** y no al comentario, y por eso existe `hate_speech_score`: es "
-        "la forma de resumir todas esas opiniones en un solo número por comentario.\n\n"
-        "Cuando en tu trabajo veas una columna que parece un hecho objetivo, pregúntate "
-        "siempre quién la produjo y si otras personas habrían puesto lo mismo.",
+        "Con `count(*)` te habrían salido **737**, que son filas. Los comentarios "
+        "distintos son **191**. Casi cuatro veces menos: ese es el tamaño del error "
+        "que se comete al confundir la unidad de análisis.",
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Ejercicio 4 — Investiga por tu cuenta
+
+    Este no tiene una respuesta única. Elige un comentario que te llame la atención de
+    cualquiera de las búsquedas anteriores, anota su `comment_id`, y escribe una consulta
+    que muestre **todas sus evaluaciones**.
+
+    Después pregúntate: ¿coincidieron las personas que lo evaluaron? ¿En qué sí y en qué no?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    ej4 = mo.ui.code_editor(
+        value="-- Cambia el número por el comment_id que hayas elegido\nSELECT annotator_id, respect, insult, target_race\nFROM comentarios\nWHERE comment_id = 20036",
+        language="sql",
+        debounce=True,
+    )
+    ej4
+    return (ej4,)
+
+
+@app.cell(hide_code=True)
+def _(ej4, ejecutar, tabla_comentarios):
+    ejecutar(tabla_comentarios, ej4.value)
+    return
+
+
+@app.cell(hide_code=True)
+def _(solucion):
+    solucion(
+        """
+        SELECT annotator_id, respect, insult, target_race, hate_speech_score
+        FROM comentarios
+        WHERE comment_id = 20036
+        ORDER BY respect
+        """,
+        "Para encontrar comentarios con muchas evaluaciones:\n\n"
+        "```sql\nSELECT comment_id, count(*) AS n\nFROM comentarios\n"
+        "GROUP BY comment_id\nORDER BY n DESC\nLIMIT 10\n```\n\n"
+        "Lo interesante no es el SQL, sino lo que muestra: personas distintas leyendo "
+        "exactamente el mismo texto y llegando a conclusiones distintas.",
     )
     return
 
@@ -696,11 +954,17 @@ def _(mo, nombre_alumno):
         mo.md(f"""
         ### ¡Terminaste, {nombre_alumno.value or 'estudiante'}! 🎉
 
-        Ya sabes leer y escribir las cinco piezas básicas: `SELECT`, `FROM`, `WHERE`,
-        `ORDER BY` y `LIMIT`. Y algo que no es sintaxis pero vale más: **saber qué
-        representa una fila** antes de contar nada.
+        Te llevas:
 
-        En el siguiente notebook vamos a **resumir** datos: contar, promediar y agrupar.
+        - Las cinco piezas: `SELECT`, `FROM`, `WHERE`, `ORDER BY`, `LIMIT`.
+        - Que se **escribe** empezando por `SELECT` pero se **ejecuta** empezando por
+          `FROM` — y que de ahí salen la mitad de los errores.
+        - `LIKE` / `ILIKE` para buscar texto.
+        - `count(*)` frente a `count(DISTINCT ...)`, y por qué confundirlos multiplica
+          tus números.
+        - Y lo que no es sintaxis: **saber qué representa una fila** antes de contar nada.
+
+        En el siguiente notebook: agrupar, resumir y cruzar tablas.
         """),
         kind="success",
     )
