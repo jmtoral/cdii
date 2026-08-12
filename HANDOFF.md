@@ -92,6 +92,49 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
+## 📚 Rediseño del notebook 01 para licenciatura (2026-08-12)
+
+**Crítica del profesor:** *"no les explica ni paso por paso, ni les permite cargar la
+tabla, ni interactuar con los comandos básicos"*. Era correcta, y la causa era una
+decisión mía anterior: había diseñado los ejercicios para que se pudieran resolver **sin
+leer la columna `text`**, por prudencia con el contenido. El resultado fue un notebook
+abstracto donde nunca se veían los comentarios, que son el objeto de estudio.
+
+**Criterio nuevo:** los alumnos **sí leen los comentarios**. El aviso de contenido explica
+que el corpus va sin censurar porque analizarlo es el punto de la clase.
+
+Lo que tiene ahora, en orden:
+
+1. **Carga de la tabla explicada por pedazos** (`read_parquet` / `SELECT *` /
+   `CREATE OR REPLACE TABLE`) y comprobada con un conteo.
+2. **Explorador de las 143 columnas** con `DESCRIBE` y un buscador por nombre.
+3. **Por qué se repiten las filas**: se demuestra con el comentario 20053 (32
+   evaluaciones) y un slider para elegir cuántas comparar. Mismo texto, cinco valores
+   distintos de `respect`. De ahí sale la tabla de los tres tipos de columna.
+4. **La consulta pieza por pieza**, ahora mostrando `text`.
+5. **Orden de ejecución** (sección nueva): `FROM → WHERE → GROUP BY → HAVING → SELECT →
+   ORDER BY → LIMIT`, demostrado con `WHERE count(*) > 3`, que falla con
+   *"WHERE clause cannot contain aggregates!"*, y su versión con `HAVING`, que funciona.
+   ⚠️ La demo clásica del alias en `WHERE` **no sirve**: DuckDB lo permite aunque el
+   estándar no. Eso quedó como nota en un acordeón.
+6. **Búsqueda libre**: el alumno escribe la palabra que quiera y elige el orden. Las
+   comillas se escapan (`replace("'", "''")`) y eso se usa para enseñar inyección SQL.
+7. **Playground** de SQL libre, blindado.
+8. **Cuatro ejercicios**, cada uno con editor y solución en acordeón.
+
+Verificado en el sitio público: el buscador de columnas, el slider, la búsqueda libre y
+el playground responden; escribir `' OR 1=1 --` queda escapado y devuelve 0 filas; el
+`DROP TABLE` se bloquea.
+
+⚠️ **Al verificar con Playwright, no localices los inputs por posición**: cada tabla de
+resultados trae su propio buscador, así que la página tiene 17 `input[type=text]`. Usa
+`get_by_placeholder(...)`.
+
+⚠️ **Falso positivo conocido**: buscar `"Error:"` en la página siempre da 1 coincidencia,
+porque la sección 5 **muestra un error a propósito**. No es un fallo.
+
+---
+
 ## ✅ Defectos pedagógicos: CORREGIDOS (2026-08-12)
 
 Todo lo de la sección siguiente ya está arreglado y **verificado en el sitio público**.
