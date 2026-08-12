@@ -28,7 +28,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install "marimo[sql]" duckdb pyarrow
+          # uv no es opcional: `marimo export html-wasm` lo necesita para resolver
+          # los imports locales del notebook. Sin él el export aborta a medias,
+          # después de copiar los assets pero sin generar index.html.
+          pip install "marimo[sql]" duckdb pyarrow uv
 
       # Los datos NO se descargan aquí: 01_sql/public/sample_data.parquet (465 KB) está
       # versionado en el repo. Así el build no depende de HuggingFace y es reproducible.
