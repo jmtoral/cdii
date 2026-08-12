@@ -13,7 +13,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    DATA_URL = str(mo.notebook_location() / "public" / "sample_data.parquet")
+    DATA_URL = str(mo.notebook_location() / "public" / "hate_speech.parquet")
     return (DATA_URL,)
 
 
@@ -117,6 +117,56 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
+    mo.md(r"""
+    ---
+    ## 0. ¿De dónde salen estos datos?
+
+    Antes de tocar nada, conviene saber qué estamos abriendo. Trabajar con datos que no
+    sabes de dónde vienen es la forma más rápida de llegar a conclusiones falsas.
+
+    **Quién lo hizo.** El [D-Lab de UC Berkeley](https://huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech).
+    El trabajo se publicó como *"Measuring a hate speech spectrum with faceted Rasch item
+    response theory and perspective-aware, explainable-by-design deep learning"*, de
+    **Chris J. Kennedy, Geoff Bacon, Alexander Sahn y Claudia von Vacano**
+    ([arXiv:2009.10277](https://arxiv.org/abs/2009.10277)).
+
+    **Qué contiene.** Comentarios de **YouTube, Twitter y Reddit**, evaluados por
+    trabajadores de Amazon Mechanical Turk. El corpus completo del paper tiene 50,070
+    comentarios y 11,143 anotadores; nosotros usamos la versión publicada en HuggingFace.
+
+    ### Por qué hay varias personas evaluando el mismo comentario
+
+    Esta es la decisión de diseño más importante del corpus, y la razón de casi todo lo
+    que vas a ver hoy.
+
+    Si a cada comentario lo evaluara **una sola persona**, tendrías una etiqueta que
+    parece un hecho — "esto es discurso de odio" — pero que en realidad es *la opinión de
+    esa persona*, con toda su historia detrás. Alguien que ha recibido ese insulto y
+    alguien que nunca lo ha oído no lo leen igual.
+
+    Así que hicieron lo contrario: pedirle a **varias personas** que evaluaran cada
+    comentario, y **medir el desacuerdo en vez de esconderlo**. Con eso pueden estimar dos
+    cosas a la vez: qué tan ofensivo es un comentario, y **qué tan severo o indulgente es
+    cada evaluador**, para descontarlo. En palabras del paper, ajustan
+    *"la perspectiva de etiquetado de cada anotador"*.
+
+    ### Qué es `hate_speech_score`
+
+    No es un promedio de opiniones. Cada persona contesta **10 preguntas ordinales** sobre
+    el comentario (`sentiment`, `respect`, `insult`, `humiliate`, `status`, `dehumanize`,
+    `violence`, `genocide`, `attack_defend`, `hatespeech`), y todas esas respuestas se
+    combinan con un modelo estadístico llamado **Rasch / teoría de respuesta al ítem**
+    (el mismo tipo de modelo con el que se califican exámenes estandarizados).
+
+    El resultado es **un número continuo por comentario**, en un espectro que el paper
+    describe como *"desde genocida hasta discurso de apoyo"*. Más alto = más hostil;
+    negativo = solidario o de defensa.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
     nombre_alumno = mo.ui.text(
         label="**Tu nombre:**", placeholder="Nombre Apellido", full_width=True
     )
@@ -144,7 +194,7 @@ def _(mo):
 
     ```sql
     CREATE OR REPLACE TABLE comentarios AS
-    SELECT * FROM read_parquet('.../sample_data.parquet')
+    SELECT * FROM read_parquet('.../hate_speech.parquet')
     ```
 
     Léela por partes:
@@ -322,16 +372,17 @@ def _(mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    **5,000 filas pero solo 3,356 comentarios.** La diferencia son las repeticiones.
+    **135,556 filas pero solo 39,565 comentarios.** La diferencia son las repeticiones:
+    en promedio, cada comentario fue evaluado por unas 3 personas.
 
     `count(*)` cuenta filas. `count(DISTINCT columna)` cuenta **valores diferentes**. Si
-    alguien te pregunta "¿cuántos comentarios hay?" y respondes 5,000, tu respuesta está
-    inflada.
+    alguien te pregunta "¿cuántos comentarios hay?" y respondes 135,556, tu respuesta está
+    inflada casi cuatro veces.
 
     ### Míralo con un comentario concreto
 
-    Este comentario fue evaluado por **32 personas**. Mueve el control para ver más o
-    menos evaluaciones suyas, y **compara las columnas entre sí**:
+    El comentario `20014` es un caso extremo: lo evaluaron **793 personas**. Mueve el
+    control para ver más o menos de sus evaluaciones, y **compara las filas entre sí**:
     """)
     return
 
@@ -339,7 +390,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     cuantas_ver = mo.ui.slider(
-        start=3, stop=32, step=1, value=8,
+        start=3, stop=60, step=1, value=10,
         label="¿Cuántas evaluaciones de ese mismo comentario quieres ver?",
         show_value=True, full_width=True,
     )
@@ -354,12 +405,13 @@ def _(cuantas_ver, mostrar, tabla_comentarios):
         f"""
         SELECT
             annotator_id,
+            text,
             respect,
             insult,
             target_race,
             hate_speech_score
         FROM comentarios
-        WHERE comment_id = 20053
+        WHERE comment_id = 20014
         ORDER BY annotator_id
         LIMIT {cuantas_ver.value}
         """,
@@ -371,17 +423,13 @@ def _(cuantas_ver, mostrar, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Fíjate en lo que acabas de ver. El comentario es **el mismo** en todas las filas:
+    Fíjate en lo que acabas de ver. La columna `text` es **idéntica** en todas las filas:
+    es el mismo comentario. Y sin embargo:
 
-    > *"No, the chances of a muslim shooting you in America is almost nil. There are over
-    > 50K gun deaths every year christian USA. We should be focusing our attention on
-    > Christians and less on peace loving Muslims."*
-
-    Y sin embargo:
-
-    - `respect` **cambia** de una fila a otra: las 32 personas usaron **cinco** valores distintos.
-    - `target_race` **cambia**: unas consideraron que ataca por raza y otras no.
-    - `hate_speech_score` es **idéntico** en todas.
+    - `respect` **cambia** de una fila a otra: las 793 personas usaron **cinco** valores distintos.
+    - `target_race` **cambia**, y aquí está lo interesante: **353 personas dijeron que sí
+      ataca por raza y 440 dijeron que no**. Casi un volado sobre el mismo texto.
+    - `hate_speech_score` es **idéntico** en todas: 1.48.
 
     ### Por qué esto importa (y mucho)
 
@@ -403,6 +451,51 @@ def _(mo):
 
     Cuando en tu trabajo veas una columna que parece un hecho objetivo, pregúntate quién
     la produjo y si otra persona habría escrito lo mismo.
+
+    ### Un detalle que solo se ve mirando: aquí hay dos datasets, no uno
+
+    ¿793 personas evaluando un comentario, cuando el promedio es 3? Eso no es casualidad.
+    Contemos cuántos comentarios tiene cada cantidad de evaluaciones:
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mostrar, tabla_comentarios):
+    mostrar(
+        tabla_comentarios,
+        """
+        SELECT
+            evaluaciones,
+            count(*) AS cuantos_comentarios
+        FROM (
+            SELECT comment_id, count(*) AS evaluaciones
+            FROM comentarios
+            GROUP BY comment_id
+        )
+        GROUP BY evaluaciones
+        ORDER BY evaluaciones
+        """,
+        filas=12,
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Mira el salto. Hay decenas de miles de comentarios con **1, 2, 3 o 4** evaluaciones…
+    y de repente **70 comentarios con entre 243 y 815**. Nada en medio.
+
+    Eso es un **conjunto de calibración**: un puñado de comentarios que casi todos los
+    anotadores evaluaron, para poder compararlos entre sí. Sin algo así no puedes saber si
+    una persona puso puntajes bajos porque los comentarios eran suaves o porque ella es
+    indulgente.
+
+    **La lección práctica:** este archivo no es homogéneo. Si sacas un promedio sobre toda
+    la tabla, esos 70 comentarios pesan como 25,000 filas y se comen tu resultado. Un
+    dataset casi nunca es una sola cosa, y descubrirlo es trabajo tuyo: nadie te lo va a
+    advertir.
     """)
     return
 
@@ -445,9 +538,16 @@ def _(mo):
 
     Un filtro: solo pasan las filas que cumplen la condición.
 
-    ¿Qué umbral usar? No lo inventamos. Los autores del corpus documentan que por encima
-    de **0.5** el comentario es aproximadamente discurso de odio, y por debajo de **−1**
-    es discurso de apoyo o contra-discurso. En medio, zona ambigua.
+    ¿Y qué umbral ponemos en `hate_speech_score`? Aquí hay que ser honestos: **el score es
+    continuo y no trae una línea marcada**. Va de −8.34 a 6.30 y no hay ningún salto
+    natural que separe "odio" de "no odio". Es un espectro.
+
+    En esta clase usaremos **0.5** como corte, y **−1** para el lado del discurso de
+    apoyo. Son decisiones **nuestras**, tomadas para poder trabajar, no leyes del dataset.
+    Cualquier resultado que publiques con ellas tiene que decir cuál usaste, porque si
+    mueves el umbral se mueven tus conclusiones.
+
+    Ese, y no la sintaxis, es el tipo de decisión que después hay que defender.
     """)
     return
 
@@ -892,8 +992,8 @@ def _(solucion):
         FROM comentarios
         WHERE hate_speech_score > 2
         """,
-        "Con `count(*)` te habrían salido **737**, que son filas. Los comentarios "
-        "distintos son **191**. Casi cuatro veces menos: ese es el tamaño del error "
+        "Con `count(*)` te habrían salido **20,338**, que son filas. Los comentarios "
+        "distintos son **2,086**. Casi diez veces menos: ese es el tamaño del error "
         "que se comete al confundir la unidad de análisis.",
     )
     return
@@ -916,7 +1016,7 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     ej4 = mo.ui.code_editor(
-        value="-- Cambia el número por el comment_id que hayas elegido\nSELECT annotator_id, respect, insult, target_race\nFROM comentarios\nWHERE comment_id = 20036",
+        value="-- Cambia el número por el comment_id que hayas elegido\nSELECT annotator_id, respect, insult, target_race\nFROM comentarios\nWHERE comment_id = 4602",
         language="sql",
         debounce=True,
     )
@@ -936,7 +1036,7 @@ def _(solucion):
         """
         SELECT annotator_id, respect, insult, target_race, hate_speech_score
         FROM comentarios
-        WHERE comment_id = 20036
+        WHERE comment_id = 4602
         ORDER BY respect
         """,
         "Para encontrar comentarios con muchas evaluaciones:\n\n"
@@ -949,10 +1049,10 @@ def _(solucion):
 
 
 @app.cell(hide_code=True)
-def _(mo, nombre_alumno):
+def _(mo):
     mo.callout(
-        mo.md(f"""
-        ### ¡Terminaste, {nombre_alumno.value or 'estudiante'}! 🎉
+        mo.md("""
+        ### ¡Terminaste! 🎉
 
         Te llevas:
 

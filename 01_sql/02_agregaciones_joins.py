@@ -13,7 +13,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    DATA_URL = str(mo.notebook_location() / "public" / "sample_data.parquet")
+    DATA_URL = str(mo.notebook_location() / "public" / "hate_speech.parquet")
     return (DATA_URL,)
 
 
@@ -374,7 +374,8 @@ def _(mo):
     Por eso `HAVING` puede usar `count(*)` y `WHERE` no: cuando `WHERE` se ejecuta,
     los grupos todavía no existen.
 
-    Busquemos los comentarios **más evaluados**: los que recibieron más de 15 opiniones.
+    Busquemos los comentarios **más evaluados**: los que recibieron más de 100 opiniones.
+    Son los 70 del conjunto de calibración que descubrimos en el notebook anterior.
     """)
     return
 
@@ -391,7 +392,7 @@ def _(mostrar, tabla_anotaciones):
             round(avg(respect), 2)            AS respeto_promedio
         FROM anotaciones
         GROUP BY comment_id
-        HAVING count(*) > 15
+        HAVING count(*) > 100
         ORDER BY cuantas_evaluaciones DESC
         LIMIT 10
         """,
@@ -408,9 +409,8 @@ def _(mo):
         Aquí agrupamos por **comentario**. Si en cambio agrupas por **anotador** y pides
         `HAVING count(*) > 50`, obtienes **cero filas** — y tu SQL está perfecto.
 
-        La razón está en los datos, no en la consulta: esta muestra se armó tomando 5,000
-        filas al azar de un corpus mucho más grande, así que las evaluaciones de cada
-        persona quedaron desperdigadas. Ningún anotador tiene más de **5** evaluaciones
+        La razón está en los datos, no en la consulta: el corpus se construyó pidiéndole a cada
+        anotador que evaluara unas pocas decenas de comentarios, no cientos. Ningún anotador supera las **26** evaluaciones
         aquí, aunque en el corpus completo tengan cientos.
 
         **Ante un resultado vacío, la pregunta correcta no es "¿qué escribí mal?" sino
@@ -449,12 +449,12 @@ def _(mo):
     `CASE WHEN` es el `if / else if / else` de SQL. Evalúa las condiciones **en orden** y
     se queda con la primera que se cumple.
 
-    Los cortes no los inventamos: los autores del corpus documentan que por encima de
-    **0.5** el comentario es aproximadamente discurso de odio, y por debajo de **−1** es
-    discurso de apoyo o contra-discurso. Entre ambos queda la zona ambigua.
+    Los cortes no los inventamos: el score es continuo y **no trae una línea marcada**.
+    En esta clase usamos **0.5** para el lado del odio y **−1** para el del apoyo, igual
+    que en el notebook anterior. Son decisiones nuestras, no del dataset.
 
-    Usar umbrales inventados es una forma silenciosa de fabricar resultados: cambia el
-    número y cambian tus conclusiones.
+    Por eso todo resultado que publiques debe decir qué umbral usaste: cambia el número
+    y cambian tus conclusiones.
     """)
     return
 
@@ -614,7 +614,7 @@ def _(mostrar, tabla_anotaciones, tabla_comentarios):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Pasamos de **3,356 filas a 5,000**, pero siguen siendo los mismos 3,356 comentarios.
+    Pasamos de **39,565 filas a 135,556**, pero siguen siendo los mismos 39,565 comentarios.
     El JOIN no inventó comentarios: repitió cada uno tantas veces como evaluaciones tiene.
 
     Y aquí está el peligro: si ahora calculas `avg(hate_speech_score)` sobre el resultado,
@@ -631,7 +631,7 @@ def _(mo):
     emparejaron.
 
     La diferencia se ve cuando hay filas sin pareja. Tomemos los comentarios que **algún**
-    anotador marcó como `target_race`: son 1,046 de 3,356. Los otros 2,310 no tienen pareja.
+    anotador marcó como `target_race`: son 14,697 de 39,565. Los otros 24,868 no tienen pareja.
     """)
     return
 
@@ -669,7 +669,7 @@ def _(mostrar, tabla_comentarios, tabla_marcados_por_raza):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    `INNER` devuelve 1,046: solo los que alguien marcó. `LEFT` devuelve los 3,356: conserva
+    `INNER` devuelve 14,697: solo los que alguien marcó. `LEFT` devuelve los 39,565: conserva
     también los que nadie marcó, con `NULL` en las columnas de la derecha.
 
     **Cuál usar depende de la pregunta.** Si preguntas "¿cuántas veces se marcó cada

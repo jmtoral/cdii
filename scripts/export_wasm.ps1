@@ -152,9 +152,13 @@ foreach ($nb in $Notebooks) {
 Write-Host ""
 Write-Host "🔎 Verificando que los datos estén publicados..." -ForegroundColor Cyan
 foreach ($nb in $Notebooks) {
-    $Parquet = Join-Path (Join-Path $OutputDir $nb.Name) "public\sample_data.parquet"
-    if (Test-Path $Parquet) {
-        Write-Host "  ✅ $($nb.Name)/public/sample_data.parquet" -ForegroundColor Green
+    # No fijamos el nombre del archivo a propósito: si se cambia el dataset, esto
+    # sigue funcionando. Lo que importa es que llegue algún parquet.
+    $PublicDir = Join-Path (Join-Path $OutputDir $nb.Name) "public"
+    $Parquets = @(Get-ChildItem -Path $PublicDir -Filter *.parquet -ErrorAction SilentlyContinue)
+    if ($Parquets.Count -gt 0) {
+        $MB = [math]::Round(($Parquets | Measure-Object -Property Length -Sum).Sum / 1MB, 1)
+        Write-Host "  ✅ $($nb.Name)/public/ -> $($Parquets.Count) parquet(s), $MB MB" -ForegroundColor Green
     } else {
         Write-Host "  ❌ Falta el parquet en $($nb.Name) — el notebook no cargará datos" -ForegroundColor Red
         $Fallos += "$($nb.Name) (datos)"

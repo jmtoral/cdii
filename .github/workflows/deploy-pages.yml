@@ -37,8 +37,8 @@ jobs:
       # versionado en el repo. Así el build no depende de HuggingFace y es reproducible.
       - name: Check that the data is present
         run: |
-          test -f 01_sql/public/sample_data.parquet \
-            || { echo "::error::Falta 01_sql/public/sample_data.parquet"; exit 1; }
+          ls 01_sql/public/*.parquet \
+            || { echo "::error::No hay ningún parquet en 01_sql/public/"; exit 1; }
 
       # Sin `|| true`: si un notebook falla, el deploy debe fallar. Antes se publicaba
       # un sitio con enlaces rotos sin que nadie se enterara.
@@ -57,8 +57,8 @@ jobs:
             marimo export html-wasm "01_sql/$nb.py" -o "site/$nb" --mode run
             test -f "site/$nb/index.html" \
               || { echo "::error::$nb no generó index.html"; exit 1; }
-            test -f "site/$nb/public/sample_data.parquet" \
-              || { echo "::error::$nb quedó sin datos (public/sample_data.parquet)"; exit 1; }
+            ls "site/$nb/public/"*.parquet \
+              || { echo "::error::$nb quedó sin datos en public/"; exit 1; }
             echo "::endgroup::"
           done
 

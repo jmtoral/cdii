@@ -20,7 +20,10 @@ def _():
     # Si la dejas vacía, el botón de enviar se desactiva y el alumno solo
     # puede entregar descargando el archivo de respuestas.
     # ─────────────────────────────────────────────────────────────────────────
-    ENDPOINT = ""
+    ENDPOINT = (
+        "https://script.google.com/macros/s/"
+        "AKfycbxAh7nw7L0Kt5Qnak5Dyj9nkPX4PhX1c6WykpFGL6JOyvTL0dDv2-H0qHlEvfxQZCWj4g/exec"
+    )
 
     CURSO = "CDII"
     EJERCICIO = "ejercicio_01_sql"
@@ -31,7 +34,7 @@ def _():
 def _(mo):
     # Ruta a los datos: en local es una carpeta del disco, en el navegador (WASM)
     # es una URL del propio sitio. DuckDB lee ambas.
-    DATA_URL = str(mo.notebook_location() / "public" / "sample_data.parquet")
+    DATA_URL = str(mo.notebook_location() / "public" / "hate_speech.parquet")
     return (DATA_URL,)
 
 
@@ -338,7 +341,7 @@ def _(pregunta):
     pregunta(
         "5",
         20,
-        "Encuentra los **comentarios que recibieron más de 20 evaluaciones**. Muestra "
+        "Encuentra los **comentarios que recibieron más de 100 evaluaciones**. Muestra "
         "`comment_id` y cuántas evaluaciones tuvo, del más evaluado al menos evaluado.",
         "Agrupa por `comment_id` sobre la tabla `anotaciones` y filtra los grupos con "
         "`HAVING` (no con `WHERE`: cuando `WHERE` corre, los grupos aún no existen).",
