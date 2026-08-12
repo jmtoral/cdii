@@ -92,11 +92,49 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
-## 🛑 DÓNDE RETOMAR (fin de sesión 2026-08-12)
+## ✅ RESUELTO: las lecciones van en `--mode edit` y están publicadas
 
-### La decisión pendiente: `--mode run` vs `--mode edit` para las lecciones
+Decisión del profesor: *"ponlo en modo Edit, no me importa que vean las respuestas, pero
+que puedan correr el botón de play en internet"*. Hecho y verificado **en el sitio público**.
 
-Es lo único que bloquea. Está **todo medido**, solo falta elegir y verificar.
+| Notebook | Modo | Por qué |
+|---|---|---|
+| `01_introduccion_sql` | **edit** | 133 botones ▶, celdas SQL editables |
+| `02_agregaciones_joins` | **edit** | igual |
+| `ejercicio_01` | **run** | el alumno escribe en widgets; no debe poder desarmar la entrega |
+
+### ⚠️ Lo que casi nos tumba: en modo `edit` el notebook llega APAGADO
+
+Se midió esperando **10 minutos**: marimo **no ejecuta ninguna celda al abrir** en modo
+edit. Aparecen los 65 editores y los 133 botones ▶, pero **cero widgets y cero resultados**.
+Es coherente: un editor abre el archivo, no lo corre.
+
+**La solución es `Ctrl` + `Shift` + `R`** (ejecutar todo). Funciona: enciende el notebook en
+~37 segundos y a partir de ahí todo queda interactivo.
+
+Como nadie adivina eso, **las dos lecciones abren con un callout grande** que dice
+exactamente qué teclas presionar, que tarda medio minuto, y una tabla de atajos. Ese aviso
+**sí se ve con el notebook apagado**, porque las celdas de markdown se renderizan sin
+ejecutarse.
+
+⚠️ **Si alguien reporta "no se ve nada / no carga"**, la respuesta casi siempre es que no
+presionó `Ctrl+Shift+R`.
+
+### Recorrido verificado contra https://jmtoral.github.io/cdii/
+
+| Paso | |
+|---|---|
+| El aviso de encender se ve con el notebook apagado | ✅ |
+| `Ctrl+Shift+R` lo ejecuta todo (37 s) | ✅ |
+| Aparecen input de nombre, matrícula, slider y buscador | ✅ |
+| Pasar lista llega a la hoja de Google | ✅ |
+| Editar una consulta y `Ctrl+Enter` la re-ejecuta | ✅ |
+
+Script del recorrido: `scratchpad/edit_completo.py`.
+
+---
+
+## 📎 Histórico: cómo se llegó a esa decisión
 
 **Cómo llegamos aquí.** El profesor dijo *"sigue sin poderse correr"* y señaló la causa
 real: *"no corres el sql directo, sino que usas `correr(ejemplos["todo"], tabla_comentarios)`"*.
@@ -129,16 +167,6 @@ alargada a 300 s) contra el build en modo `edit`. Según el resultado:
 - Si no aparecen → volver las lecciones a `run` y recuperar los editores del commit
   `d0237d0`, que sí eran ejecutables aunque sin botón visible.
 
-### ⚠️ Nada de esto está subido
-
-`git status` tiene 3 archivos modificados **y sin commitear**:
-`01_sql/01_introduccion_sql.py`, `.github/workflows/deploy-pages.yml`, `scripts/export_wasm.ps1`.
-
-**A propósito.** Lo que está publicado en https://jmtoral.github.io/cdii/ es el commit
-`d35656c`, que funciona. Subir esto ahora publicaría el modo `edit` sin verificar, o —si se
-cambia a `run`— un notebook con celdas SQL nativas que **no** se pueden editar, que sería un
-retroceso frente a lo que ya está en vivo. Decidir primero, subir después.
-
 ### ⚠️⚠️ marimo se come las ediciones del archivo
 
 **Pasó de verdad en esta sesión:** con `marimo edit` abierto sobre
@@ -169,6 +197,7 @@ de asistencia recién añadidas**. Hubo que reaplicarlas.
 | `PRUEBA AUTOMATICA - borrar` | `TEST-000` |
 | `Fermín Ramírez` / `Ana Torres` | (pruebas del endpoint falso, puede que no llegaran) |
 | `PRUEBA ASISTENCIA - borrar` | `TEST-ASIST` |
+| `PRUEBA EDIT - borrar` | `TEST-EDIT` |
 
 ---
 
