@@ -92,6 +92,39 @@ fuera de forma natural, pero está dicho explícitamente en las instrucciones de
 
 ---
 
+## ✅ Defectos pedagógicos: CORREGIDOS (2026-08-12)
+
+Todo lo de la sección siguiente ya está arreglado y **verificado en el sitio público**.
+Resumen de lo que cambió:
+
+| Antes | Ahora |
+|---|---|
+| 3 ejercicios devolvían 0 filas (agrupaban por `annotator_id`) | Agrupan por comentario. La P5 devuelve 43 filas |
+| `target_race` presentado como atributo del comentario | Se explica que es el juicio de cada anotador, y el ejercicio 3 trabaja el desacuerdo (comentario 20053: 32 evaluaciones, 5 niveles distintos de `respect`) |
+| Soluciones escritas debajo del enunciado | En `mo.accordion` colapsado; el alumno escribe en `mo.ui.code_editor` |
+| El alumno no veía el SQL en el sitio publicado | Helper `mostrar()` que imprime la consulta y su resultado |
+| Consultas presentadas ya terminadas | Se construyen **pieza por pieza**: `SELECT` → `WHERE` → `AND` → `ORDER BY`, con el SQL de cada paso |
+| `DROP TABLE` del alumno rompía el notebook | SQL envuelto en `SELECT * FROM ( ... )`. Probado con 9 casos de ataque |
+| Umbrales inventados (`> 2`) | Los documentados del corpus (0.5 y −1) |
+| Sin aviso de contenido | Aviso en los tres notebooks |
+| `download_data.py` pisaba la muestra | Una sola escritura + copia a `01_sql/public/` + imprime la distribución |
+
+⚠️ **`--show-code` NO se usa, a propósito.** Esa bandera **ignora los `hide_code=True`** y
+expone el andamiaje de Python y **las soluciones de los ejercicios**. Por eso el SQL se
+muestra desde el notebook con `mostrar()`. No la agregues al workflow.
+
+⚠️ **Las tablas de DuckDB no son variables de Python.** marimo las inyecta solo cuando ve
+el nombre dentro del SQL de un `mo.sql()` literal. Como `mostrar()` recibe el SQL en un
+string, hubo que dar a cada celda que crea una tabla una variable real (`tabla_comentarios`,
+`tabla_anotaciones`…) de la que dependen las demás. Si sale
+`NameError: name 'comentarios' is not defined`, es esto.
+
+Script de regresión que hay que volver a correr al tocar datos o ejercicios:
+`scratchpad/probar_soluciones.py` (22 consultas, ninguna puede devolver cero filas) y
+`scratchpad/verificar_clase3.py` (recorre el sitio como un alumno).
+
+---
+
 ## 🚨 Defectos del contenido pedagógico (medidos el 2026-08-12)
 
 Origen: `BRIEF-agente-cdii.md`, generado por otro agente. **Sus afirmaciones sobre los datos se
@@ -215,9 +248,15 @@ Nota: sus números de la §7.2 (191, 133, 8) están calculados sobre la tabla `c
 
 ### ❌ Pendiente / Sin Hacer
 
-**1. Arreglar los defectos pedagógicos** — ver la sección 🚨 arriba. Lo urgente, en orden:
-los 3 ejercicios de cero filas, esconder las soluciones, el lenguaje sobre `target_*`,
-el sandbox de SQL, el aviso de contenido, el README y el bug de `download_data.py`.
+**1. Conectar la hoja de entregas** — `ENDPOINT` en `01_sql/ejercicio_01.py` sigue vacío,
+así que el botón de enviar sale **deshabilitado** y el alumno solo puede descargar su
+archivo. Seguir `scripts/apps_script/README.md` (~10 min) y pegar la URL.
+
+**2. Decidir sobre la normalización en 4 tablas** que propone el BRIEF. Los notebooks ya
+crean `comentarios`, `anotadores` y `plataformas` derivadas dentro del propio notebook
+(con `CREATE TABLE ... AS SELECT DISTINCT`), lo que hace honesta la sección de JOINs sin
+tocar el pipeline de datos. Pasar eso a parquets separados sigue siendo una mejora
+posible, pero ya no es urgente.
 
 **2. Configurar el endpoint de entregas**
 `ENDPOINT` en `01_sql/ejercicio_01.py` está vacío a propósito → el botón de enviar sale
