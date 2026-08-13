@@ -1,0 +1,903 @@
+<title>SQL: una introducción — Manuel Toral</title>
+
+<style>
+  :root {
+    /* Papel muy claro; el azul viene del logo institucional (#0432A1) */
+    --papel:      #ffffff;
+    --papel-2:    #f4f7fd;
+    --regla:      #d6e0f2;
+    --regla-fina: #eaf0fa;
+    --tinta:      #101c3d;
+    --azul:       #0432a1;
+    --azul-vivo:  #2f6fd0;
+    --gris:       #5d6b8a;
+    --alerta:     #b03e1a;
+
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+    --paso: clamp(1rem, 0.6rem + 1.6vw, 1.6rem);
+    --medida: 62ch;
+  }
+
+  /*
+    Decisión deliberada: esta presentación se queda en papel claro en los dos temas.
+    Es material para proyectar en un aula, y el logo institucional es azul sobre blanco.
+    En preferencia oscura bajamos el brillo del papel en vez de invertirlo, para que
+    no deslumbre sin volverse un fondo azul marino.
+  */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --papel:      #e9eef7;
+      --papel-2:    #dfe7f3;
+      --regla:      #c2d0e8;
+      --regla-fina: #d8e1f0;
+      --tinta:      #0f1a38;
+      --azul:       #06308f;
+      --azul-vivo:  #2b64c0;
+      --gris:       #55648a;
+      --alerta:     #9d3714;
+    }
+  }
+  :root[data-theme="dark"] {
+    --papel:      #e9eef7;
+    --papel-2:    #dfe7f3;
+    --regla:      #c2d0e8;
+    --regla-fina: #d8e1f0;
+    --tinta:      #0f1a38;
+    --azul:       #06308f;
+    --azul-vivo:  #2b64c0;
+    --gris:       #55648a;
+    --alerta:     #9d3714;
+  }
+  :root[data-theme="light"] {
+    --papel:      #ffffff;
+    --papel-2:    #f4f7fd;
+    --regla:      #d6e0f2;
+    --regla-fina: #eaf0fa;
+    --tinta:      #101c3d;
+    --azul:       #0432a1;
+    --azul-vivo:  #2f6fd0;
+    --gris:       #5d6b8a;
+    --alerta:     #b03e1a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--sans);
+    font-size: clamp(15px, 0.85rem + 0.35vw, 18px);
+    line-height: 1.62;
+    background-image:
+      linear-gradient(var(--regla-fina) 1px, transparent 1px),
+      linear-gradient(90deg, var(--regla-fina) 1px, transparent 1px);
+    background-size: 32px 32px, 32px 32px;
+  }
+
+  .deck { max-width: 1180px; margin: 0 auto; padding: 0 var(--paso); }
+
+  .lamina {
+    border-top: 1px solid var(--regla);
+    padding: clamp(3rem, 6vw, 5.5rem) 0 clamp(2.5rem, 5vw, 4.5rem);
+    display: grid;
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+  }
+  .lamina:first-of-type { border-top: 0; }
+
+  .cinta {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gris);
+  }
+  .cinta .num {
+    color: #ffffff;
+    background: var(--azul);
+    padding: 0.15em 0.55em;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+  .cinta .linea { flex: 1; height: 1px; background: var(--regla); }
+
+  h1, h2, h3 { font-family: var(--mono); font-weight: 600; text-wrap: balance; margin: 0; }
+  h2 { font-size: clamp(1.55rem, 1rem + 2.4vw, 2.6rem); line-height: 1.15; letter-spacing: -0.02em; }
+  h3 { font-size: clamp(1rem, 0.85rem + 0.5vw, 1.2rem); letter-spacing: -0.01em; color: var(--azul); }
+  p { margin: 0; max-width: var(--medida); }
+  .sumario { font-size: 1.08em; color: var(--gris); max-width: 58ch; }
+  strong { color: var(--azul); font-weight: 600; }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 88vh; align-content: center; border-top: 0; }
+  .marca { display: block; width: clamp(190px, 26vw, 280px); height: auto; }
+  .portada .rotulo {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--azul);
+  }
+  .portada h1 {
+    font-size: clamp(2.6rem, 1rem + 7.5vw, 6rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+  .portada h1 .tenue { color: var(--gris); }
+  .firma {
+    display: grid;
+    gap: 0.15rem;
+    padding-top: clamp(1.5rem, 4vw, 3rem);
+    border-top: 1px solid var(--regla);
+    font-family: var(--mono);
+    font-size: 0.86rem;
+  }
+  .firma .autor { color: var(--tinta); font-weight: 600; letter-spacing: 0.02em; }
+  .firma .inst { color: var(--gris); }
+
+  /* ---------- Fichas ---------- */
+  .fichas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px;
+    background: var(--regla);
+    border: 1px solid var(--regla);
+  }
+  .ficha { background: var(--papel); padding: 1.15rem 1.25rem; display: grid; gap: 0.4rem; align-content: start; }
+  .ficha .clave {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--azul);
+  }
+  .ficha p { font-size: 0.94em; color: var(--gris); }
+  .ficha p b { color: var(--tinta); font-weight: 600; }
+
+  /* ---------- Código ---------- */
+  .codigo {
+    font-family: var(--mono);
+    font-size: clamp(0.82rem, 0.7rem + 0.4vw, 1rem);
+    line-height: 1.75;
+    background: var(--papel-2);
+    border-left: 3px solid var(--azul);
+    padding: 1rem 1.25rem;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .codigo .kw  { color: var(--azul); font-weight: 600; }
+  .codigo .com { color: var(--gris); font-style: italic; }
+  .codigo .lit { color: var(--alerta); }
+
+  /* ---------- Piezas ---------- */
+  .piezas { display: grid; gap: 1px; background: var(--regla); border: 1px solid var(--regla); }
+  .pieza {
+    background: var(--papel);
+    display: grid;
+    grid-template-columns: 3.2rem 1fr;
+    gap: 0 1.1rem;
+    padding: 0.95rem 1.15rem;
+    align-items: start;
+  }
+  .pieza .n {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--azul);
+    border: 1px solid var(--regla);
+    text-align: center;
+    padding: 0.15em 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .pieza code { font-family: var(--mono); font-size: 0.95em; color: var(--tinta); font-weight: 600; }
+  .pieza .glosa { grid-column: 2; color: var(--gris); font-size: 0.93em; }
+
+  /* ---------- Figuras ---------- */
+  figure { margin: 0; display: grid; gap: 0.75rem; }
+  .lienzo { overflow-x: auto; border: 1px solid var(--regla); background: var(--papel); padding: 1rem; }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 640px; margin: 0 auto; }
+  figcaption { font-size: 0.88em; color: var(--gris); max-width: var(--medida); }
+  figcaption b { color: var(--tinta); font-weight: 600; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: 1px solid var(--regla);
+    border-left: 3px solid var(--alerta);
+    background: var(--papel-2);
+    padding: 1rem 1.25rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--alerta);
+  }
+  .aviso p { font-size: 0.96em; }
+
+  .par { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 860px) { .par { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+  .par > div { display: grid; gap: 0.6rem; align-content: start; }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: 1px solid var(--regla); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93em; min-width: 480px; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--regla-fina); vertical-align: top; }
+  th {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--azul);
+    background: var(--papel-2);
+    border-bottom: 1px solid var(--regla);
+  }
+  td code { font-family: var(--mono); font-size: 0.95em; color: var(--tinta); }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  /* ---------- Bibliografía ---------- */
+  .biblio { display: grid; gap: 1.6rem; }
+  .biblio .grupo { display: grid; gap: 0.75rem; }
+  .biblio h3 { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; }
+  .biblio ol { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.85rem; }
+  .biblio li { max-width: 72ch; font-size: 0.95em; line-height: 1.6; }
+  .biblio li .obra { font-style: italic; }
+  .biblio li .nota { display: block; color: var(--gris); font-size: 0.9em; margin-top: 0.15rem; }
+
+  /* ---------- Pie ---------- */
+  .pie {
+    border-top: 1px solid var(--regla);
+    margin-top: 2rem;
+    padding: 2rem 0 3.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--gris);
+  }
+  .pie img { width: 132px; height: auto; }
+  .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
+
+  a { color: var(--azul); text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 2px solid var(--azul-vivo); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<main class="deck">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="lamina portada">
+    <img class="marca" src="__LOGO__" alt="Tecnológico de Monterrey">
+    <div class="rotulo">Ciencia de Datos para la Toma de Decisiones II</div>
+    <h1>SQL<span class="tenue">:</span><br>cómo se le<br>pregunta a<br>los datos</h1>
+    <p class="sumario">
+      Una introducción al lenguaje con el que se consulta prácticamente toda la información
+      estructurada del mundo. Todos los ejemplos salen del corpus que usaremos en clase:
+      comentarios reales de redes sociales, evaluados por miles de personas.
+    </p>
+    <div class="firma">
+      <span class="autor">Manuel Toral</span>
+      <span class="inst">Escuela de Ingeniería y Ciencias</span>
+      <span class="inst">Tecnológico de Monterrey</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">01</span><span>Qué es</span><span class="linea"></span></div>
+    <h2>SQL es un lenguaje para<br>hacer preguntas</h2>
+    <p class="sumario">
+      Structured Query Language. No sirve para construir aplicaciones ni entrenar modelos:
+      sirve para <strong>pedirle datos a una base de datos</strong> y obtener una tabla de vuelta.
+    </p>
+
+    <div class="par">
+      <div>
+        <h3>Lo que tú escribes</h3>
+        <pre class="codigo"><span class="com">-- Los comentarios más hostiles</span>
+<span class="kw">SELECT</span> text, hate_speech_score
+<span class="kw">FROM</span>   comentarios
+<span class="kw">WHERE</span>  hate_speech_score &gt; <span class="lit">2</span></pre>
+        <p class="sumario">Describes <b>el resultado que quieres</b>.</p>
+      </div>
+      <div>
+        <h3>Lo que tú NO escribes</h3>
+        <pre class="codigo"><span class="com">-- Cómo recorrer 135 mil filas</span>
+abrir archivo
+para cada fila:
+    si fila.score &gt; <span class="lit">2</span>:
+        guardar fila
+ordenar, cerrar, devolver</pre>
+        <p class="sumario">La base de datos decide <b>cómo</b> buscarlo.</p>
+      </div>
+    </div>
+
+    <p>
+      A esto se le llama un lenguaje <strong>declarativo</strong>. Es la diferencia entre
+      pedir un café y explicarle a alguien cómo moler el grano. Tú declaras el qué; el motor
+      —que sabe dónde están los índices y cuánta memoria hay— resuelve el cómo, y
+      normalmente lo resuelve mejor y más rápido que tú.
+    </p>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">02</span><span>Para qué sirve</span><span class="linea"></span></div>
+    <h2>Cuatro verbos, y con eso<br>se hace casi todo</h2>
+
+    <div class="fichas">
+      <div class="ficha">
+        <span class="clave">SELECT — consultar</span>
+        <p>Traer datos que ya existen. Es <b>el 90% del trabajo</b> de quien analiza datos, y lo único que veremos a fondo en esta clase.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">INSERT — agregar</span>
+        <p>Meter filas nuevas. Cada vez que un anotador termina de evaluar un comentario, se guarda su juicio con un <b>INSERT</b>.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">UPDATE — modificar</span>
+        <p>Cambiar filas existentes. Se recalcula un puntaje con un modelo nuevo y eso es un <b>UPDATE</b> sobre la columna.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">DELETE — borrar</span>
+        <p>Eliminar filas. El más peligroso: <b>un DELETE sin WHERE borra la tabla entera</b> y no hay deshacer.</p>
+      </div>
+    </div>
+
+    <p>
+      En un proyecto de procesamiento de lenguaje natural, SQL es lo que ocurre <em>antes</em>
+      del modelo y <em>después</em> del modelo: armar el conjunto de entrenamiento con los
+      filtros correctos, revisar cuántos ejemplos hay de cada clase, cruzar las predicciones
+      contra las etiquetas humanas y encontrar dónde el modelo se equivocó. El notebook de
+      Python se lleva la fama; SQL se lleva las horas.
+    </p>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">03</span><span>Por qué importa</span><span class="linea"></span></div>
+    <h2>Aprendes una vez.<br>Te sirve toda la carrera.</h2>
+
+    <div class="fichas">
+      <div class="ficha">
+        <span class="clave">Cumple 50 años</span>
+        <p>El modelo relacional es de <b>Edgar Codd (IBM, 1970)</b> y el lenguaje nació como SEQUEL en <b>1974</b>. Ha sobrevivido a docenas de tecnologías que prometieron reemplazarlo.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Es transferible</span>
+        <p>Lo que aprendes en DuckDB sirve casi igual en <b>PostgreSQL, SQL Server, BigQuery o SQLite</b>. Cambian detalles, no la lógica.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Escala contigo</span>
+        <p>La misma consulta corre sobre cien comentarios en tu laptop o sobre <b>miles de millones</b> en un clúster. No reescribes nada.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Es el idioma común</span>
+        <p>Donde se entienden ingeniería, análisis y negocio. Saber SQL es <b>poder responderte tus propias preguntas</b> sin pedirle los datos a nadie.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">El punto que de verdad importa</span>
+      <p>
+        La sintaxis se aprende en una tarde. Lo difícil —y lo que separa a quien sabe SQL de
+        quien sabe analizar datos— es entender <strong>qué representa una fila</strong> antes
+        de empezar a contar. En un corpus anotado esa pregunta es todo: una fila puede ser un
+        comentario… o la opinión de una sola persona sobre ese comentario.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span>El modelo relacional</span><span class="linea"></span></div>
+    <h2>Todo son tablas,<br>y llaves que las unen</h2>
+    <p class="sumario">
+      Una base de datos relacional guarda la información en tablas separadas por tema y las
+      conecta mediante columnas compartidas. Ese es todo el truco.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>Término</th><th>Qué es</th><th>En nuestro corpus</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>tabla</code></td><td>Datos sobre <em>una sola cosa</em></td><td><code>comentarios</code>, <code>anotadores</code></td></tr>
+          <tr><td><code>fila</code></td><td>Una ocurrencia de esa cosa</td><td>un comentario concreto</td></tr>
+          <tr><td><code>columna</code></td><td>Un atributo, con un tipo fijo</td><td><code>text</code>, <code>hate_speech_score</code></td></tr>
+          <tr><td><code>llave primaria</code></td><td>Identifica <em>sin ambigüedad</em> cada fila</td><td><code>comment_id</code></td></tr>
+          <tr><td><code>llave foránea</code></td><td><em>Apunta</em> a la llave primaria de otra tabla</td><td><code>platform_id</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      ¿Por qué separar en tablas en vez de tener una sola gigante? Porque repetir datos es
+      caro y peligroso. Si el texto de un comentario se guardara junto a cada evaluación, un
+      comentario evaluado por 800 personas ocuparía <strong>800 copias del mismo párrafo</strong>,
+      y bastaría con que una se editara para que dejaran de coincidir. Guardarlo una vez y
+      referenciarlo con una llave elimina ese riesgo de raíz.
+    </p>
+  </section>
+
+  <!-- ═══════════ 05 — DIAGRAMA ER ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span>Diagrama entidad-relación</span><span class="linea"></span></div>
+    <h2>El plano de la base<br>antes de escribir nada</h2>
+    <p class="sumario">
+      Un diagrama entidad-relación dibuja qué tablas existen, qué guarda cada una y cómo se
+      conectan. Este es el del corpus <em>Measuring Hate Speech</em> que usaremos en clase.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 900 500" role="img"
+             aria-label="Diagrama entidad-relación del corpus: plataformas clasifica comentarios; comentarios y anotadores tienen una relación de muchos a muchos resuelta por la tabla anotaciones, que guarda cada juicio individual.">
+          <defs>
+            <marker id="punta" viewBox="0 0 10 10" refX="9" refY="5"
+                    markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <g>
+            <rect x="30" y="40" width="200" height="112" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="30" y1="72" x2="230" y2="72" stroke="currentColor" stroke-width="1.5"/>
+            <text x="42" y="62" font-family="monospace" font-size="13" font-weight="700" fill="currentColor">plataformas</text>
+            <text x="42" y="92" font-family="monospace" font-size="11" fill="#0432a1">PK  platform_id</text>
+            <text x="42" y="112" font-family="monospace" font-size="11" fill="currentColor">nombre</text>
+            <text x="42" y="136" font-family="monospace" font-size="10" fill="#5d6b8a">YouTube, Twitter, Reddit</text>
+          </g>
+
+          <g>
+            <rect x="30" y="235" width="200" height="150" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="30" y1="267" x2="230" y2="267" stroke="currentColor" stroke-width="1.5"/>
+            <text x="42" y="257" font-family="monospace" font-size="13" font-weight="700" fill="currentColor">comentarios</text>
+            <text x="42" y="287" font-family="monospace" font-size="11" fill="#0432a1">PK  comment_id</text>
+            <text x="42" y="307" font-family="monospace" font-size="11" fill="currentColor">text</text>
+            <text x="42" y="327" font-family="monospace" font-size="11" fill="#2f6fd0">FK  platform_id</text>
+            <text x="42" y="347" font-family="monospace" font-size="11" fill="currentColor">hate_speech_score</text>
+            <text x="42" y="371" font-family="monospace" font-size="10" fill="#5d6b8a">39,565 comentarios</text>
+          </g>
+
+          <g>
+            <rect x="670" y="235" width="200" height="150" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="670" y1="267" x2="870" y2="267" stroke="currentColor" stroke-width="1.5"/>
+            <text x="682" y="257" font-family="monospace" font-size="13" font-weight="700" fill="currentColor">anotadores</text>
+            <text x="682" y="287" font-family="monospace" font-size="11" fill="#0432a1">PK  annotator_id</text>
+            <text x="682" y="307" font-family="monospace" font-size="11" fill="currentColor">gender</text>
+            <text x="682" y="327" font-family="monospace" font-size="11" fill="currentColor">ideology</text>
+            <text x="682" y="347" font-family="monospace" font-size="11" fill="currentColor">educ</text>
+            <text x="682" y="371" font-family="monospace" font-size="10" fill="#5d6b8a">7,912 personas</text>
+          </g>
+
+          <g>
+            <rect x="330" y="245" width="240" height="170" fill="none" stroke="#2f6fd0" stroke-width="2.5"/>
+            <line x1="330" y1="277" x2="570" y2="277" stroke="#2f6fd0" stroke-width="2.5"/>
+            <text x="342" y="267" font-family="monospace" font-size="13" font-weight="700" fill="#0432a1">anotaciones</text>
+            <text x="342" y="297" font-family="monospace" font-size="11" fill="#0432a1">PK  comment_id</text>
+            <text x="342" y="315" font-family="monospace" font-size="11" fill="#0432a1">PK  annotator_id</text>
+            <text x="342" y="339" font-family="monospace" font-size="11" fill="currentColor">respect</text>
+            <text x="342" y="357" font-family="monospace" font-size="11" fill="currentColor">insult</text>
+            <text x="342" y="375" font-family="monospace" font-size="11" fill="currentColor">target_race</text>
+            <text x="342" y="401" font-family="monospace" font-size="10" fill="#5d6b8a">135,556 evaluaciones</text>
+          </g>
+
+          <line x1="130" y1="152" x2="130" y2="235" stroke="currentColor" stroke-width="1.5" marker-end="url(#punta)"/>
+          <text x="140" y="180" font-family="monospace" font-size="11" fill="currentColor">clasifica</text>
+          <text x="140" y="197" font-family="monospace" font-size="11" font-weight="700" fill="#0432a1">1 : N</text>
+
+          <line x1="230" y1="320" x2="330" y2="320" stroke="#2f6fd0" stroke-width="2" marker-end="url(#punta)"/>
+          <text x="238" y="308" font-family="monospace" font-size="11" fill="currentColor">recibe</text>
+          <text x="248" y="341" font-family="monospace" font-size="11" font-weight="700" fill="#0432a1">1 : N</text>
+
+          <line x1="670" y1="320" x2="570" y2="320" stroke="#2f6fd0" stroke-width="2" marker-end="url(#punta)"/>
+          <text x="596" y="308" font-family="monospace" font-size="11" fill="currentColor">emite</text>
+          <text x="596" y="341" font-family="monospace" font-size="11" font-weight="700" fill="#0432a1">1 : N</text>
+
+          <line x1="130" y1="440" x2="770" y2="440" stroke="#2f6fd0" stroke-width="1" stroke-dasharray="5 5"/>
+          <line x1="130" y1="415" x2="130" y2="440" stroke="#2f6fd0" stroke-width="1" stroke-dasharray="5 5"/>
+          <line x1="770" y1="415" x2="770" y2="440" stroke="#2f6fd0" stroke-width="1" stroke-dasharray="5 5"/>
+          <rect x="300" y="452" width="300" height="30" fill="#f4f7fd" stroke="#2f6fd0" stroke-width="1"/>
+          <text x="450" y="472" font-family="monospace" font-size="12" font-weight="700"
+                fill="#0432a1" text-anchor="middle">comentarios N : M anotadores</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>La tabla del centro es la clave.</b> Un comentario lo evalúan muchas personas y una
+        persona evalúa muchos comentarios: eso es una relación <em>muchos a muchos</em>, y no
+        se puede representar con una llave foránea simple. Se resuelve con una tabla
+        intermedia —<code>anotaciones</code>— cuya llave primaria es la <em>combinación</em>
+        de las dos. Cada renglón suyo es el juicio de una persona sobre un texto.
+      </figcaption>
+    </figure>
+
+    <div class="aviso">
+      <span class="titulo">Por qué esto no es un tecnicismo</span>
+      <p>
+        En el archivo real todo viene aplanado en una sola tabla de 135,556 filas. Si cuentas
+        con <code>count(*)</code> crees tener 135 mil comentarios, cuando en realidad son
+        <strong>39,565 comentarios evaluados varias veces</strong>. Reportarías una cifra
+        inflada casi cuatro veces, y ningún mensaje de error te avisaría.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 06 — TEXTO COMO DATO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span>Texto como dato</span><span class="linea"></span></div>
+    <h2>Buscar dentro de<br>las palabras</h2>
+    <p class="sumario">
+      En un corpus, la columna más interesante es texto libre. SQL sabe buscar patrones dentro
+      de ella con <code>LIKE</code> y el comodín <code>%</code>, que significa «cualquier
+      cosa, o nada».
+    </p>
+
+    <pre class="codigo"><span class="com">-- Comentarios que mencionan a un grupo, ordenados por hostilidad</span>
+<span class="kw">SELECT</span>   text, hate_speech_score
+<span class="kw">FROM</span>     comentarios
+<span class="kw">WHERE</span>    text <span class="kw">ILIKE</span> <span class="lit">'%immigrant%'</span>
+<span class="kw">ORDER BY</span> hate_speech_score <span class="kw">DESC</span>
+<span class="kw">LIMIT</span>    <span class="lit">10</span></pre>
+
+    <div class="par">
+      <div>
+        <h3>LIKE vs ILIKE</h3>
+        <p class="sumario">
+          <code>LIKE</code> distingue mayúsculas: no encuentra <em>Immigrant</em> si buscaste
+          <em>immigrant</em>. <code>ILIKE</code> ignora esa diferencia. En texto de redes
+          sociales —donde la gente ESCRIBE ASÍ— casi siempre quieres <code>ILIKE</code>.
+        </p>
+      </div>
+      <div>
+        <h3>Dónde poner el comodín</h3>
+        <p class="sumario">
+          <code>'hate%'</code> busca lo que <em>empieza</em> con esa palabra;
+          <code>'%hate'</code> lo que <em>termina</em>; <code>'%hate%'</code> lo que la
+          contiene en cualquier parte. El último es el que casi siempre necesitas.
+        </p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Aquí es donde SQL se topa con NLP</span>
+      <p>
+        <code>LIKE</code> encuentra <strong>cadenas de caracteres, no significados</strong>.
+        Buscar <code>'%hate%'</code> te trae «I hate mondays», te trae «hateful» —y también
+        «w<em>hate</em>ver»—, y en cambio se le escapa por completo un insulto igual de hostil
+        escrito con otras palabras. Tampoco entiende negaciones: «this is <em>not</em> hate
+        speech» aparece en tus resultados.
+      </p>
+      <p>
+        Esa brecha entre <em>la forma</em> y <em>el sentido</em> es exactamente el problema que
+        intenta resolver el procesamiento de lenguaje natural. SQL te lleva hasta la orilla:
+        filtra, cuenta y cruza a una velocidad que ningún modelo iguala. Pasada esa orilla,
+        necesitas otras herramientas.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 — SINTAXIS ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span>Sintaxis básica</span><span class="linea"></span></div>
+    <h2>Una consulta se arma<br>pieza por pieza</h2>
+    <p class="sumario">
+      No se escribe de corrido. Empiezas con lo mínimo y le agregas cláusulas hasta que
+      responde exactamente lo que querías. Cada pieza tiene un trabajo.
+    </p>
+
+    <div class="piezas">
+      <div class="pieza">
+        <span class="n">01</span>
+        <code>SELECT columnas</code>
+        <span class="glosa">Qué quieres ver. Un <code>*</code> trae todo, pero nuestro corpus tiene <b>143 columnas</b>: pedir solo lo necesario es lo que hace legible el resultado.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">02</span>
+        <code>FROM tabla</code>
+        <span class="glosa">De dónde salen los datos. Es lo primero que conviene leer cuando revisas una consulta ajena.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">03</span>
+        <code>WHERE condición</code>
+        <span class="glosa">Con qué filas te quedas. Combinas condiciones con <code>AND</code> (ambas) y <code>OR</code> (cualquiera).</span>
+      </div>
+      <div class="pieza">
+        <span class="n">04</span>
+        <code>GROUP BY columna</code>
+        <span class="glosa">Junta las filas en montones —por comentario, por anotador, por plataforma— y aplica el cálculo a cada montón por separado.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">05</span>
+        <code>HAVING condición</code>
+        <span class="glosa">Filtra <em>grupos</em> ya formados: «solo los comentarios que recibieron más de 10 evaluaciones».</span>
+      </div>
+      <div class="pieza">
+        <span class="n">06</span>
+        <code>ORDER BY columna DESC</code>
+        <span class="glosa">En qué orden se muestran. <b>Sin esto el orden no está garantizado</b>: la misma consulta puede devolverte las filas acomodadas de otro modo.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">07</span>
+        <code>LIMIT n</code>
+        <span class="glosa">Cuántas filas ves. Indispensable para asomarte a 135 mil registros sin ahogarte.</span>
+      </div>
+    </div>
+
+    <h3>Las siete piezas juntas</h3>
+    <pre class="codigo"><span class="com">-- Comentarios donde los anotadores vieron más agresión,</span>
+<span class="com">-- pero solo los que fueron evaluados por suficiente gente</span>
+<span class="kw">SELECT</span>   comment_id, <span class="kw">count</span>(*) <span class="kw">AS</span> evaluaciones, <span class="kw">avg</span>(insult) <span class="kw">AS</span> insulto
+<span class="kw">FROM</span>     anotaciones
+<span class="kw">WHERE</span>    target_race = <span class="lit">true</span>
+<span class="kw">GROUP BY</span> comment_id
+<span class="kw">HAVING</span>   <span class="kw">count</span>(*) &gt; <span class="lit">10</span>
+<span class="kw">ORDER BY</span> insulto <span class="kw">DESC</span>
+<span class="kw">LIMIT</span>    <span class="lit">20</span></pre>
+    <p>
+      El orden de las cláusulas <strong>no es negociable</strong>: si escribes el
+      <code>WHERE</code> antes del <code>FROM</code>, es un error de sintaxis y la consulta ni
+      siquiera arranca.
+    </p>
+  </section>
+
+  <!-- ═══════════ 08 — ORDEN DE EJECUCIÓN ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span>Orden de ejecución</span><span class="linea"></span></div>
+    <h2>Se escribe en un orden.<br>Se ejecuta en otro.</h2>
+    <p class="sumario">
+      Este es el concepto que explica la mitad de los errores de quien empieza. La base de
+      datos <em>no</em> lee tu consulta de arriba hacia abajo.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 900 430" role="img"
+             aria-label="Comparación entre el orden en que se escriben las cláusulas de SQL y el orden en que se ejecutan: SELECT se escribe primero pero se ejecuta en quinto lugar, mientras que FROM se escribe segundo y se ejecuta primero.">
+          <defs>
+            <marker id="punta2" viewBox="0 0 10 10" refX="9" refY="5"
+                    markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6fd0"/>
+            </marker>
+          </defs>
+
+          <text x="150" y="28" font-family="monospace" font-size="12" font-weight="700"
+                letter-spacing="1.5" fill="currentColor" text-anchor="middle">COMO SE ESCRIBE</text>
+          <text x="750" y="28" font-family="monospace" font-size="12" font-weight="700"
+                letter-spacing="1.5" fill="#0432a1" text-anchor="middle">COMO SE EJECUTA</text>
+
+          <g font-family="monospace" font-size="13">
+            <rect x="40" y="50"  width="220" height="42" fill="none" stroke="#2f6fd0" stroke-width="2"/>
+            <text x="56" y="77" fill="#0432a1" font-weight="700">1  SELECT</text>
+            <rect x="40" y="102" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="56" y="129" fill="currentColor">2  FROM</text>
+            <rect x="40" y="154" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="56" y="181" fill="currentColor">3  WHERE</text>
+            <rect x="40" y="206" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="56" y="233" fill="currentColor">4  GROUP BY</text>
+            <rect x="40" y="258" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="56" y="285" fill="currentColor">5  HAVING</text>
+            <rect x="40" y="310" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="56" y="337" fill="currentColor">6  ORDER BY</text>
+            <rect x="40" y="362" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="56" y="389" fill="currentColor">7  LIMIT</text>
+          </g>
+
+          <g font-family="monospace" font-size="13">
+            <rect x="640" y="50"  width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="656" y="77" fill="currentColor">1  FROM</text>
+            <rect x="640" y="102" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="656" y="129" fill="currentColor">2  WHERE</text>
+            <rect x="640" y="154" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="656" y="181" fill="currentColor">3  GROUP BY</text>
+            <rect x="640" y="206" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="656" y="233" fill="currentColor">4  HAVING</text>
+            <rect x="640" y="258" width="220" height="42" fill="none" stroke="#2f6fd0" stroke-width="2"/>
+            <text x="656" y="285" fill="#0432a1" font-weight="700">5  SELECT</text>
+            <rect x="640" y="310" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="656" y="337" fill="currentColor">6  ORDER BY</text>
+            <rect x="640" y="362" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="656" y="389" fill="currentColor">7  LIMIT</text>
+          </g>
+
+          <path d="M 260 71  C 420 71, 480 279, 640 279" fill="none" stroke="#2f6fd0"
+                stroke-width="2.5" marker-end="url(#punta2)"/>
+          <path d="M 260 123 C 420 123, 480 71,  640 71"  fill="none" stroke="currentColor"
+                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
+          <path d="M 260 175 C 420 175, 480 123, 640 123" fill="none" stroke="currentColor"
+                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
+          <path d="M 260 227 C 420 227, 480 175, 640 175" fill="none" stroke="currentColor"
+                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
+          <path d="M 260 279 C 420 279, 480 227, 640 227" fill="none" stroke="currentColor"
+                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
+          <line x1="260" y1="331" x2="640" y2="331" stroke="currentColor" stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
+          <line x1="260" y1="383" x2="640" y2="383" stroke="currentColor" stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
+
+          <text x="450" y="200" font-family="monospace" font-size="12" font-weight="700"
+                fill="#0432a1" text-anchor="middle">SELECT baja</text>
+          <text x="450" y="218" font-family="monospace" font-size="12" font-weight="700"
+                fill="#0432a1" text-anchor="middle">hasta el quinto lugar</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>La línea gruesa es todo el asunto.</b> <code>SELECT</code> se escribe primero pero
+        se ejecuta casi al final: cuando llega su turno, las filas ya se filtraron y se
+        agruparon. Por eso, para entender una consulta ajena, conviene leerla <em>empezando
+        por el <code>FROM</code></em> — que es por donde realmente empieza.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ═══════════ 09 — EL ERROR CLÁSICO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span>La consecuencia</span><span class="linea"></span></div>
+    <h2>El error que todos<br>cometen una vez</h2>
+    <p class="sumario">
+      Entender el orden de ejecución no es trivia académica: explica por qué esto no funciona.
+    </p>
+
+    <div class="par">
+      <div>
+        <h3>✗ No funciona</h3>
+        <pre class="codigo"><span class="kw">SELECT</span>   comment_id
+<span class="kw">FROM</span>     anotaciones
+<span class="kw">WHERE</span>    <span class="kw">count</span>(*) &gt; <span class="lit">10</span>
+<span class="kw">GROUP BY</span> comment_id</pre>
+        <p class="sumario">
+          <code>WHERE</code> se ejecuta en el paso 2 y <code>GROUP BY</code> en el 3. Cuando
+          <code>WHERE</code> corre, <b>los grupos todavía no existen</b>: no hay nada que
+          contar aún.
+        </p>
+      </div>
+      <div>
+        <h3>✓ Sí funciona</h3>
+        <pre class="codigo"><span class="kw">SELECT</span>   comment_id
+<span class="kw">FROM</span>     anotaciones
+<span class="kw">GROUP BY</span> comment_id
+<span class="kw">HAVING</span>   <span class="kw">count</span>(*) &gt; <span class="lit">10</span></pre>
+        <p class="sumario">
+          <code>HAVING</code> corre en el paso 4, <b>después</b> de agrupar. Para entonces
+          cada comentario ya tiene su cuenta de evaluaciones y sí se puede filtrar por ella.
+        </p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La regla, en una línea</span>
+      <p>
+        <strong>WHERE filtra filas; HAVING filtra grupos.</strong> Si tu condición usa una
+        función de agregación —<code>count</code>, <code>avg</code>, <code>sum</code>— va en
+        <code>HAVING</code>. Si no, va en <code>WHERE</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 10 — CIERRE ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">10</span><span>Lo que te llevas</span><span class="linea"></span></div>
+    <h2>Cuatro ideas para<br>empezar a practicar</h2>
+
+    <div class="fichas">
+      <div class="ficha">
+        <span class="clave">Declaras el qué</span>
+        <p>SQL describe <b>el resultado que quieres</b>, no los pasos para obtenerlo. El motor decide el cómo.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Las tablas se unen por llaves</span>
+        <p>Y una relación <b>muchos a muchos</b> —comentarios y anotadores— siempre necesita una tabla intermedia que la resuelva.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Se ejecuta desde el FROM</span>
+        <p>Lee las consultas empezando por ahí. <b>WHERE filtra filas, HAVING filtra grupos.</b></p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Pregunta qué es una fila</span>
+        <p>Antes de contar nada. En un corpus anotado, confundir comentarios con evaluaciones <b>infla tus cifras cuatro veces</b>.</p>
+      </div>
+    </div>
+
+    <p>
+      Lo que sigue es escribir consultas sobre el corpus. La sintaxis se te va a quedar sola
+      después de la tercera o cuarta; lo que hay que practicar deliberadamente es el hábito de
+      mirar primero la estructura de los datos y preguntarte qué representa cada renglón —y,
+      cuando la columna es texto, si lo que encontraste es de verdad lo que buscabas.
+    </p>
+  </section>
+
+  <!-- ═══════════ 11 — BIBLIOGRAFÍA ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">11</span><span>Bibliografía</span><span class="linea"></span></div>
+    <h2>Fuentes</h2>
+
+    <div class="biblio">
+      <div class="grupo">
+        <h3>El corpus que usamos en clase</h3>
+        <ol>
+          <li>
+            Kennedy, C. J., Bacon, G., Sahn, A. y von Vacano, C. (2020).
+            <span class="obra">Measuring a hate speech spectrum with faceted Rasch item response
+            theory and perspective-aware, explainable-by-design deep learning</span>. arXiv:2009.10277.
+            <a href="https://arxiv.org/abs/2009.10277">arxiv.org/abs/2009.10277</a>
+            <span class="nota">De aquí salen el diseño de anotación múltiple, el modelo Rasch
+            detrás de <code>hate_speech_score</code> y la descripción del espectro «de genocida
+            a discurso de apoyo».</span>
+          </li>
+          <li>
+            UC Berkeley D-Lab. <span class="obra">Measuring Hate Speech</span> (ficha del conjunto
+            de datos). Hugging Face.
+            <a href="https://huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech">huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech</a>
+            <span class="nota">Origen del archivo y de las cifras citadas en el diagrama
+            entidad-relación.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Los textos fundacionales</h3>
+        <ol start="3">
+          <li>
+            Codd, E. F. (1970). <span class="obra">A Relational Model of Data for Large Shared
+            Data Banks</span>. Communications of the ACM, 13(6), 377–387.
+            <span class="nota">El artículo que inventó el modelo relacional: tablas, llaves y la
+            idea de separar cómo se guardan los datos de cómo se consultan.</span>
+          </li>
+          <li>
+            Chamberlin, D. D. y Boyce, R. F. (1974). <span class="obra">SEQUEL: A Structured
+            English Query Language</span>. En Proceedings of the 1974 ACM SIGFIDET Workshop on
+            Data Description, Access and Control, 249–264.
+            <span class="nota">El nacimiento del lenguaje en IBM. Se llamó SEQUEL antes de tener
+            que cambiarse el nombre a SQL por un conflicto de marca registrada.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Para consultar mientras practicas</h3>
+        <ol start="5">
+          <li>
+            DuckDB. <span class="obra">Documentación de SQL</span>.
+            <a href="https://duckdb.org/docs/sql/introduction">duckdb.org/docs/sql/introduction</a>
+            <span class="nota">El motor que corre dentro de los notebooks de la clase. Su
+            documentación es corta y tiene ejemplos ejecutables.</span>
+          </li>
+          <li>
+            marimo. <span class="obra">Documentación</span>.
+            <a href="https://docs.marimo.io/">docs.marimo.io</a>
+            <span class="nota">El formato de notebook con el que están hechos los ejercicios.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Nota sobre las cifras</h3>
+        <p class="sumario">
+          Los números de esta presentación —39,565 comentarios, 7,912 anotadores, 135,556
+          evaluaciones, 143 columnas— se calcularon directamente sobre el archivo publicado en
+          Hugging Face, no se tomaron del artículo. El corpus del artículo original reporta
+          50,070 comentarios y 11,143 anotadores; la versión distribuida es un subconjunto.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="__LOGO__" alt="Tecnológico de Monterrey">
+    <span class="texto">
+      <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+    </span>
+  </footer>
+
+</main>

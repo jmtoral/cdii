@@ -56,11 +56,11 @@ jobs:
           # controlados y no queremos que pueda desarmar la maquinaria de entrega.
           declare -A MODO=(
             [01_introduccion_sql]=edit
-            [02_agregaciones_joins]=edit
+            [02_agregaciones]=edit
             [ejercicio_01]=run
           )
 
-          for nb in 01_introduccion_sql 02_agregaciones_joins ejercicio_01; do
+          for nb in 01_introduccion_sql 02_agregaciones ejercicio_01; do
             echo "::group::Exportando $nb (${MODO[$nb]})"
             marimo export html-wasm "01_sql/$nb.py" -o "site/$nb" --mode "${MODO[$nb]}"
             test -f "site/$nb/index.html" \
@@ -115,7 +115,8 @@ jobs:
               <div class="cards">
                   <a class="card" href="presentaciones/01_intro_sql.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>SQL: cómo se le pregunta a los datos</h3><p>Qué es SQL, modelo relacional, diagrama entidad-relación y orden de ejecución</p></a>
                   <a class="card" href="01_introduccion_sql/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>01 — Introducción a SQL</h3><p>SELECT, WHERE, LIKE, ORDER BY, LIMIT</p></a>
-                  <a class="card" href="02_agregaciones_joins/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>02 — Agregaciones y JOINs</h3><p>GROUP BY, HAVING, CASE WHEN, CTEs, JOINs</p></a>
+                  <a class="card" href="presentaciones/02_agregaciones.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>Agregaciones: de muchas filas a un número</h3><p>count, avg, min, max, GROUP BY, HAVING y cómo no sobreinterpretar un promedio</p></a>
+                  <a class="card" href="02_agregaciones/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>02 — Agregaciones</h3><p>count/avg/min/max, GROUP BY, HAVING, NULL</p></a>
                   <a class="card" href="ejercicio_01/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Ejercicio 01 — SQL</h3><p>7 preguntas para practicar SQL</p></a>
               </div>
           </body>

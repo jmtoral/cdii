@@ -93,10 +93,10 @@ $IndexHtml = @"
             <h3>01 — Introducción a SQL</h3>
             <p>SELECT, WHERE, LIKE, ORDER BY, LIMIT — los fundamentos de SQL con DuckDB.</p>
         </a>
-        <a class="card" href="02_agregaciones_joins/index.html">
+        <a class="card" href="02_agregaciones/index.html">
             <span class="badge badge-leccion">LECCIÓN</span>
-            <h3>02 — Agregaciones y JOINs</h3>
-            <p>GROUP BY, HAVING, CASE WHEN, subqueries, CTEs y JOINs.</p>
+            <h3>02 — Agregaciones</h3>
+            <p>count, avg, min, max, GROUP BY, HAVING y el manejo de NULL.</p>
         </a>
         <a class="card" href="ejercicio_01/index.html">
             <span class="badge badge-ejercicio">EJERCICIO</span>
@@ -117,7 +117,7 @@ $IndexHtml | Out-File -FilePath (Join-Path $OutputDir "index.html") -Encoding UT
 # El EJERCICIO evaluado va en modo run, para que no puedan desarmar la entrega.
 $Notebooks = @(
     @{ Path = "01_sql\01_introduccion_sql.py"; Name = "01_introduccion_sql"; Modo = "edit" },
-    @{ Path = "01_sql\02_agregaciones_joins.py"; Name = "02_agregaciones_joins"; Modo = "edit" },
+    @{ Path = "01_sql\02_agregaciones.py"; Name = "02_agregaciones"; Modo = "edit" },
     @{ Path = "01_sql\ejercicio_01.py"; Name = "ejercicio_01"; Modo = "run" }
 )
 
@@ -147,9 +147,26 @@ foreach ($nb in $Notebooks) {
     }
 }
 
+# Las presentaciones son HTML autocontenido (el logo va incrustado como data URI),
+# así que basta copiarlas. Esto tiene que hacer lo mismo que el paso equivalente del
+# workflow, o el sitio local y el publicado dejan de coincidir.
+$PresOrigen = Join-Path $ProjectRoot "presentaciones"
+if (Test-Path $PresOrigen) {
+    Write-Host ""
+    Write-Host "📊 Copiando presentaciones..." -ForegroundColor Cyan
+    $PresDestino = Join-Path $OutputDir "presentaciones"
+    # New-Item primero: si el destino no existe, Copy-Item crearía un ARCHIVO con ese
+    # nombre en vez de una carpeta, y el sitio queda roto sin avisar.
+    New-Item -ItemType Directory -Path $PresDestino -Force | Out-Null
+    Copy-Item (Join-Path $PresOrigen "*.html") $PresDestino -Force
+    foreach ($f in Get-ChildItem $PresDestino -Filter *.html) {
+        Write-Host "  ✅ presentaciones/$($f.Name)" -ForegroundColor Green
+    }
+}
+
 # El parquet tiene que viajar junto a cada notebook: los notebooks lo piden por URL
-# relativa (public/sample_data.parquet). marimo copia la carpeta public/ que esté
-# al lado del .py, así que esto normalmente ya está hecho; lo verificamos igual.
+# relativa. marimo copia la carpeta public/ que esté al lado del .py, así que esto
+# normalmente ya está hecho; lo verificamos igual.
 Write-Host ""
 Write-Host "🔎 Verificando que los datos estén publicados..." -ForegroundColor Cyan
 foreach ($nb in $Notebooks) {

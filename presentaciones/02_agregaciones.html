@@ -4,10 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Manuel Toral">
-<title>SQL: una introducción — Manuel Toral</title>
+<title>Agregaciones: de muchas filas a un número — Manuel Toral</title>
 <style>
   :root {
-    /* Papel muy claro; el azul viene del logo institucional (#0432A1) */
     --papel:      #ffffff;
     --papel-2:    #f4f7fd;
     --regla:      #d6e0f2;
@@ -25,46 +24,21 @@
     --medida: 62ch;
   }
 
-  /*
-    Decisión deliberada: esta presentación se queda en papel claro en los dos temas.
-    Es material para proyectar en un aula, y el logo institucional es azul sobre blanco.
-    En preferencia oscura bajamos el brillo del papel en vez de invertirlo, para que
-    no deslumbre sin volverse un fondo azul marino.
-  */
+  /* Papel claro en los dos temas: material para proyectar. En preferencia oscura
+     bajamos el brillo en vez de invertir, para no deslumbrar ni volverse azul marino. */
   @media (prefers-color-scheme: dark) {
     :root {
-      --papel:      #e9eef7;
-      --papel-2:    #dfe7f3;
-      --regla:      #c2d0e8;
-      --regla-fina: #d8e1f0;
-      --tinta:      #0f1a38;
-      --azul:       #06308f;
-      --azul-vivo:  #2b64c0;
-      --gris:       #55648a;
-      --alerta:     #9d3714;
+      --papel: #e9eef7; --papel-2: #dfe7f3; --regla: #c2d0e8; --regla-fina: #d8e1f0;
+      --tinta: #0f1a38; --azul: #06308f; --azul-vivo: #2b64c0; --gris: #55648a; --alerta: #9d3714;
     }
   }
   :root[data-theme="dark"] {
-    --papel:      #e9eef7;
-    --papel-2:    #dfe7f3;
-    --regla:      #c2d0e8;
-    --regla-fina: #d8e1f0;
-    --tinta:      #0f1a38;
-    --azul:       #06308f;
-    --azul-vivo:  #2b64c0;
-    --gris:       #55648a;
-    --alerta:     #9d3714;
+    --papel: #e9eef7; --papel-2: #dfe7f3; --regla: #c2d0e8; --regla-fina: #d8e1f0;
+    --tinta: #0f1a38; --azul: #06308f; --azul-vivo: #2b64c0; --gris: #55648a; --alerta: #9d3714;
   }
   :root[data-theme="light"] {
-    --papel:      #ffffff;
-    --papel-2:    #f4f7fd;
-    --regla:      #d6e0f2;
-    --regla-fina: #eaf0fa;
-    --tinta:      #101c3d;
-    --azul:       #0432a1;
-    --azul-vivo:  #2f6fd0;
-    --gris:       #5d6b8a;
-    --alerta:     #b03e1a;
+    --papel: #ffffff; --papel-2: #f4f7fd; --regla: #d6e0f2; --regla-fina: #eaf0fa;
+    --tinta: #101c3d; --azul: #0432a1; --azul-vivo: #2f6fd0; --gris: #5d6b8a; --alerta: #b03e1a;
   }
 
   * { box-sizing: border-box; }
@@ -93,21 +67,13 @@
   .lamina:first-of-type { border-top: 0; }
 
   .cinta {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--gris);
+    display: flex; align-items: baseline; gap: 1rem;
+    font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--gris);
   }
   .cinta .num {
-    color: #ffffff;
-    background: var(--azul);
-    padding: 0.15em 0.55em;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.06em;
+    color: #ffffff; background: var(--azul); padding: 0.15em 0.55em;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
   }
   .cinta .linea { flex: 1; height: 1px; background: var(--regla); }
 
@@ -118,112 +84,74 @@
   .sumario { font-size: 1.08em; color: var(--gris); max-width: 58ch; }
   strong { color: var(--azul); font-weight: 600; }
 
-  /* ---------- Portada ---------- */
   .portada { min-height: 88vh; align-content: center; border-top: 0; }
   .marca { display: block; width: clamp(190px, 26vw, 280px); height: auto; }
   .portada .rotulo {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--azul);
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--azul);
   }
-  .portada h1 {
-    font-size: clamp(2.6rem, 1rem + 7.5vw, 6rem);
-    line-height: 0.98;
-    letter-spacing: -0.04em;
-  }
+  .portada h1 { font-size: clamp(2.4rem, 1rem + 6.6vw, 5.2rem); line-height: 0.99; letter-spacing: -0.04em; }
   .portada h1 .tenue { color: var(--gris); }
   .firma {
-    display: grid;
-    gap: 0.15rem;
+    display: grid; gap: 0.15rem;
     padding-top: clamp(1.5rem, 4vw, 3rem);
     border-top: 1px solid var(--regla);
-    font-family: var(--mono);
-    font-size: 0.86rem;
+    font-family: var(--mono); font-size: 0.86rem;
   }
   .firma .autor { color: var(--tinta); font-weight: 600; letter-spacing: 0.02em; }
   .firma .inst { color: var(--gris); }
 
-  /* ---------- Fichas ---------- */
   .fichas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 1px;
-    background: var(--regla);
-    border: 1px solid var(--regla);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px; background: var(--regla); border: 1px solid var(--regla);
   }
   .ficha { background: var(--papel); padding: 1.15rem 1.25rem; display: grid; gap: 0.4rem; align-content: start; }
   .ficha .clave {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--azul);
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--azul);
   }
   .ficha p { font-size: 0.94em; color: var(--gris); }
   .ficha p b { color: var(--tinta); font-weight: 600; }
 
-  /* ---------- Código ---------- */
   .codigo {
     font-family: var(--mono);
     font-size: clamp(0.82rem, 0.7rem + 0.4vw, 1rem);
     line-height: 1.75;
     background: var(--papel-2);
     border-left: 3px solid var(--azul);
-    padding: 1rem 1.25rem;
-    margin: 0;
-    overflow-x: auto;
-    white-space: pre;
+    padding: 1rem 1.25rem; margin: 0; overflow-x: auto; white-space: pre;
   }
   .codigo .kw  { color: var(--azul); font-weight: 600; }
   .codigo .com { color: var(--gris); font-style: italic; }
   .codigo .lit { color: var(--alerta); }
+  .codigo .mal { color: var(--alerta); font-weight: 600; }
 
-  /* ---------- Piezas ---------- */
   .piezas { display: grid; gap: 1px; background: var(--regla); border: 1px solid var(--regla); }
   .pieza {
-    background: var(--papel);
-    display: grid;
-    grid-template-columns: 3.2rem 1fr;
-    gap: 0 1.1rem;
-    padding: 0.95rem 1.15rem;
-    align-items: start;
+    background: var(--papel); display: grid; grid-template-columns: 3.2rem 1fr;
+    gap: 0 1.1rem; padding: 0.95rem 1.15rem; align-items: start;
   }
   .pieza .n {
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    color: var(--azul);
-    border: 1px solid var(--regla);
-    text-align: center;
-    padding: 0.15em 0;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--azul);
+    border: 1px solid var(--regla); text-align: center; padding: 0.15em 0;
     font-variant-numeric: tabular-nums;
   }
   .pieza code { font-family: var(--mono); font-size: 0.95em; color: var(--tinta); font-weight: 600; }
   .pieza .glosa { grid-column: 2; color: var(--gris); font-size: 0.93em; }
 
-  /* ---------- Figuras ---------- */
   figure { margin: 0; display: grid; gap: 0.75rem; }
   .lienzo { overflow-x: auto; border: 1px solid var(--regla); background: var(--papel); padding: 1rem; }
   figure svg { display: block; max-width: 100%; height: auto; min-width: 640px; margin: 0 auto; }
   figcaption { font-size: 0.88em; color: var(--gris); max-width: var(--medida); }
   figcaption b { color: var(--tinta); font-weight: 600; }
 
-  /* ---------- Aviso ---------- */
   .aviso {
-    border: 1px solid var(--regla);
-    border-left: 3px solid var(--alerta);
-    background: var(--papel-2);
-    padding: 1rem 1.25rem;
-    display: grid;
-    gap: 0.4rem;
+    border: 1px solid var(--regla); border-left: 3px solid var(--alerta);
+    background: var(--papel-2); padding: 1rem 1.25rem; display: grid; gap: 0.4rem;
   }
   .aviso .titulo {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--alerta);
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--alerta);
   }
   .aviso p { font-size: 0.96em; }
 
@@ -231,23 +159,19 @@
   @media (min-width: 860px) { .par { grid-template-columns: 1fr 1fr; gap: 2rem; } }
   .par > div { display: grid; gap: 0.6rem; align-content: start; }
 
-  /* ---------- Tabla ---------- */
   .tabla-envoltura { overflow-x: auto; border: 1px solid var(--regla); }
   table { border-collapse: collapse; width: 100%; font-size: 0.93em; min-width: 480px; }
   th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--regla-fina); vertical-align: top; }
   th {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--azul);
-    background: var(--papel-2);
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--azul); background: var(--papel-2);
     border-bottom: 1px solid var(--regla);
   }
   td code { font-family: var(--mono); font-size: 0.95em; color: var(--tinta); }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
   tbody tr:last-child td { border-bottom: 0; }
+  tr.destaca td { background: var(--papel-2); font-weight: 600; }
 
-  /* ---------- Bibliografía ---------- */
   .biblio { display: grid; gap: 1.6rem; }
   .biblio .grupo { display: grid; gap: 0.75rem; }
   .biblio h3 { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; }
@@ -256,19 +180,10 @@
   .biblio li .obra { font-style: italic; }
   .biblio li .nota { display: block; color: var(--gris); font-size: 0.9em; margin-top: 0.15rem; }
 
-  /* ---------- Pie ---------- */
   .pie {
-    border-top: 1px solid var(--regla);
-    margin-top: 2rem;
-    padding: 2rem 0 3.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem 1.5rem;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    color: var(--gris);
+    border-top: 1px solid var(--regla); margin-top: 2rem; padding: 2rem 0 3.5rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem;
+    justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
   }
   .pie img { width: 132px; height: auto; }
   .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
@@ -285,12 +200,11 @@
   <!-- ═══════════ PORTADA ═══════════ -->
   <section class="lamina portada">
     <img class="marca" src="data:image/jpeg;base64,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gFBlckTXQe4XHBXJE0mDgB5LOD4Lkizpew+/UIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIURAahqDRendQvjkudvbLIwANkDixwHhzNIJC2OkpYqSnhp4YhHFEwNY0dGhowAPgu4iy5TaUXJtLsvYwopPaXUwFlEWDIREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREB//Z" alt="Tecnológico de Monterrey">
-    <div class="rotulo">Ciencia de Datos para la Toma de Decisiones II</div>
-    <h1>SQL<span class="tenue">:</span><br>cómo se le<br>pregunta a<br>los datos</h1>
+    <div class="rotulo">Ciencia de Datos para la Toma de Decisiones II · Sesión 2</div>
+    <h1>Agregaciones<span class="tenue">:</span><br>de muchas filas<br>a un número</h1>
     <p class="sumario">
-      Una introducción al lenguaje con el que se consulta prácticamente toda la información
-      estructurada del mundo. Todos los ejemplos salen del corpus que usaremos en clase:
-      comentarios reales de redes sociales, evaluados por miles de personas.
+      Contar, promediar y agrupar. La parte fácil es la sintaxis; la difícil es saber si el
+      número que te salió significa algo. Seguimos con el corpus de discurso de odio.
     </p>
     <div class="firma">
       <span class="autor">Manuel Toral</span>
@@ -301,530 +215,514 @@
 
   <!-- ═══════════ 01 ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">01</span><span>Qué es</span><span class="linea"></span></div>
-    <h2>SQL es un lenguaje para<br>hacer preguntas</h2>
-    <p class="sumario">
-      Structured Query Language. No sirve para construir aplicaciones ni entrenar modelos:
-      sirve para <strong>pedirle datos a una base de datos</strong> y obtener una tabla de vuelta.
-    </p>
+    <div class="cinta"><span class="num">01</span><span>De dónde venimos</span><span class="linea"></span></div>
+    <h2>La sesión pasada<br>elegimos. Hoy resumimos.</h2>
 
     <div class="par">
       <div>
-        <h3>Lo que tú escribes</h3>
-        <pre class="codigo"><span class="com">-- Los comentarios más hostiles</span>
-<span class="kw">SELECT</span> text, hate_speech_score
-<span class="kw">FROM</span>   comentarios
-<span class="kw">WHERE</span>  hate_speech_score &gt; <span class="lit">2</span></pre>
-        <p class="sumario">Describes <b>el resultado que quieres</b>.</p>
+        <h3>Sesión 1 — elegir</h3>
+        <p class="sumario">
+          <code>SELECT</code>, <code>FROM</code>, <code>WHERE</code>, <code>ORDER BY</code>,
+          <code>LIMIT</code>. Le pedías a la base <b>un subconjunto de las filas</b>: cinco
+          comentarios, los veinte más hostiles, los que contienen una palabra.
+        </p>
+        <p class="sumario">El resultado siempre eran <b>filas del corpus</b>.</p>
       </div>
       <div>
-        <h3>Lo que tú NO escribes</h3>
-        <pre class="codigo"><span class="com">-- Cómo recorrer 135 mil filas</span>
-abrir archivo
-para cada fila:
-    si fila.score &gt; <span class="lit">2</span>:
-        guardar fila
-ordenar, cerrar, devolver</pre>
-        <p class="sumario">La base de datos decide <b>cómo</b> buscarlo.</p>
-      </div>
-    </div>
-
-    <p>
-      A esto se le llama un lenguaje <strong>declarativo</strong>. Es la diferencia entre
-      pedir un café y explicarle a alguien cómo moler el grano. Tú declaras el qué; el motor
-      —que sabe dónde están los índices y cuánta memoria hay— resuelve el cómo, y
-      normalmente lo resuelve mejor y más rápido que tú.
-    </p>
-  </section>
-
-  <!-- ═══════════ 02 ═══════════ -->
-  <section class="lamina">
-    <div class="cinta"><span class="num">02</span><span>Para qué sirve</span><span class="linea"></span></div>
-    <h2>Cuatro verbos, y con eso<br>se hace casi todo</h2>
-
-    <div class="fichas">
-      <div class="ficha">
-        <span class="clave">SELECT — consultar</span>
-        <p>Traer datos que ya existen. Es <b>el 90% del trabajo</b> de quien analiza datos, y lo único que veremos a fondo en esta clase.</p>
-      </div>
-      <div class="ficha">
-        <span class="clave">INSERT — agregar</span>
-        <p>Meter filas nuevas. Cada vez que un anotador termina de evaluar un comentario, se guarda su juicio con un <b>INSERT</b>.</p>
-      </div>
-      <div class="ficha">
-        <span class="clave">UPDATE — modificar</span>
-        <p>Cambiar filas existentes. Se recalcula un puntaje con un modelo nuevo y eso es un <b>UPDATE</b> sobre la columna.</p>
-      </div>
-      <div class="ficha">
-        <span class="clave">DELETE — borrar</span>
-        <p>Eliminar filas. El más peligroso: <b>un DELETE sin WHERE borra la tabla entera</b> y no hay deshacer.</p>
-      </div>
-    </div>
-
-    <p>
-      En un proyecto de procesamiento de lenguaje natural, SQL es lo que ocurre <em>antes</em>
-      del modelo y <em>después</em> del modelo: armar el conjunto de entrenamiento con los
-      filtros correctos, revisar cuántos ejemplos hay de cada clase, cruzar las predicciones
-      contra las etiquetas humanas y encontrar dónde el modelo se equivocó. El notebook de
-      Python se lleva la fama; SQL se lleva las horas.
-    </p>
-  </section>
-
-  <!-- ═══════════ 03 ═══════════ -->
-  <section class="lamina">
-    <div class="cinta"><span class="num">03</span><span>Por qué importa</span><span class="linea"></span></div>
-    <h2>Aprendes una vez.<br>Te sirve toda la carrera.</h2>
-
-    <div class="fichas">
-      <div class="ficha">
-        <span class="clave">Cumple 50 años</span>
-        <p>El modelo relacional es de <b>Edgar Codd (IBM, 1970)</b> y el lenguaje nació como SEQUEL en <b>1974</b>. Ha sobrevivido a docenas de tecnologías que prometieron reemplazarlo.</p>
-      </div>
-      <div class="ficha">
-        <span class="clave">Es transferible</span>
-        <p>Lo que aprendes en DuckDB sirve casi igual en <b>PostgreSQL, SQL Server, BigQuery o SQLite</b>. Cambian detalles, no la lógica.</p>
-      </div>
-      <div class="ficha">
-        <span class="clave">Escala contigo</span>
-        <p>La misma consulta corre sobre cien comentarios en tu laptop o sobre <b>miles de millones</b> en un clúster. No reescribes nada.</p>
-      </div>
-      <div class="ficha">
-        <span class="clave">Es el idioma común</span>
-        <p>Donde se entienden ingeniería, análisis y negocio. Saber SQL es <b>poder responderte tus propias preguntas</b> sin pedirle los datos a nadie.</p>
+        <h3>Sesión 2 — resumir</h3>
+        <p class="sumario">
+          <code>count</code>, <code>avg</code>, <code>min</code>, <code>max</code>,
+          <code>GROUP BY</code>, <code>HAVING</code>. Ahora le pides <b>números calculados
+          sobre muchas filas a la vez</b>.
+        </p>
+        <p class="sumario">El resultado es <b>algo que no estaba en la tabla</b>.</p>
       </div>
     </div>
 
     <div class="aviso">
-      <span class="titulo">El punto que de verdad importa</span>
+      <span class="titulo">La pregunta que seguimos arrastrando</span>
       <p>
-        La sintaxis se aprende en una tarde. Lo difícil —y lo que separa a quien sabe SQL de
-        quien sabe analizar datos— es entender <strong>qué representa una fila</strong> antes
-        de empezar a contar. En un corpus anotado esa pregunta es todo: una fila puede ser un
-        comentario… o la opinión de una sola persona sobre ese comentario.
+        <strong>¿Qué representa una fila?</strong> En la sesión 1 era un detalle conceptual.
+        Hoy se vuelve la diferencia entre un número correcto y uno inflado, porque en cuanto
+        empiezas a contar, contar mal la unidad contamina todo lo demás.
       </p>
     </div>
   </section>
 
-  <!-- ═══════════ 04 ═══════════ -->
+  <!-- ═══════════ 02 ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">04</span><span>El modelo relacional</span><span class="linea"></span></div>
-    <h2>Todo son tablas,<br>y llaves que las unen</h2>
+    <div class="cinta"><span class="num">02</span><span>Funciones de agregación</span><span class="linea"></span></div>
+    <h2>Cinco funciones,<br>una sola fila de salida</h2>
     <p class="sumario">
-      Una base de datos relacional guarda la información en tablas separadas por tema y las
-      conecta mediante columnas compartidas. Ese es todo el truco.
+      Una función de agregación toma muchas filas y devuelve <strong>un solo número</strong>.
+      Fíjate en lo que eso implica: le pides algo a 135,556 filas y te contesta con un renglón.
     </p>
+
+    <pre class="codigo"><span class="kw">SELECT</span>
+    <span class="kw">count</span>(*)                         <span class="kw">AS</span> evaluaciones,
+    <span class="kw">round</span>(<span class="kw">min</span>(hate_speech_score), <span class="lit">2</span>) <span class="kw">AS</span> mas_bajo,
+    <span class="kw">round</span>(<span class="kw">max</span>(hate_speech_score), <span class="lit">2</span>) <span class="kw">AS</span> mas_alto,
+    <span class="kw">round</span>(<span class="kw">avg</span>(hate_speech_score), <span class="lit">3</span>) <span class="kw">AS</span> promedio
+<span class="kw">FROM</span> comentarios</pre>
 
     <div class="tabla-envoltura">
       <table>
         <thead>
-          <tr><th>Término</th><th>Qué es</th><th>En nuestro corpus</th></tr>
+          <tr><th>evaluaciones</th><th>mas_bajo</th><th>mas_alto</th><th>promedio</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>tabla</code></td><td>Datos sobre <em>una sola cosa</em></td><td><code>comentarios</code>, <code>anotadores</code></td></tr>
-          <tr><td><code>fila</code></td><td>Una ocurrencia de esa cosa</td><td>un comentario concreto</td></tr>
-          <tr><td><code>columna</code></td><td>Un atributo, con un tipo fijo</td><td><code>text</code>, <code>hate_speech_score</code></td></tr>
-          <tr><td><code>llave primaria</code></td><td>Identifica <em>sin ambigüedad</em> cada fila</td><td><code>comment_id</code></td></tr>
-          <tr><td><code>llave foránea</code></td><td><em>Apunta</em> a la llave primaria de otra tabla</td><td><code>platform_id</code></td></tr>
+          <tr><td class="n">135,556</td><td class="n">−8.34</td><td class="n">6.30</td><td class="n">−0.944</td></tr>
         </tbody>
       </table>
     </div>
 
     <p>
-      ¿Por qué separar en tablas en vez de tener una sola gigante? Porque repetir datos es
-      caro y peligroso. Si el texto de un comentario se guardara junto a cada evaluación, un
-      comentario evaluado por 800 personas ocuparía <strong>800 copias del mismo párrafo</strong>,
-      y bastaría con que una se editara para que dejaran de coincidir. Guardarlo una vez y
-      referenciarlo con una llave elimina ese riesgo de raíz.
+      El puntaje va de −8.34 a 6.30 y promedia −0.94: la mayoría del corpus está del lado
+      <em>no</em> hostil del espectro. Ese solo número ya te dice algo que no verías
+      leyendo comentarios uno por uno.
+    </p>
+
+    <div class="fichas">
+      <div class="ficha"><span class="clave">count</span><p>Cuántas filas hay.</p></div>
+      <div class="ficha"><span class="clave">avg</span><p>El promedio de una columna numérica.</p></div>
+      <div class="ficha"><span class="clave">min / max</span><p>El valor más chico y el más grande.</p></div>
+      <div class="ficha"><span class="clave">sum</span><p>La suma de todos los valores.</p></div>
+    </div>
+
+    <p>
+      <code>round(x, 2)</code> recorta a dos decimales, y no es cosmético: un promedio con
+      catorce decimales <strong>sugiere una precisión que los datos no tienen</strong>.
     </p>
   </section>
 
-  <!-- ═══════════ 05 — DIAGRAMA ER ═══════════ -->
+  <!-- ═══════════ 03 ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">05</span><span>Diagrama entidad-relación</span><span class="linea"></span></div>
-    <h2>El plano de la base<br>antes de escribir nada</h2>
+    <div class="cinta"><span class="num">03</span><span>Las tres formas de contar</span><span class="linea"></span></div>
+    <h2>La misma tabla,<br>cuatro respuestas distintas</h2>
     <p class="sumario">
-      Un diagrama entidad-relación dibuja qué tablas existen, qué guarda cada una y cómo se
-      conectan. Este es el del corpus <em>Measuring Hate Speech</em> que usaremos en clase.
+      <code>count</code> parece la función más simple del mundo. Tiene tres variantes que
+      responden preguntas diferentes, y confundirlas es el error más común del curso.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>Consulta</th><th>Resultado</th><th>Qué cuenta</th></tr>
+        </thead>
+        <tbody>
+          <tr class="destaca"><td><code>count(*)</code></td><td class="n">135,556</td><td>Filas, sin más</td></tr>
+          <tr><td><code>count(annotator_ideology)</code></td><td class="n">135,529</td><td>Filas donde esa columna <em>no es nula</em></td></tr>
+          <tr class="destaca"><td><code>count(DISTINCT comment_id)</code></td><td class="n">39,565</td><td>Comentarios <em>diferentes</em></td></tr>
+          <tr><td><code>count(DISTINCT annotator_id)</code></td><td class="n">7,912</td><td>Personas <em>diferentes</em></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="par">
+      <div>
+        <h3>Los 27 que faltan</h3>
+        <p class="sumario">
+          Entre la primera y la segunda hay 27 filas de diferencia: evaluaciones donde el
+          anotador no reportó su ideología. <b><code>count(columna)</code> ignora los nulos
+          en silencio</b>; <code>count(*)</code> no. Si reportas «tengo 135,556 respuestas de
+          ideología», estás contando 27 que no existen.
+        </p>
+      </div>
+      <div>
+        <h3>Las cuatro veces</h3>
+        <p class="sumario">
+          Entre la primera y la tercera hay un factor de <b>3.4</b>. Si te preguntan cuántos
+          comentarios tiene el corpus y contestas 135,556, tu respuesta está inflada por las
+          repeticiones — y suena igual de segura que la correcta.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 — GROUP BY ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span>GROUP BY</span><span class="linea"></span></div>
+    <h2>El mismo cálculo,<br>pero por montones</h2>
+    <p class="sumario">
+      <code>GROUP BY</code> parte la tabla según los valores de una columna y aplica la
+      agregación a cada montón por separado. Se arma en cuatro piezas.
     </p>
 
     <figure>
       <div class="lienzo">
-        <svg viewBox="0 0 900 500" role="img"
-             aria-label="Diagrama entidad-relación del corpus: plataformas clasifica comentarios; comentarios y anotadores tienen una relación de muchos a muchos resuelta por la tabla anotaciones, que guarda cada juicio individual.">
+        <svg viewBox="0 0 900 300" role="img"
+             aria-label="GROUP BY toma una tabla de filas individuales, las reparte en montones según el valor de una columna, y devuelve una fila de resumen por cada montón.">
           <defs>
-            <marker id="punta" viewBox="0 0 10 10" refX="9" refY="5"
-                    markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                    orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
             </marker>
           </defs>
 
-          <g>
-            <rect x="30" y="40" width="200" height="112" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <line x1="30" y1="72" x2="230" y2="72" stroke="currentColor" stroke-width="1.5"/>
-            <text x="42" y="62" font-family="monospace" font-size="13" font-weight="700" fill="currentColor">plataformas</text>
-            <text x="42" y="92" font-family="monospace" font-size="11" fill="#0432a1">PK  platform_id</text>
-            <text x="42" y="112" font-family="monospace" font-size="11" fill="currentColor">nombre</text>
-            <text x="42" y="136" font-family="monospace" font-size="10" fill="#5d6b8a">YouTube, Twitter, Reddit</text>
+          <text x="90" y="30" font-family="monospace" font-size="12" font-weight="700"
+                fill="currentColor" text-anchor="middle">LA TABLA</text>
+          <text x="450" y="30" font-family="monospace" font-size="12" font-weight="700"
+                fill="currentColor" text-anchor="middle">GROUP BY ideologia</text>
+          <text x="790" y="30" font-family="monospace" font-size="12" font-weight="700"
+                fill="#0432a1" text-anchor="middle">EL RESULTADO</text>
+
+          <!-- filas sueltas -->
+          <g font-family="monospace" font-size="10">
+            <rect x="20" y="50" width="140" height="24" fill="none" stroke="currentColor" stroke-width="1"/>
+            <text x="30" y="66" fill="currentColor">liberal      3</text>
+            <rect x="20" y="80" width="140" height="24" fill="none" stroke="currentColor" stroke-width="1"/>
+            <text x="30" y="96" fill="currentColor">conservador  2</text>
+            <rect x="20" y="110" width="140" height="24" fill="none" stroke="currentColor" stroke-width="1"/>
+            <text x="30" y="126" fill="currentColor">liberal      4</text>
+            <rect x="20" y="140" width="140" height="24" fill="none" stroke="currentColor" stroke-width="1"/>
+            <text x="30" y="156" fill="currentColor">neutral      3</text>
+            <rect x="20" y="170" width="140" height="24" fill="none" stroke="currentColor" stroke-width="1"/>
+            <text x="30" y="186" fill="currentColor">conservador  4</text>
+            <rect x="20" y="200" width="140" height="24" fill="none" stroke="currentColor" stroke-width="1"/>
+            <text x="30" y="216" fill="currentColor">liberal      2</text>
+            <text x="30" y="245" fill="#5d6b8a">135,556 filas</text>
           </g>
 
-          <g>
-            <rect x="30" y="235" width="200" height="150" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <line x1="30" y1="267" x2="230" y2="267" stroke="currentColor" stroke-width="1.5"/>
-            <text x="42" y="257" font-family="monospace" font-size="13" font-weight="700" fill="currentColor">comentarios</text>
-            <text x="42" y="287" font-family="monospace" font-size="11" fill="#0432a1">PK  comment_id</text>
-            <text x="42" y="307" font-family="monospace" font-size="11" fill="currentColor">text</text>
-            <text x="42" y="327" font-family="monospace" font-size="11" fill="#2f6fd0">FK  platform_id</text>
-            <text x="42" y="347" font-family="monospace" font-size="11" fill="currentColor">hate_speech_score</text>
-            <text x="42" y="371" font-family="monospace" font-size="10" fill="#5d6b8a">39,565 comentarios</text>
+          <!-- montones -->
+          <g font-family="monospace" font-size="10">
+            <rect x="330" y="50" width="150" height="62" fill="none" stroke="#2f6fd0" stroke-width="1.5"/>
+            <text x="340" y="66" fill="#0432a1" font-weight="700">liberal</text>
+            <text x="340" y="82" fill="currentColor">3, 4, 2</text>
+            <text x="340" y="102" fill="#5d6b8a">33,812 filas</text>
+
+            <rect x="330" y="122" width="150" height="62" fill="none" stroke="#2f6fd0" stroke-width="1.5"/>
+            <text x="340" y="138" fill="#0432a1" font-weight="700">conservador</text>
+            <text x="340" y="154" fill="currentColor">2, 4</text>
+            <text x="340" y="174" fill="#5d6b8a">15,628 filas</text>
+
+            <rect x="330" y="194" width="150" height="62" fill="none" stroke="#2f6fd0" stroke-width="1.5"/>
+            <text x="340" y="210" fill="#0432a1" font-weight="700">neutral</text>
+            <text x="340" y="226" fill="currentColor">3</text>
+            <text x="340" y="246" fill="#5d6b8a">23,112 filas</text>
           </g>
 
-          <g>
-            <rect x="670" y="235" width="200" height="150" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <line x1="670" y1="267" x2="870" y2="267" stroke="currentColor" stroke-width="1.5"/>
-            <text x="682" y="257" font-family="monospace" font-size="13" font-weight="700" fill="currentColor">anotadores</text>
-            <text x="682" y="287" font-family="monospace" font-size="11" fill="#0432a1">PK  annotator_id</text>
-            <text x="682" y="307" font-family="monospace" font-size="11" fill="currentColor">gender</text>
-            <text x="682" y="327" font-family="monospace" font-size="11" fill="currentColor">ideology</text>
-            <text x="682" y="347" font-family="monospace" font-size="11" fill="currentColor">educ</text>
-            <text x="682" y="371" font-family="monospace" font-size="10" fill="#5d6b8a">7,912 personas</text>
+          <!-- resultado -->
+          <g font-family="monospace" font-size="10">
+            <rect x="650" y="50" width="180" height="62" fill="none" stroke="#0432a1" stroke-width="2"/>
+            <text x="660" y="72" fill="#0432a1" font-weight="700">liberal</text>
+            <text x="660" y="92" fill="currentColor">avg = 3.0</text>
+
+            <rect x="650" y="122" width="180" height="62" fill="none" stroke="#0432a1" stroke-width="2"/>
+            <text x="660" y="144" fill="#0432a1" font-weight="700">conservador</text>
+            <text x="660" y="164" fill="currentColor">avg = 3.0</text>
+
+            <rect x="650" y="194" width="180" height="62" fill="none" stroke="#0432a1" stroke-width="2"/>
+            <text x="660" y="216" fill="#0432a1" font-weight="700">neutral</text>
+            <text x="660" y="236" fill="currentColor">avg = 3.0</text>
+
+            <text x="660" y="278" fill="#5d6b8a">una fila por grupo</text>
           </g>
 
-          <g>
-            <rect x="330" y="245" width="240" height="170" fill="none" stroke="#2f6fd0" stroke-width="2.5"/>
-            <line x1="330" y1="277" x2="570" y2="277" stroke="#2f6fd0" stroke-width="2.5"/>
-            <text x="342" y="267" font-family="monospace" font-size="13" font-weight="700" fill="#0432a1">anotaciones</text>
-            <text x="342" y="297" font-family="monospace" font-size="11" fill="#0432a1">PK  comment_id</text>
-            <text x="342" y="315" font-family="monospace" font-size="11" fill="#0432a1">PK  annotator_id</text>
-            <text x="342" y="339" font-family="monospace" font-size="11" fill="currentColor">respect</text>
-            <text x="342" y="357" font-family="monospace" font-size="11" fill="currentColor">insult</text>
-            <text x="342" y="375" font-family="monospace" font-size="11" fill="currentColor">target_race</text>
-            <text x="342" y="401" font-family="monospace" font-size="10" fill="#5d6b8a">135,556 evaluaciones</text>
-          </g>
+          <line x1="170" y1="150" x2="320" y2="150" stroke="currentColor" stroke-width="1.5" marker-end="url(#fl)"/>
+          <text x="245" y="142" font-family="monospace" font-size="10" fill="currentColor" text-anchor="middle">reparte</text>
 
-          <line x1="130" y1="152" x2="130" y2="235" stroke="currentColor" stroke-width="1.5" marker-end="url(#punta)"/>
-          <text x="140" y="180" font-family="monospace" font-size="11" fill="currentColor">clasifica</text>
-          <text x="140" y="197" font-family="monospace" font-size="11" font-weight="700" fill="#0432a1">1 : N</text>
-
-          <line x1="230" y1="320" x2="330" y2="320" stroke="#2f6fd0" stroke-width="2" marker-end="url(#punta)"/>
-          <text x="238" y="308" font-family="monospace" font-size="11" fill="currentColor">recibe</text>
-          <text x="248" y="341" font-family="monospace" font-size="11" font-weight="700" fill="#0432a1">1 : N</text>
-
-          <line x1="670" y1="320" x2="570" y2="320" stroke="#2f6fd0" stroke-width="2" marker-end="url(#punta)"/>
-          <text x="596" y="308" font-family="monospace" font-size="11" fill="currentColor">emite</text>
-          <text x="596" y="341" font-family="monospace" font-size="11" font-weight="700" fill="#0432a1">1 : N</text>
-
-          <line x1="130" y1="440" x2="770" y2="440" stroke="#2f6fd0" stroke-width="1" stroke-dasharray="5 5"/>
-          <line x1="130" y1="415" x2="130" y2="440" stroke="#2f6fd0" stroke-width="1" stroke-dasharray="5 5"/>
-          <line x1="770" y1="415" x2="770" y2="440" stroke="#2f6fd0" stroke-width="1" stroke-dasharray="5 5"/>
-          <rect x="300" y="452" width="300" height="30" fill="#f4f7fd" stroke="#2f6fd0" stroke-width="1"/>
-          <text x="450" y="472" font-family="monospace" font-size="12" font-weight="700"
-                fill="#0432a1" text-anchor="middle">comentarios N : M anotadores</text>
+          <line x1="490" y1="150" x2="640" y2="150" stroke="#2f6fd0" stroke-width="2" marker-end="url(#fl)"/>
+          <text x="565" y="142" font-family="monospace" font-size="10" fill="#0432a1" text-anchor="middle">agrega</text>
         </svg>
       </div>
       <figcaption>
-        <b>La tabla del centro es la clave.</b> Un comentario lo evalúan muchas personas y una
-        persona evalúa muchos comentarios: eso es una relación <em>muchos a muchos</em>, y no
-        se puede representar con una llave foránea simple. Se resuelve con una tabla
-        intermedia —<code>anotaciones</code>— cuya llave primaria es la <em>combinación</em>
-        de las dos. Cada renglón suyo es el juicio de una persona sobre un texto.
+        <b>Las filas no desaparecen: se resumen.</b> Cada montón se convierte en un solo
+        renglón, y todo lo que estaba dentro se reemplaza por el número que pediste. Por eso,
+        después de un <code>GROUP BY</code>, ya no puedes pedir el <code>annotator_id</code>
+        de una fila individual: esa fila ya no existe como tal.
       </figcaption>
     </figure>
-
-    <div class="aviso">
-      <span class="titulo">Por qué esto no es un tecnicismo</span>
-      <p>
-        En el archivo real todo viene aplanado en una sola tabla de 135,556 filas. Si cuentas
-        con <code>count(*)</code> crees tener 135 mil comentarios, cuando en realidad son
-        <strong>39,565 comentarios evaluados varias veces</strong>. Reportarías una cifra
-        inflada casi cuatro veces, y ningún mensaje de error te avisaría.
-      </p>
-    </div>
-  </section>
-
-  <!-- ═══════════ 06 — TEXTO COMO DATO ═══════════ -->
-  <section class="lamina">
-    <div class="cinta"><span class="num">06</span><span>Texto como dato</span><span class="linea"></span></div>
-    <h2>Buscar dentro de<br>las palabras</h2>
-    <p class="sumario">
-      En un corpus, la columna más interesante es texto libre. SQL sabe buscar patrones dentro
-      de ella con <code>LIKE</code> y el comodín <code>%</code>, que significa «cualquier
-      cosa, o nada».
-    </p>
-
-    <pre class="codigo"><span class="com">-- Comentarios que mencionan a un grupo, ordenados por hostilidad</span>
-<span class="kw">SELECT</span>   text, hate_speech_score
-<span class="kw">FROM</span>     comentarios
-<span class="kw">WHERE</span>    text <span class="kw">ILIKE</span> <span class="lit">'%immigrant%'</span>
-<span class="kw">ORDER BY</span> hate_speech_score <span class="kw">DESC</span>
-<span class="kw">LIMIT</span>    <span class="lit">10</span></pre>
-
-    <div class="par">
-      <div>
-        <h3>LIKE vs ILIKE</h3>
-        <p class="sumario">
-          <code>LIKE</code> distingue mayúsculas: no encuentra <em>Immigrant</em> si buscaste
-          <em>immigrant</em>. <code>ILIKE</code> ignora esa diferencia. En texto de redes
-          sociales —donde la gente ESCRIBE ASÍ— casi siempre quieres <code>ILIKE</code>.
-        </p>
-      </div>
-      <div>
-        <h3>Dónde poner el comodín</h3>
-        <p class="sumario">
-          <code>'hate%'</code> busca lo que <em>empieza</em> con esa palabra;
-          <code>'%hate'</code> lo que <em>termina</em>; <code>'%hate%'</code> lo que la
-          contiene en cualquier parte. El último es el que casi siempre necesitas.
-        </p>
-      </div>
-    </div>
-
-    <div class="aviso">
-      <span class="titulo">Aquí es donde SQL se topa con NLP</span>
-      <p>
-        <code>LIKE</code> encuentra <strong>cadenas de caracteres, no significados</strong>.
-        Buscar <code>'%hate%'</code> te trae «I hate mondays», te trae «hateful» —y también
-        «w<em>hate</em>ver»—, y en cambio se le escapa por completo un insulto igual de hostil
-        escrito con otras palabras. Tampoco entiende negaciones: «this is <em>not</em> hate
-        speech» aparece en tus resultados.
-      </p>
-      <p>
-        Esa brecha entre <em>la forma</em> y <em>el sentido</em> es exactamente el problema que
-        intenta resolver el procesamiento de lenguaje natural. SQL te lleva hasta la orilla:
-        filtra, cuenta y cruza a una velocidad que ningún modelo iguala. Pasada esa orilla,
-        necesitas otras herramientas.
-      </p>
-    </div>
-  </section>
-
-  <!-- ═══════════ 07 — SINTAXIS ═══════════ -->
-  <section class="lamina">
-    <div class="cinta"><span class="num">07</span><span>Sintaxis básica</span><span class="linea"></span></div>
-    <h2>Una consulta se arma<br>pieza por pieza</h2>
-    <p class="sumario">
-      No se escribe de corrido. Empiezas con lo mínimo y le agregas cláusulas hasta que
-      responde exactamente lo que querías. Cada pieza tiene un trabajo.
-    </p>
 
     <div class="piezas">
       <div class="pieza">
         <span class="n">01</span>
-        <code>SELECT columnas</code>
-        <span class="glosa">Qué quieres ver. Un <code>*</code> trae todo, pero nuestro corpus tiene <b>143 columnas</b>: pedir solo lo necesario es lo que hace legible el resultado.</span>
+        <code>SELECT count(*) FROM comentarios</code>
+        <span class="glosa">Un solo número para toda la tabla.</span>
       </div>
       <div class="pieza">
         <span class="n">02</span>
-        <code>FROM tabla</code>
-        <span class="glosa">De dónde salen los datos. Es lo primero que conviene leer cuando revisas una consulta ajena.</span>
+        <code>… GROUP BY annotator_ideology</code>
+        <span class="glosa">La columna se agrega al <code>SELECT</code> <b>y</b> al <code>GROUP BY</code>. Ahora hay una fila por cada ideología.</span>
       </div>
       <div class="pieza">
         <span class="n">03</span>
-        <code>WHERE condición</code>
-        <span class="glosa">Con qué filas te quedas. Combinas condiciones con <code>AND</code> (ambas) y <code>OR</code> (cualquiera).</span>
+        <code>… avg(respect), avg(insult)</code>
+        <span class="glosa">Varios cálculos sobre el mismo grupo, en la misma consulta.</span>
       </div>
       <div class="pieza">
         <span class="n">04</span>
-        <code>GROUP BY columna</code>
-        <span class="glosa">Junta las filas en montones —por comentario, por anotador, por plataforma— y aplica el cálculo a cada montón por separado.</span>
-      </div>
-      <div class="pieza">
-        <span class="n">05</span>
-        <code>HAVING condición</code>
-        <span class="glosa">Filtra <em>grupos</em> ya formados: «solo los comentarios que recibieron más de 10 evaluaciones».</span>
-      </div>
-      <div class="pieza">
-        <span class="n">06</span>
-        <code>ORDER BY columna DESC</code>
-        <span class="glosa">En qué orden se muestran. <b>Sin esto el orden no está garantizado</b>: la misma consulta puede devolverte las filas acomodadas de otro modo.</span>
-      </div>
-      <div class="pieza">
-        <span class="n">07</span>
-        <code>LIMIT n</code>
-        <span class="glosa">Cuántas filas ves. Indispensable para asomarte a 135 mil registros sin ahogarte.</span>
+        <code>… ORDER BY evaluaciones DESC</code>
+        <span class="glosa">Sin esto, los grupos salen en el orden que se le antoje a la base de datos.</span>
       </div>
     </div>
-
-    <h3>Las siete piezas juntas</h3>
-    <pre class="codigo"><span class="com">-- Comentarios donde los anotadores vieron más agresión,</span>
-<span class="com">-- pero solo los que fueron evaluados por suficiente gente</span>
-<span class="kw">SELECT</span>   comment_id, <span class="kw">count</span>(*) <span class="kw">AS</span> evaluaciones, <span class="kw">avg</span>(insult) <span class="kw">AS</span> insulto
-<span class="kw">FROM</span>     anotaciones
-<span class="kw">WHERE</span>    target_race = <span class="lit">true</span>
-<span class="kw">GROUP BY</span> comment_id
-<span class="kw">HAVING</span>   <span class="kw">count</span>(*) &gt; <span class="lit">10</span>
-<span class="kw">ORDER BY</span> insulto <span class="kw">DESC</span>
-<span class="kw">LIMIT</span>    <span class="lit">20</span></pre>
-    <p>
-      El orden de las cláusulas <strong>no es negociable</strong>: si escribes el
-      <code>WHERE</code> antes del <code>FROM</code>, es un error de sintaxis y la consulta ni
-      siquiera arranca.
-    </p>
   </section>
 
-  <!-- ═══════════ 08 — ORDEN DE EJECUCIÓN ═══════════ -->
+  <!-- ═══════════ 05 — LA REGLA DE ORO ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">08</span><span>Orden de ejecución</span><span class="linea"></span></div>
-    <h2>Se escribe en un orden.<br>Se ejecuta en otro.</h2>
-    <p class="sumario">
-      Este es el concepto que explica la mitad de los errores de quien empieza. La base de
-      datos <em>no</em> lee tu consulta de arriba hacia abajo.
-    </p>
-
-    <figure>
-      <div class="lienzo">
-        <svg viewBox="0 0 900 430" role="img"
-             aria-label="Comparación entre el orden en que se escriben las cláusulas de SQL y el orden en que se ejecutan: SELECT se escribe primero pero se ejecuta en quinto lugar, mientras que FROM se escribe segundo y se ejecuta primero.">
-          <defs>
-            <marker id="punta2" viewBox="0 0 10 10" refX="9" refY="5"
-                    markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6fd0"/>
-            </marker>
-          </defs>
-
-          <text x="150" y="28" font-family="monospace" font-size="12" font-weight="700"
-                letter-spacing="1.5" fill="currentColor" text-anchor="middle">COMO SE ESCRIBE</text>
-          <text x="750" y="28" font-family="monospace" font-size="12" font-weight="700"
-                letter-spacing="1.5" fill="#0432a1" text-anchor="middle">COMO SE EJECUTA</text>
-
-          <g font-family="monospace" font-size="13">
-            <rect x="40" y="50"  width="220" height="42" fill="none" stroke="#2f6fd0" stroke-width="2"/>
-            <text x="56" y="77" fill="#0432a1" font-weight="700">1  SELECT</text>
-            <rect x="40" y="102" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="56" y="129" fill="currentColor">2  FROM</text>
-            <rect x="40" y="154" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="56" y="181" fill="currentColor">3  WHERE</text>
-            <rect x="40" y="206" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="56" y="233" fill="currentColor">4  GROUP BY</text>
-            <rect x="40" y="258" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="56" y="285" fill="currentColor">5  HAVING</text>
-            <rect x="40" y="310" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="56" y="337" fill="currentColor">6  ORDER BY</text>
-            <rect x="40" y="362" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="56" y="389" fill="currentColor">7  LIMIT</text>
-          </g>
-
-          <g font-family="monospace" font-size="13">
-            <rect x="640" y="50"  width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="656" y="77" fill="currentColor">1  FROM</text>
-            <rect x="640" y="102" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="656" y="129" fill="currentColor">2  WHERE</text>
-            <rect x="640" y="154" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="656" y="181" fill="currentColor">3  GROUP BY</text>
-            <rect x="640" y="206" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="656" y="233" fill="currentColor">4  HAVING</text>
-            <rect x="640" y="258" width="220" height="42" fill="none" stroke="#2f6fd0" stroke-width="2"/>
-            <text x="656" y="285" fill="#0432a1" font-weight="700">5  SELECT</text>
-            <rect x="640" y="310" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="656" y="337" fill="currentColor">6  ORDER BY</text>
-            <rect x="640" y="362" width="220" height="42" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <text x="656" y="389" fill="currentColor">7  LIMIT</text>
-          </g>
-
-          <path d="M 260 71  C 420 71, 480 279, 640 279" fill="none" stroke="#2f6fd0"
-                stroke-width="2.5" marker-end="url(#punta2)"/>
-          <path d="M 260 123 C 420 123, 480 71,  640 71"  fill="none" stroke="currentColor"
-                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
-          <path d="M 260 175 C 420 175, 480 123, 640 123" fill="none" stroke="currentColor"
-                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
-          <path d="M 260 227 C 420 227, 480 175, 640 175" fill="none" stroke="currentColor"
-                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
-          <path d="M 260 279 C 420 279, 480 227, 640 227" fill="none" stroke="currentColor"
-                stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
-          <line x1="260" y1="331" x2="640" y2="331" stroke="currentColor" stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
-          <line x1="260" y1="383" x2="640" y2="383" stroke="currentColor" stroke-width="1" opacity="0.45" marker-end="url(#punta2)"/>
-
-          <text x="450" y="200" font-family="monospace" font-size="12" font-weight="700"
-                fill="#0432a1" text-anchor="middle">SELECT baja</text>
-          <text x="450" y="218" font-family="monospace" font-size="12" font-weight="700"
-                fill="#0432a1" text-anchor="middle">hasta el quinto lugar</text>
-        </svg>
-      </div>
-      <figcaption>
-        <b>La línea gruesa es todo el asunto.</b> <code>SELECT</code> se escribe primero pero
-        se ejecuta casi al final: cuando llega su turno, las filas ya se filtraron y se
-        agruparon. Por eso, para entender una consulta ajena, conviene leerla <em>empezando
-        por el <code>FROM</code></em> — que es por donde realmente empieza.
-      </figcaption>
-    </figure>
-  </section>
-
-  <!-- ═══════════ 09 — EL ERROR CLÁSICO ═══════════ -->
-  <section class="lamina">
-    <div class="cinta"><span class="num">09</span><span>La consecuencia</span><span class="linea"></span></div>
-    <h2>El error que todos<br>cometen una vez</h2>
-    <p class="sumario">
-      Entender el orden de ejecución no es trivia académica: explica por qué esto no funciona.
-    </p>
+    <div class="cinta"><span class="num">05</span><span>La regla de oro</span><span class="linea"></span></div>
+    <h2>Lo que no está agregado,<br>va en el GROUP BY</h2>
 
     <div class="par">
       <div>
         <h3>✗ No funciona</h3>
-        <pre class="codigo"><span class="kw">SELECT</span>   comment_id
-<span class="kw">FROM</span>     anotaciones
-<span class="kw">WHERE</span>    <span class="kw">count</span>(*) &gt; <span class="lit">10</span>
-<span class="kw">GROUP BY</span> comment_id</pre>
+        <pre class="codigo"><span class="kw">SELECT</span>
+    annotator_ideology,
+    <span class="mal">annotator_id</span>,
+    <span class="kw">count</span>(*)
+<span class="kw">FROM</span> comentarios
+<span class="kw">GROUP BY</span> annotator_ideology</pre>
         <p class="sumario">
-          <code>WHERE</code> se ejecuta en el paso 2 y <code>GROUP BY</code> en el 3. Cuando
-          <code>WHERE</code> corre, <b>los grupos todavía no existen</b>: no hay nada que
-          contar aún.
+          <em>«column "annotator_id" must appear in the GROUP BY clause…»</em>
         </p>
       </div>
       <div>
-        <h3>✓ Sí funciona</h3>
-        <pre class="codigo"><span class="kw">SELECT</span>   comment_id
-<span class="kw">FROM</span>     anotaciones
-<span class="kw">GROUP BY</span> comment_id
-<span class="kw">HAVING</span>   <span class="kw">count</span>(*) &gt; <span class="lit">10</span></pre>
+        <h3>Por qué</h3>
         <p class="sumario">
-          <code>HAVING</code> corre en el paso 4, <b>después</b> de agrupar. Para entonces
-          cada comentario ya tiene su cuenta de evaluaciones y sí se puede filtrar por ella.
+          El grupo «liberal» tiene <b>33,812 filas</b> y cada una con un
+          <code>annotator_id</code> distinto. Le estás pidiendo a la base que meta 33,812
+          valores en una sola celda: <b>no sabe cuál darte</b>, así que se niega.
+        </p>
+        <p class="sumario">
+          No es una restricción caprichosa. Es la base impidiéndote publicar un número sin
+          sentido.
         </p>
       </div>
     </div>
 
     <div class="aviso">
-      <span class="titulo">La regla, en una línea</span>
+      <span class="titulo">Los NULL también hacen grupo</span>
       <p>
-        <strong>WHERE filtra filas; HAVING filtra grupos.</strong> Si tu condición usa una
-        función de agregación —<code>count</code>, <code>avg</code>, <code>sum</code>— va en
-        <code>HAVING</code>. Si no, va en <code>WHERE</code>.
+        En el resultado por ideología aparece un renglón con la etiqueta vacía: son las 27
+        evaluaciones sin ideología reportada. <code>GROUP BY</code> <strong>les hace su
+        propio grupo en lugar de tirarlas</strong>, y hace bien: esconder los faltantes es
+        una manera clásica de mentir con estadística sin darse cuenta.
+      </p>
+      <p>
+        Para filtrarlos se escribe <code>IS NULL</code>, nunca <code>= NULL</code>. En SQL un
+        valor faltante no es igual a nada, ni siquiera a otro faltante: <code>= NULL</code>
+        no da error, simplemente <strong>no devuelve nunca ninguna fila</strong> — que es
+        peor, porque parece que la respuesta es cero.
       </p>
     </div>
   </section>
 
-  <!-- ═══════════ 10 — CIERRE ═══════════ -->
+  <!-- ═══════════ 06 — HAVING ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">10</span><span>Lo que te llevas</span><span class="linea"></span></div>
-    <h2>Cuatro ideas para<br>empezar a practicar</h2>
+    <div class="cinta"><span class="num">06</span><span>HAVING</span><span class="linea"></span></div>
+    <h2>WHERE filtra filas.<br>HAVING filtra grupos.</h2>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 900 220" role="img"
+             aria-label="Secuencia de ejecución: WHERE descarta filas antes de agrupar, GROUP BY forma los montones, y HAVING descarta grupos completos después.">
+          <defs>
+            <marker id="fl2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                    orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <rect x="30" y="70" width="180" height="70" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="120" y="100" font-family="monospace" font-size="14" font-weight="700"
+                fill="currentColor" text-anchor="middle">WHERE</text>
+          <text x="120" y="122" font-family="monospace" font-size="11" fill="#5d6b8a" text-anchor="middle">descarta filas</text>
+
+          <rect x="290" y="70" width="180" height="70" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="380" y="100" font-family="monospace" font-size="14" font-weight="700"
+                fill="currentColor" text-anchor="middle">GROUP BY</text>
+          <text x="380" y="122" font-family="monospace" font-size="11" fill="#5d6b8a" text-anchor="middle">arma los montones</text>
+
+          <rect x="550" y="70" width="180" height="70" fill="none" stroke="#0432a1" stroke-width="2.5"/>
+          <text x="640" y="100" font-family="monospace" font-size="14" font-weight="700"
+                fill="#0432a1" text-anchor="middle">HAVING</text>
+          <text x="640" y="122" font-family="monospace" font-size="11" fill="#5d6b8a" text-anchor="middle">descarta grupos</text>
+
+          <line x1="210" y1="105" x2="285" y2="105" stroke="currentColor" stroke-width="1.5" marker-end="url(#fl2)"/>
+          <line x1="470" y1="105" x2="545" y2="105" stroke="currentColor" stroke-width="1.5" marker-end="url(#fl2)"/>
+          <line x1="730" y1="105" x2="860" y2="105" stroke="currentColor" stroke-width="1.5" marker-end="url(#fl2)"/>
+
+          <text x="120" y="175" font-family="monospace" font-size="11" fill="#b03e1a" text-anchor="middle">aquí count(*)</text>
+          <text x="120" y="192" font-family="monospace" font-size="11" fill="#b03e1a" text-anchor="middle">todavía NO existe</text>
+
+          <text x="640" y="175" font-family="monospace" font-size="11" fill="#0432a1" text-anchor="middle">aquí SÍ:</text>
+          <text x="640" y="192" font-family="monospace" font-size="11" fill="#0432a1" text-anchor="middle">cada grupo ya tiene su cuenta</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>El orden lo explica todo.</b> Un <code>WHERE count(*) &gt; 100</code> falla porque
+        cuando <code>WHERE</code> se ejecuta los grupos aún no se han formado y no hay nada
+        que contar. La regla práctica: <b>si tu condición usa una función de agregación, va
+        en <code>HAVING</code>; si no, va en <code>WHERE</code></b>.
+      </figcaption>
+    </figure>
+
+    <h3>Y se usan juntos</h3>
+    <pre class="codigo"><span class="com">-- Comentarios marcados por raza al menos 50 veces</span>
+<span class="kw">SELECT</span>   comment_id, <span class="kw">count</span>(*) <span class="kw">AS</span> veces_marcado
+<span class="kw">FROM</span>     comentarios
+<span class="kw">WHERE</span>    target_race = <span class="lit">true</span>      <span class="com">-- filtra FILAS antes</span>
+<span class="kw">GROUP BY</span> comment_id
+<span class="kw">HAVING</span>   <span class="kw">count</span>(*) &gt;= <span class="lit">50</span>       <span class="com">-- filtra GRUPOS después</span>
+<span class="kw">ORDER BY</span> veces_marcado <span class="kw">DESC</span></pre>
+    <p>No son excluyentes: lo normal es usar los dos en la misma consulta.</p>
+  </section>
+
+  <!-- ═══════════ 07 — HAVING VACÍO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span>Resultado vacío</span><span class="linea"></span></div>
+    <h2>Si no devuelve nada,<br>no siempre es tu culpa</h2>
+
+    <div class="par">
+      <div>
+        <pre class="codigo"><span class="kw">SELECT</span>   annotator_id, <span class="kw">count</span>(*)
+<span class="kw">FROM</span>     comentarios
+<span class="kw">GROUP BY</span> annotator_id
+<span class="kw">HAVING</span>   <span class="kw">count</span>(*) &gt; <span class="lit">50</span></pre>
+        <p class="sumario">
+          Devuelve <b>cero filas</b>. Y el SQL está perfecto.
+        </p>
+      </div>
+      <div>
+        <h3>La razón está en los datos</h3>
+        <p class="sumario">
+          A cada anotador del corpus se le pidió evaluar unas decenas de comentarios, no
+          cientos. <b>Ningún anotador supera las 26 evaluaciones</b>, así que ningún grupo
+          puede pasar el filtro.
+        </p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">El hábito que hay que construir</span>
+      <p>
+        Ante un resultado vacío, la pregunta correcta no es «¿qué escribí mal?» sino
+        <strong>«¿es posible este resultado con estos datos?»</strong>.
+      </p>
+      <p>
+        Se comprueba quitando el filtro y mirando la distribución real: <code>max()</code>,
+        <code>avg()</code> y <code>min()</code> sobre el conteo por grupo. Treinta segundos
+        de eso te ahorran media hora buscando un error de sintaxis que no existe.
+      </p>
+    </div>
+
+    <p>
+      El mismo filtro agrupando por <strong>comentario</strong> en vez de por anotador sí
+      devuelve algo: 70 comentarios con más de 100 evaluaciones. Son el conjunto de
+      calibración del corpus. La consulta era correcta desde el principio; lo que estaba
+      mal era la unidad por la que agrupábamos.
+    </p>
+  </section>
+
+  <!-- ═══════════ 08 — INTERPRETAR ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span>Interpretar</span><span class="linea"></span></div>
+    <h2>Agrupar es fácil.<br>Interpretar, no.</h2>
+    <p class="sumario">
+      Esta es la lámina más importante de la sesión y no tiene sintaxis nueva. Miremos el
+      respeto promedio según la ideología de quien evaluó, ordenado de mayor a menor.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>annotator_ideology</th><th>evaluaciones</th><th>respeto promedio</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>extremely_conservative</code></td><td class="n">4,544</td><td class="n">2.90</td></tr>
+          <tr><td><code>no_opinion</code></td><td class="n">4,055</td><td class="n">2.86</td></tr>
+          <tr><td><code>conservative</code></td><td class="n">15,628</td><td class="n">2.85</td></tr>
+          <tr><td><code>extremely_liberal</code></td><td class="n">17,944</td><td class="n">2.83</td></tr>
+          <tr><td><code>slightly_conservative</code></td><td class="n">15,101</td><td class="n">2.83</td></tr>
+          <tr><td><code>slightly_liberal</code></td><td class="n">21,333</td><td class="n">2.82</td></tr>
+          <tr><td><code>liberal</code></td><td class="n">33,812</td><td class="n">2.82</td></tr>
+          <tr><td><code>neutral</code></td><td class="n">23,112</td><td class="n">2.81</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      A primera vista parece un hallazgo: <em>«los conservadores extremos califican con más
+      respeto»</em>. Es exactamente el tipo de frase que acaba en una diapositiva de alguien
+      más. Antes de escribirla, dos observaciones.
+    </p>
+
+    <div class="par">
+      <div>
+        <h3>La columna entera mide 0.09</h3>
+        <p class="sumario">
+          Todo cabe entre <b>2.81 y 2.90</b>, en una escala de 0 a 4. Para efectos prácticos
+          <b>todos los grupos evaluaron igual</b>. Ordenar de mayor a menor crea una jerarquía
+          visual que los datos no sostienen.
+        </p>
+      </div>
+      <div>
+        <h3>Los grupos no son comparables</h3>
+        <p class="sumario">
+          «liberal» tiene 33,812 evaluaciones; «extremely_conservative», 4,544 — <b>siete
+          veces menos</b>. El promedio del grupo chico se mueve mucho más fácil, así que su
+          lugar en la lista es el menos confiable de todos.
+        </p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Por eso count(*) va siempre junto al promedio</span>
+      <p>
+        Un promedio sin su conteo es <strong>una cifra a medias</strong>: no te deja saber
+        cuánta confianza merece. Escríbelos siempre en la misma consulta.
+      </p>
+      <p>
+        La pregunta frente a cualquier <code>GROUP BY</code>: <em>¿esta diferencia es lo
+        bastante grande como para significar algo, y hay suficientes datos en cada grupo como
+        para creérsela?</em> Muy seguido la respuesta es no — y <strong>decirlo también es un
+        resultado</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 09 — CIERRE ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span>Lo que te llevas</span><span class="linea"></span></div>
+    <h2>Cinco ideas para<br>la práctica de hoy</h2>
 
     <div class="fichas">
       <div class="ficha">
-        <span class="clave">Declaras el qué</span>
-        <p>SQL describe <b>el resultado que quieres</b>, no los pasos para obtenerlo. El motor decide el cómo.</p>
+        <span class="clave">Una fila de salida</span>
+        <p>Las agregaciones convierten muchas filas en un número: <b>count, avg, min, max, sum</b>.</p>
       </div>
       <div class="ficha">
-        <span class="clave">Las tablas se unen por llaves</span>
-        <p>Y una relación <b>muchos a muchos</b> —comentarios y anotadores— siempre necesita una tabla intermedia que la resuelva.</p>
+        <span class="clave">Contar tiene tres formas</span>
+        <p><code>count(*)</code>, <code>count(col)</code> y <code>count(DISTINCT col)</code> responden preguntas distintas. <b>La del medio ignora los nulos en silencio.</b></p>
       </div>
       <div class="ficha">
-        <span class="clave">Se ejecuta desde el FROM</span>
-        <p>Lee las consultas empezando por ahí. <b>WHERE filtra filas, HAVING filtra grupos.</b></p>
+        <span class="clave">La regla de oro</span>
+        <p>Lo que va en el <code>SELECT</code> sin estar agregado, <b>va en el <code>GROUP BY</code></b>.</p>
       </div>
       <div class="ficha">
-        <span class="clave">Pregunta qué es una fila</span>
-        <p>Antes de contar nada. En un corpus anotado, confundir comentarios con evaluaciones <b>infla tus cifras cuatro veces</b>.</p>
+        <span class="clave">WHERE ≠ HAVING</span>
+        <p>Uno filtra filas antes de agrupar; el otro, grupos después. <b>Se usan juntos.</b></p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Un vacío es información</span>
+        <p>Pregúntate si el resultado es <b>posible con estos datos</b> antes de buscar el error en tu sintaxis.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Promedio + conteo</span>
+        <p>Siempre juntos. Y una diferencia de siete centésimas <b>no es un hallazgo</b>.</p>
       </div>
     </div>
 
     <p>
-      Lo que sigue es escribir consultas sobre el corpus. La sintaxis se te va a quedar sola
-      después de la tercera o cuarta; lo que hay que practicar deliberadamente es el hábito de
-      mirar primero la estructura de los datos y preguntarte qué representa cada renglón —y,
-      cuando la columna es texto, si lo que encontraste es de verdad lo que buscabas.
+      En la siguiente sesión: <strong>JOIN</strong>, cruzar dos tablas. Y el problema que
+      aparece en cuanto lo haces — unir una tabla donde la llave se repite
+      <strong>multiplica tus filas sin avisarte</strong>, y arruina exactamente los promedios
+      que aprendimos a calcular hoy.
     </p>
   </section>
 
-  <!-- ═══════════ 11 — BIBLIOGRAFÍA ═══════════ -->
+  <!-- ═══════════ 10 — BIBLIOGRAFÍA ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">11</span><span>Bibliografía</span><span class="linea"></span></div>
+    <div class="cinta"><span class="num">10</span><span>Bibliografía</span><span class="linea"></span></div>
     <h2>Fuentes</h2>
 
     <div class="biblio">
@@ -836,35 +734,30 @@ ordenar, cerrar, devolver</pre>
             <span class="obra">Measuring a hate speech spectrum with faceted Rasch item response
             theory and perspective-aware, explainable-by-design deep learning</span>. arXiv:2009.10277.
             <a href="https://arxiv.org/abs/2009.10277">arxiv.org/abs/2009.10277</a>
-            <span class="nota">De aquí salen el diseño de anotación múltiple, el modelo Rasch
-            detrás de <code>hate_speech_score</code> y la descripción del espectro «de genocida
-            a discurso de apoyo».</span>
+            <span class="nota">Explica por qué a cada comentario lo evalúan varias personas y
+            por qué la variación entre anotadores es el objeto de estudio, no un defecto.</span>
           </li>
           <li>
             UC Berkeley D-Lab. <span class="obra">Measuring Hate Speech</span> (ficha del conjunto
             de datos). Hugging Face.
             <a href="https://huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech">huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech</a>
-            <span class="nota">Origen del archivo y de las cifras citadas en el diagrama
-            entidad-relación.</span>
           </li>
         </ol>
       </div>
 
       <div class="grupo">
-        <h3>Los textos fundacionales</h3>
+        <h3>El origen de lo que vimos hoy</h3>
         <ol start="3">
           <li>
             Codd, E. F. (1970). <span class="obra">A Relational Model of Data for Large Shared
             Data Banks</span>. Communications of the ACM, 13(6), 377–387.
-            <span class="nota">El artículo que inventó el modelo relacional: tablas, llaves y la
-            idea de separar cómo se guardan los datos de cómo se consultan.</span>
           </li>
           <li>
             Chamberlin, D. D. y Boyce, R. F. (1974). <span class="obra">SEQUEL: A Structured
             English Query Language</span>. En Proceedings of the 1974 ACM SIGFIDET Workshop on
             Data Description, Access and Control, 249–264.
-            <span class="nota">El nacimiento del lenguaje en IBM. Se llamó SEQUEL antes de tener
-            que cambiarse el nombre a SQL por un conflicto de marca registrada.</span>
+            <span class="nota">El artículo donde aparecen por primera vez las cláusulas
+            <code>GROUP BY</code> y <code>HAVING</code> que usamos hoy.</span>
           </li>
         </ol>
       </div>
@@ -873,15 +766,10 @@ ordenar, cerrar, devolver</pre>
         <h3>Para consultar mientras practicas</h3>
         <ol start="5">
           <li>
-            DuckDB. <span class="obra">Documentación de SQL</span>.
-            <a href="https://duckdb.org/docs/sql/introduction">duckdb.org/docs/sql/introduction</a>
-            <span class="nota">El motor que corre dentro de los notebooks de la clase. Su
-            documentación es corta y tiene ejemplos ejecutables.</span>
-          </li>
-          <li>
-            marimo. <span class="obra">Documentación</span>.
-            <a href="https://docs.marimo.io/">docs.marimo.io</a>
-            <span class="nota">El formato de notebook con el que están hechos los ejercicios.</span>
+            DuckDB. <span class="obra">Funciones de agregación</span>.
+            <a href="https://duckdb.org/docs/sql/functions/aggregates">duckdb.org/docs/sql/functions/aggregates</a>
+            <span class="nota">La lista completa: además de las cinco de hoy hay
+            <code>median</code>, <code>stddev</code>, <code>quantile</code> y varias más.</span>
           </li>
         </ol>
       </div>
@@ -889,10 +777,11 @@ ordenar, cerrar, devolver</pre>
       <div class="grupo">
         <h3>Nota sobre las cifras</h3>
         <p class="sumario">
-          Los números de esta presentación —39,565 comentarios, 7,912 anotadores, 135,556
-          evaluaciones, 143 columnas— se calcularon directamente sobre el archivo publicado en
-          Hugging Face, no se tomaron del artículo. El corpus del artículo original reporta
-          50,070 comentarios y 11,143 anotadores; la versión distribuida es un subconjunto.
+          Todos los números de esta presentación —135,556 evaluaciones, 39,565 comentarios,
+          7,912 anotadores, los promedios por ideología y el máximo de 26 evaluaciones por
+          anotador— se calcularon ejecutando las consultas sobre el archivo publicado en
+          Hugging Face. Si regeneras los datos, vuelve a verificarlos: los umbrales de los
+          ejercicios dependen de ellos.
         </p>
       </div>
     </div>
@@ -902,7 +791,7 @@ ordenar, cerrar, devolver</pre>
     <img src="data:image/jpeg;base64,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gFBlckTXQe4XHBXJE0mDgB5LOD4Lkizpew+/UIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIURAahqDRendQvjkudvbLIwANkDixwHhzNIJC2OkpYqSnhp4YhHFEwNY0dGhowAPgu4iy5TaUXJtLsvYwopPaXUwFlEWDIREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREB//Z" alt="Tecnológico de Monterrey">
     <span class="texto">
       <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
-      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II · Sesión 2</span>
     </span>
   </footer>
 
