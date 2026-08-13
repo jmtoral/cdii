@@ -70,6 +70,15 @@ jobs:
             echo "::endgroup::"
           done
 
+      # Las presentaciones son HTML autocontenido (el logo va incrustado como data URI),
+      # así que basta con copiarlas tal cual.
+      - name: Copy slide decks
+        run: |
+          set -euo pipefail
+          mkdir -p site/presentaciones
+          cp presentaciones/*.html site/presentaciones/
+          ls -la site/presentaciones/
+
       - name: Create index page
         run: |
           cat > site/index.html << 'INDEXEOF'
@@ -97,12 +106,14 @@ jobs:
                   .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; }
                   .badge-leccion { background: rgba(0,210,255,0.15); color: #00d2ff; }
                   .badge-ejercicio { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+                  .badge-presentacion { background: rgba(120,160,255,0.18); color: #9db8ff; }
               </style>
           </head>
           <body>
               <h1>📊 CDII</h1>
               <p class="subtitle">Ciencia de Datos para la Toma de Decisiones II</p>
               <div class="cards">
+                  <a class="card" href="presentaciones/01_intro_sql.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>SQL: cómo se le pregunta a los datos</h3><p>Qué es SQL, modelo relacional, diagrama entidad-relación y orden de ejecución</p></a>
                   <a class="card" href="01_introduccion_sql/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>01 — Introducción a SQL</h3><p>SELECT, WHERE, LIKE, ORDER BY, LIMIT</p></a>
                   <a class="card" href="02_agregaciones_joins/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>02 — Agregaciones y JOINs</h3><p>GROUP BY, HAVING, CASE WHEN, CTEs, JOINs</p></a>
                   <a class="card" href="ejercicio_01/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Ejercicio 01 — SQL</h3><p>7 preguntas para practicar SQL</p></a>
