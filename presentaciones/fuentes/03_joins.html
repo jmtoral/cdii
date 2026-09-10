@@ -1,0 +1,784 @@
+<title>JOINs: cruzar tablas sin arruinar los números — Manuel Toral</title>
+
+<style>
+  :root {
+    --papel:      #ffffff;
+    --papel-2:    #f4f7fd;
+    --regla:      #d6e0f2;
+    --regla-fina: #eaf0fa;
+    --tinta:      #101c3d;
+    --azul:       #0432a1;
+    --azul-vivo:  #2f6fd0;
+    --gris:       #5d6b8a;
+    --alerta:     #b03e1a;
+
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+    --paso: clamp(1rem, 0.6rem + 1.6vw, 1.6rem);
+    --medida: 62ch;
+  }
+
+  /* Papel claro en los dos temas: material para proyectar. En preferencia oscura
+     bajamos el brillo en vez de invertir, para no deslumbrar ni volverse azul marino. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --papel: #e9eef7; --papel-2: #dfe7f3; --regla: #c2d0e8; --regla-fina: #d8e1f0;
+      --tinta: #0f1a38; --azul: #06308f; --azul-vivo: #2b64c0; --gris: #55648a; --alerta: #9d3714;
+    }
+  }
+  :root[data-theme="dark"] {
+    --papel: #e9eef7; --papel-2: #dfe7f3; --regla: #c2d0e8; --regla-fina: #d8e1f0;
+    --tinta: #0f1a38; --azul: #06308f; --azul-vivo: #2b64c0; --gris: #55648a; --alerta: #9d3714;
+  }
+  :root[data-theme="light"] {
+    --papel: #ffffff; --papel-2: #f4f7fd; --regla: #d6e0f2; --regla-fina: #eaf0fa;
+    --tinta: #101c3d; --azul: #0432a1; --azul-vivo: #2f6fd0; --gris: #5d6b8a; --alerta: #b03e1a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--sans);
+    font-size: clamp(15px, 0.85rem + 0.35vw, 18px);
+    line-height: 1.62;
+    background-image:
+      linear-gradient(var(--regla-fina) 1px, transparent 1px),
+      linear-gradient(90deg, var(--regla-fina) 1px, transparent 1px);
+    background-size: 32px 32px, 32px 32px;
+  }
+
+  .deck { max-width: 1180px; margin: 0 auto; padding: 0 var(--paso); }
+
+  .lamina {
+    border-top: 1px solid var(--regla);
+    padding: clamp(3rem, 6vw, 5.5rem) 0 clamp(2.5rem, 5vw, 4.5rem);
+    display: grid;
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+  }
+  .lamina:first-of-type { border-top: 0; }
+
+  .cinta {
+    display: flex; align-items: baseline; gap: 1rem;
+    font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--gris);
+  }
+  .cinta .num {
+    color: #ffffff; background: var(--azul); padding: 0.15em 0.55em;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
+  }
+  .cinta .linea { flex: 1; height: 1px; background: var(--regla); }
+
+  h1, h2, h3 { font-family: var(--mono); font-weight: 600; text-wrap: balance; margin: 0; }
+  h2 { font-size: clamp(1.55rem, 1rem + 2.4vw, 2.6rem); line-height: 1.15; letter-spacing: -0.02em; }
+  h3 { font-size: clamp(1rem, 0.85rem + 0.5vw, 1.2rem); letter-spacing: -0.01em; color: var(--azul); }
+  p { margin: 0; max-width: var(--medida); }
+  .sumario { font-size: 1.08em; color: var(--gris); max-width: 58ch; }
+  strong { color: var(--azul); font-weight: 600; }
+
+  .portada { min-height: 88vh; align-content: center; border-top: 0; }
+  .marca { display: block; width: clamp(190px, 26vw, 280px); height: auto; }
+  .portada .rotulo {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--azul);
+  }
+  .portada h1 { font-size: clamp(2.3rem, 1rem + 6.2vw, 4.9rem); line-height: 1; letter-spacing: -0.04em; }
+  .portada h1 .tenue { color: var(--gris); }
+  .firma {
+    display: grid; gap: 0.15rem;
+    padding-top: clamp(1.5rem, 4vw, 3rem);
+    border-top: 1px solid var(--regla);
+    font-family: var(--mono); font-size: 0.86rem;
+  }
+  .firma .autor { color: var(--tinta); font-weight: 600; letter-spacing: 0.02em; }
+  .firma .inst { color: var(--gris); }
+
+  .fichas {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px; background: var(--regla); border: 1px solid var(--regla);
+  }
+  .ficha { background: var(--papel); padding: 1.15rem 1.25rem; display: grid; gap: 0.4rem; align-content: start; }
+  .ficha .clave {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--azul);
+  }
+  .ficha p { font-size: 0.94em; color: var(--gris); }
+  .ficha p b { color: var(--tinta); font-weight: 600; }
+
+  .codigo {
+    font-family: var(--mono);
+    font-size: clamp(0.82rem, 0.7rem + 0.4vw, 1rem);
+    line-height: 1.75;
+    background: var(--papel-2);
+    border-left: 3px solid var(--azul);
+    padding: 1rem 1.25rem; margin: 0; overflow-x: auto; white-space: pre;
+  }
+  .codigo .kw  { color: var(--azul); font-weight: 600; }
+  .codigo .com { color: var(--gris); font-style: italic; }
+  .codigo .lit { color: var(--alerta); }
+  .codigo .mal { color: var(--alerta); font-weight: 600; }
+
+  .piezas { display: grid; gap: 1px; background: var(--regla); border: 1px solid var(--regla); }
+  .pieza {
+    background: var(--papel); display: grid; grid-template-columns: 3.2rem 1fr;
+    gap: 0 1.1rem; padding: 0.95rem 1.15rem; align-items: start;
+  }
+  .pieza .n {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--azul);
+    border: 1px solid var(--regla); text-align: center; padding: 0.15em 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .pieza code { font-family: var(--mono); font-size: 0.95em; color: var(--tinta); font-weight: 600; }
+  .pieza .glosa { grid-column: 2; color: var(--gris); font-size: 0.93em; }
+
+  figure { margin: 0; display: grid; gap: 0.75rem; }
+  .lienzo { overflow-x: auto; border: 1px solid var(--regla); background: var(--papel); padding: 1rem; }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 640px; margin: 0 auto; }
+  figcaption { font-size: 0.88em; color: var(--gris); max-width: var(--medida); }
+  figcaption b { color: var(--tinta); font-weight: 600; }
+
+  .aviso {
+    border: 1px solid var(--regla); border-left: 3px solid var(--alerta);
+    background: var(--papel-2); padding: 1rem 1.25rem; display: grid; gap: 0.4rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--alerta);
+  }
+  .aviso p { font-size: 0.96em; }
+
+  .par { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+  @media (min-width: 860px) { .par { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+  .par > div { display: grid; gap: 0.6rem; align-content: start; }
+
+  .tabla-envoltura { overflow-x: auto; border: 1px solid var(--regla); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93em; min-width: 480px; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--regla-fina); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--azul); background: var(--papel-2);
+    border-bottom: 1px solid var(--regla);
+  }
+  td code { font-family: var(--mono); font-size: 0.95em; color: var(--tinta); }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.destaca td { background: var(--papel-2); font-weight: 600; }
+
+  /* Cifra grande para los dos contrastes de la sesión */
+  .contraste {
+    display: grid; grid-template-columns: 1fr; gap: 1px;
+    background: var(--regla); border: 1px solid var(--regla);
+  }
+  @media (min-width: 700px) { .contraste { grid-template-columns: 1fr 1fr; } }
+  .contraste > div { background: var(--papel); padding: 1.4rem 1.5rem; display: grid; gap: 0.35rem; }
+  .contraste .etiqueta {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .contraste .cifra {
+    font-family: var(--mono); font-size: clamp(2rem, 1rem + 4vw, 3.4rem);
+    font-weight: 600; line-height: 1; letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .contraste .glosa { font-size: 0.9em; color: var(--gris); }
+  .bien .etiqueta, .bien .cifra { color: var(--azul); }
+  .mal  .etiqueta, .mal  .cifra { color: var(--alerta); }
+
+  .biblio { display: grid; gap: 1.6rem; }
+  .biblio .grupo { display: grid; gap: 0.75rem; }
+  .biblio h3 { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; }
+  .biblio ol { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.85rem; }
+  .biblio li { max-width: 72ch; font-size: 0.95em; line-height: 1.6; }
+  .biblio li .obra { font-style: italic; }
+  .biblio li .nota { display: block; color: var(--gris); font-size: 0.9em; margin-top: 0.15rem; }
+
+  .pie {
+    border-top: 1px solid var(--regla); margin-top: 2rem; padding: 2rem 0 3.5rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem;
+    justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
+  }
+  .pie img { width: 132px; height: auto; }
+  .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
+
+  a { color: var(--azul); text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 2px solid var(--azul-vivo); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<main class="deck">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="lamina portada">
+    <img class="marca" src="__LOGO__" alt="Tecnológico de Monterrey">
+    <div class="rotulo">Ciencia de Datos para la Toma de Decisiones II · Sesión 3</div>
+    <h1>JOINs<span class="tenue">:</span><br>cruzar tablas sin<br>arruinar los números</h1>
+    <p class="sumario">
+      La operación más poderosa de SQL y la más fácil de equivocar en silencio. Hoy vemos
+      dos consultas que corren perfecto, no dan ningún error, y devuelven la respuesta
+      equivocada.
+    </p>
+    <div class="firma">
+      <span class="autor">Manuel Toral</span>
+      <span class="inst">Escuela de Ingeniería y Ciencias</span>
+      <span class="inst">Tecnológico de Monterrey</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">01</span><span>De dónde venimos</span><span class="linea"></span></div>
+    <h2>Elegir, resumir,<br>y ahora combinar</h2>
+
+    <div class="piezas">
+      <div class="pieza">
+        <span class="n">S1</span>
+        <code>SELECT · WHERE · ORDER BY</code>
+        <span class="glosa"><b>Elegir.</b> Pedías un subconjunto de las filas que ya tenías. El resultado eran filas del corpus.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">S2</span>
+        <code>count · avg · GROUP BY · HAVING</code>
+        <span class="glosa"><b>Resumir.</b> Convertías muchas filas en un número, y después en un número por grupo.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">S3</span>
+        <code>JOIN … ON</code>
+        <span class="glosa"><b>Combinar.</b> Traes información que vive en <em>otra tabla</em> y la pegas a la que tienes.</span>
+      </div>
+    </div>
+
+    <p>
+      Con esto se cierra el tema: al terminar hoy puedes abrir una base que nunca has visto,
+      entender su estructura, filtrarla, resumirla y cruzarla. Es el repertorio completo del
+      trabajo cotidiano con datos.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">Pero hay una diferencia importante</span>
+      <p>
+        Un <code>WHERE</code> mal escrito casi siempre truena, o devuelve algo obviamente
+        raro. <strong>Un <code>JOIN</code> mal pensado corre sin quejarse y te entrega una
+        tabla que se ve perfectamente normal.</strong> Por eso esta sesión trata menos de
+        sintaxis y más de saber qué acabas de hacer.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">02</span><span>Cuatro tablas</span><span class="linea"></span></div>
+    <h2>Primero hay que separar<br>lo que estaba revuelto</h2>
+    <p class="sumario">
+      Nuestro corpus viene aplanado en una sola tabla de 135,556 filas y 143 columnas, con
+      tres cosas distintas mezcladas. Para practicar <code>JOIN</code> la partimos en las
+      entidades que realmente contiene.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>Tabla</th><th>Filas</th><th>Qué es una fila</th><th>Llave</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>anotaciones</code></td><td class="n">135,556</td><td>Una evaluación de una persona sobre un comentario</td><td><code>(comment_id, annotator_id)</code></td></tr>
+          <tr><td><code>comentarios</code></td><td class="n">39,565</td><td>Un comentario</td><td><code>comment_id</code></td></tr>
+          <tr><td><code>anotadores</code></td><td class="n">7,912</td><td>Una persona</td><td><code>annotator_id</code></td></tr>
+          <tr><td><code>plataformas</code></td><td class="n">4</td><td>Una plataforma</td><td><code>platform_id</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Las columnas que aparecen en más de una tabla son las <strong>llaves</strong>, y son
+      por donde se pegan. Fíjate en los tamaños: van de 4 filas a 135 mil. Esa asimetría es
+      justamente lo que hace peligrosos a los <code>JOIN</code>.
+    </p>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">03</span><span>El JOIN más simple</span><span class="linea"></span></div>
+    <h2>Traer una etiqueta<br>de un catálogo</h2>
+    <p class="sumario">
+      El caso más común y más inofensivo: tienes un código y quieres su nombre legible.
+    </p>
+
+    <pre class="codigo"><span class="kw">SELECT</span>
+    c.comment_id,
+    p.nombre <span class="kw">AS</span> plataforma,
+    c.hate_speech_score
+<span class="kw">FROM</span> comentarios <span class="kw">AS</span> c
+<span class="kw">JOIN</span> plataformas <span class="kw">AS</span> p
+  <span class="kw">ON</span> c.platform_id = p.platform_id</pre>
+
+    <div class="piezas">
+      <div class="pieza">
+        <span class="n">01</span>
+        <code>JOIN plataformas</code>
+        <span class="glosa">Con qué otra tabla la vas a cruzar.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">02</span>
+        <code>ON c.platform_id = p.platform_id</code>
+        <span class="glosa"><b>Por cuál columna</b> se emparejan las filas. Es el corazón del JOIN: sin <code>ON</code> no hay criterio.</span>
+      </div>
+      <div class="pieza">
+        <span class="n">03</span>
+        <code>comentarios AS c</code>
+        <span class="glosa">Un <b>alias</b>. Deja de ser opcional en cuanto dos tablas tienen columnas con el mismo nombre: sin él, <code>platform_id</code> es ambiguo.</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">🧭 Correcta, y aun así no concluye nada</span>
+      <p>
+        Ese <code>JOIN</code> funciona, pero el dataset <strong>nunca publicó</strong> qué
+        plataforma es cada código. Podemos decir que el grupo 0 tiene más comentarios que el
+        3; <strong>no</strong> podemos decir «en Twitter hay más odio que en Reddit».
+      </p>
+      <p>
+        Hay cuatro códigos y el paper menciona tres plataformas, así que cualquier
+        asignación sería inventada. <strong>Una columna sin diccionario te deja contar, pero
+        no concluir.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 — FAN-OUT ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span>Fan-out</span><span class="linea"></span></div>
+    <h2>Cuando el JOIN<br>multiplica tus filas</h2>
+    <p class="sumario">
+      El catálogo era inofensivo porque su llave es <strong>única</strong>: cada comentario
+      encontró exactamente una pareja. Ahora crucemos con <code>anotaciones</code>, donde
+      <code>comment_id</code> <strong>se repite</strong>.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 900 340" role="img"
+             aria-label="Al unir la tabla de comentarios con la de anotaciones, un comentario evaluado por tres personas produce tres filas idénticas en el resultado: el JOIN repite la fila de la izquierda una vez por cada pareja que encuentra a la derecha.">
+          <defs>
+            <marker id="fo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                    orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <text x="105" y="28" font-family="monospace" font-size="12" font-weight="700"
+                fill="currentColor" text-anchor="middle">comentarios</text>
+          <text x="415" y="28" font-family="monospace" font-size="12" font-weight="700"
+                fill="currentColor" text-anchor="middle">anotaciones</text>
+          <text x="740" y="28" font-family="monospace" font-size="12" font-weight="700"
+                fill="#b03e1a" text-anchor="middle">RESULTADO DEL JOIN</text>
+
+          <!-- comentarios: 1 fila -->
+          <g font-family="monospace" font-size="10">
+            <rect x="20" y="130" width="170" height="46" fill="none" stroke="#0432a1" stroke-width="2"/>
+            <text x="30" y="150" fill="#0432a1" font-weight="700">id=20011</text>
+            <text x="30" y="166" fill="currentColor">score = 2.4</text>
+            <text x="30" y="196" fill="#5d6b8a">1 fila</text>
+          </g>
+
+          <!-- anotaciones: 3 filas -->
+          <g font-family="monospace" font-size="10">
+            <rect x="330" y="70" width="170" height="40" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="340" y="88" fill="currentColor">id=20011</text>
+            <text x="340" y="103" fill="#5d6b8a">ana · insult 3</text>
+
+            <rect x="330" y="132" width="170" height="40" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="340" y="150" fill="currentColor">id=20011</text>
+            <text x="340" y="165" fill="#5d6b8a">luis · insult 1</text>
+
+            <rect x="330" y="194" width="170" height="40" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="340" y="212" fill="currentColor">id=20011</text>
+            <text x="340" y="227" fill="#5d6b8a">sam · insult 4</text>
+
+            <text x="340" y="258" fill="#5d6b8a">la llave SE REPITE</text>
+          </g>
+
+          <!-- resultado: 3 filas identicas del lado izquierdo -->
+          <g font-family="monospace" font-size="10">
+            <rect x="640" y="70" width="200" height="40" fill="none" stroke="#b03e1a" stroke-width="1.6"/>
+            <text x="650" y="88" fill="#b03e1a" font-weight="700">score = 2.4</text>
+            <text x="650" y="103" fill="#5d6b8a">+ ana · 3</text>
+
+            <rect x="640" y="132" width="200" height="40" fill="none" stroke="#b03e1a" stroke-width="1.6"/>
+            <text x="650" y="150" fill="#b03e1a" font-weight="700">score = 2.4</text>
+            <text x="650" y="165" fill="#5d6b8a">+ luis · 1</text>
+
+            <rect x="640" y="194" width="200" height="40" fill="none" stroke="#b03e1a" stroke-width="1.6"/>
+            <text x="650" y="212" fill="#b03e1a" font-weight="700">score = 2.4</text>
+            <text x="650" y="227" fill="#5d6b8a">+ sam · 4</text>
+
+            <text x="650" y="258" fill="#b03e1a">el score se contó 3 veces</text>
+          </g>
+
+          <line x1="190" y1="153" x2="325" y2="90"  stroke="currentColor" stroke-width="1.2" marker-end="url(#fo)"/>
+          <line x1="190" y1="153" x2="325" y2="152" stroke="currentColor" stroke-width="1.2" marker-end="url(#fo)"/>
+          <line x1="190" y1="153" x2="325" y2="214" stroke="currentColor" stroke-width="1.2" marker-end="url(#fo)"/>
+          <text x="258" y="290" font-family="monospace" font-size="10" fill="currentColor" text-anchor="middle">ON comment_id</text>
+
+          <line x1="505" y1="90"  x2="635" y2="90"  stroke="#b03e1a" stroke-width="1.6" marker-end="url(#fo)"/>
+          <line x1="505" y1="152" x2="635" y2="152" stroke="#b03e1a" stroke-width="1.6" marker-end="url(#fo)"/>
+          <line x1="505" y1="214" x2="635" y2="214" stroke="#b03e1a" stroke-width="1.6" marker-end="url(#fo)"/>
+
+          <text x="450" y="318" font-family="monospace" font-size="11" font-weight="700"
+                fill="#b03e1a" text-anchor="middle">39,565 filas  →  135,556 filas  (mismos 39,565 comentarios)</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>El JOIN no inventó comentarios: repitió cada uno.</b> Un comentario evaluado por
+        800 personas aparece 800 veces en el resultado, cada una con su <code>score</code>
+        idéntico. Eso se llama <em>fan-out</em> y es exactamente lo que pediste — el problema
+        empieza cuando después calculas un promedio.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ═══════════ 05 — LA TRAMPA ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span>La trampa</span><span class="linea"></span></div>
+    <h2>Dos consultas, una pregunta,<br>dos respuestas distintas</h2>
+    <p class="sumario">
+      Ambas quieren el <code>hate_speech_score</code> promedio del corpus. Una está bien y
+      la otra mal. <strong>Ninguna da error.</strong>
+    </p>
+
+    <div class="par">
+      <div>
+        <pre class="codigo"><span class="com">-- ✅ sobre comentarios</span>
+<span class="kw">SELECT</span> <span class="kw">round</span>(<span class="kw">avg</span>(hate_speech_score), <span class="lit">4</span>)
+<span class="kw">FROM</span> comentarios</pre>
+      </div>
+      <div>
+        <pre class="codigo"><span class="com">-- ❌ sobre el JOIN</span>
+<span class="kw">SELECT</span> <span class="kw">round</span>(<span class="kw">avg</span>(c.hate_speech_score), <span class="lit">4</span>)
+<span class="kw">FROM</span> comentarios <span class="kw">AS</span> c
+<span class="kw">JOIN</span> anotaciones <span class="kw">AS</span> a
+  <span class="kw">ON</span> c.comment_id = a.comment_id</pre>
+      </div>
+    </div>
+
+    <div class="contraste">
+      <div class="bien">
+        <span class="etiqueta">Correcto</span>
+        <span class="cifra">−0.9439</span>
+        <span class="glosa">Cada comentario cuenta una vez.</span>
+      </div>
+      <div class="mal">
+        <span class="etiqueta">Tras el JOIN</span>
+        <span class="cifra">−0.5674</span>
+        <span class="glosa">El promedio se movió <b>40%</b>. Sin advertencias.</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Por qué se movió</span>
+      <p>
+        Los 70 comentarios del conjunto de calibración tienen entre 243 y 815 evaluaciones
+        cada uno. Después del <code>JOIN</code>, <strong>esos 70 ocupan más de 25,000
+        filas</strong> y arrastran el promedio hacia su valor, mientras que un comentario
+        normal —evaluado por 2 o 3 personas— apenas pesa.
+      </p>
+      <p>
+        Ya no estás promediando comentarios: estás promediando <strong>comentarios
+        ponderados por cuánta gente los evaluó</strong>, que es una pregunta distinta que
+        nadie te hizo.
+      </p>
+    </div>
+
+    <h3>La solución: agregar antes de unir</h3>
+    <pre class="codigo"><span class="kw">WITH</span> por_comentario <span class="kw">AS</span> (
+    <span class="com">-- Paso 1: colapsar a UNA fila por comentario</span>
+    <span class="kw">SELECT</span> comment_id, <span class="kw">count</span>(*) <span class="kw">AS</span> evaluaciones
+    <span class="kw">FROM</span> anotaciones
+    <span class="kw">GROUP BY</span> comment_id
+)
+<span class="com">-- Paso 2: ahora la llave del lado derecho vuelve a ser única</span>
+<span class="kw">SELECT</span> <span class="kw">round</span>(<span class="kw">avg</span>(c.hate_speech_score), <span class="lit">4</span>)
+<span class="kw">FROM</span> comentarios <span class="kw">AS</span> c
+<span class="kw">JOIN</span> por_comentario <span class="kw">AS</span> p <span class="kw">ON</span> c.comment_id = p.comment_id</pre>
+
+    <p>
+      Vuelve a dar <strong>−0.9439</strong>. Ese patrón —<em>agregar, luego unir</em>— es
+      probablemente lo más útil de toda la sesión.
+    </p>
+  </section>
+
+  <!-- ═══════════ 06 — INNER VS LEFT ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span>INNER contra LEFT</span><span class="linea"></span></div>
+    <h2>Qué pasa con los<br>que no emparejan</h2>
+
+    <figure>
+      <div class="lienzo">
+        <svg viewBox="0 0 900 300" role="img"
+             aria-label="Comparación entre INNER JOIN y LEFT JOIN sobre las mismas dos tablas: el INNER descarta los 24,868 comentarios que nadie marcó y devuelve 14,697 filas; el LEFT los conserva con NULL y devuelve las 39,565.">
+          <defs>
+            <marker id="il" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+                    orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- tabla izquierda comun -->
+          <text x="110" y="30" font-family="monospace" font-size="12" font-weight="700"
+                fill="currentColor" text-anchor="middle">comentarios</text>
+          <rect x="25" y="55" width="170" height="70" fill="none" stroke="#0432a1" stroke-width="2"/>
+          <text x="35" y="80" font-family="monospace" font-size="11" fill="#0432a1" font-weight="700">14,697</text>
+          <text x="35" y="98" font-family="monospace" font-size="10" fill="#5d6b8a">alguien los marcó</text>
+          <text x="35" y="116" font-family="monospace" font-size="10" fill="#5d6b8a">(sí tienen pareja)</text>
+
+          <rect x="25" y="140" width="170" height="70" fill="none" stroke="#b03e1a" stroke-width="2" stroke-dasharray="5 4"/>
+          <text x="35" y="165" font-family="monospace" font-size="11" fill="#b03e1a" font-weight="700">24,868</text>
+          <text x="35" y="183" font-family="monospace" font-size="10" fill="#5d6b8a">nadie los marcó</text>
+          <text x="35" y="201" font-family="monospace" font-size="10" fill="#5d6b8a">(NO tienen pareja)</text>
+
+          <!-- INNER -->
+          <text x="480" y="30" font-family="monospace" font-size="12" font-weight="700"
+                fill="#b03e1a" text-anchor="middle">INNER JOIN</text>
+          <rect x="395" y="55" width="170" height="70" fill="none" stroke="#0432a1" stroke-width="2"/>
+          <text x="405" y="88" font-family="monospace" font-size="12" fill="#0432a1" font-weight="700">14,697 filas</text>
+          <text x="405" y="108" font-family="monospace" font-size="10" fill="#5d6b8a">promedio = 3.29</text>
+          <text x="480" y="180" font-family="monospace" font-size="11" fill="#b03e1a" text-anchor="middle">los 24,868</text>
+          <text x="480" y="197" font-family="monospace" font-size="11" fill="#b03e1a" text-anchor="middle">DESAPARECEN</text>
+          <line x1="200" y1="175" x2="380" y2="175" stroke="#b03e1a" stroke-width="1.4" stroke-dasharray="4 4"/>
+          <line x1="368" y1="167" x2="384" y2="183" stroke="#b03e1a" stroke-width="2"/>
+          <line x1="384" y1="167" x2="368" y2="183" stroke="#b03e1a" stroke-width="2"/>
+
+          <!-- LEFT -->
+          <text x="760" y="30" font-family="monospace" font-size="12" font-weight="700"
+                fill="#0432a1" text-anchor="middle">LEFT JOIN</text>
+          <rect x="675" y="55" width="180" height="70" fill="none" stroke="#0432a1" stroke-width="2"/>
+          <text x="685" y="88" font-family="monospace" font-size="12" fill="#0432a1" font-weight="700">14,697 filas</text>
+          <text x="685" y="108" font-family="monospace" font-size="10" fill="#5d6b8a">con su valor</text>
+
+          <rect x="675" y="140" width="180" height="70" fill="none" stroke="#0432a1" stroke-width="2"/>
+          <text x="685" y="173" font-family="monospace" font-size="12" fill="#0432a1" font-weight="700">24,868 filas</text>
+          <text x="685" y="193" font-family="monospace" font-size="10" fill="#5d6b8a">con NULL → COALESCE 0</text>
+
+          <text x="765" y="243" font-family="monospace" font-size="11" fill="#0432a1" text-anchor="middle">39,565 filas · promedio = 1.22</text>
+
+          <line x1="200" y1="90" x2="390" y2="90" stroke="currentColor" stroke-width="1.4" marker-end="url(#il)"/>
+          <line x1="570" y1="90" x2="670" y2="90" stroke="currentColor" stroke-width="1.4" marker-end="url(#il)"/>
+          <line x1="200" y1="175" x2="670" y2="175" stroke="#0432a1" stroke-width="1.6" marker-end="url(#il)"/>
+
+          <text x="450" y="285" font-family="monospace" font-size="11" font-weight="700"
+                fill="currentColor" text-anchor="middle">la misma pregunta, dos respuestas: 3.29 contra 1.22</text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>Los ceros no se promediaron porque nunca llegaron a la mesa.</b> Con
+        <code>INNER</code> solo entran los comentarios que ya sabías que fueron marcados, así
+        que el promedio sale alto por construcción. <code>COALESCE(x, 0)</code> convierte
+        «no hubo pareja» en «pasó cero veces».
+      </figcaption>
+    </figure>
+
+    <div class="contraste">
+      <div class="mal">
+        <span class="etiqueta">Con INNER JOIN</span>
+        <span class="cifra">3.29</span>
+        <span class="glosa">Solo entre los que alguien marcó.</span>
+      </div>
+      <div class="bien">
+        <span class="etiqueta">Con LEFT + COALESCE</span>
+        <span class="cifra">1.22</span>
+        <span class="glosa">Contando los <b>24,868 ceros</b> que sí existen.</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La pregunta que decide cuál usar</span>
+      <p>
+        Cuando algo no aparece en la tabla de la derecha, <strong>¿eso significa cero o
+        significa «no sé»?</strong>
+      </p>
+      <p>
+        Si significa cero —nadie lo marcó, no hubo ventas, no hubo denuncias— usa
+        <code>LEFT JOIN</code> con <code>COALESCE</code>. Si significa que <em>no tienes el
+        dato</em>, el <code>NULL</code> es la respuesta correcta y rellenarlo con cero es
+        inventar información.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span>Dos usos más</span><span class="linea"></span></div>
+    <h2>Encadenar tablas,<br>y preguntar qué falta</h2>
+
+    <div class="par">
+      <div>
+        <h3>Varios JOIN seguidos</h3>
+        <pre class="codigo"><span class="kw">SELECT</span>
+    ad.annotator_ideology,
+    <span class="kw">count</span>(*) <span class="kw">AS</span> evaluaciones,
+    <span class="kw">round</span>(<span class="kw">avg</span>(a.insult), <span class="lit">2</span>) <span class="kw">AS</span> insulto
+<span class="kw">FROM</span> anotaciones <span class="kw">AS</span> a
+<span class="kw">JOIN</span> anotadores <span class="kw">AS</span> ad
+  <span class="kw">ON</span> a.annotator_id = ad.annotator_id
+<span class="kw">GROUP BY</span> ad.annotator_ideology</pre>
+        <p class="sumario">
+          Responde algo que <b>ninguna tabla sola puede</b>: el juicio está en una, la
+          ideología en la otra.
+        </p>
+      </div>
+      <div>
+        <h3>Anti-join: qué NO está</h3>
+        <pre class="codigo"><span class="kw">SELECT</span> c.comment_id
+<span class="kw">FROM</span> comentarios <span class="kw">AS</span> c
+<span class="kw">LEFT JOIN</span> marcados_raza <span class="kw">AS</span> m
+  <span class="kw">ON</span> c.comment_id = m.comment_id
+<span class="kw">WHERE</span> m.comment_id <span class="kw">IS NULL</span></pre>
+        <p class="sumario">
+          <code>LEFT JOIN</code> + <code>IS NULL</code> es la forma estándar de preguntar
+          <b>«¿qué hay en A que no esté en B?»</b>. Aquí: los 24,868 que nadie marcó.
+        </p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Y el reflejo de la sesión pasada, otra vez</span>
+      <p>
+        El promedio de insulto por ideología va de <strong>2.55 a 2.63</strong> en una escala
+        de 0 a 4: prácticamente idénticos. El <code>JOIN</code> está perfecto y la pregunta
+        es interesante, pero la respuesta sigue siendo «no se ve ninguna diferencia».
+      </p>
+      <p>
+        <strong>Eso también es un resultado</strong>, y es más honesto que ordenar la tabla y
+        contar una historia con la tercera cifra decimal.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 08 — CIERRE ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span>Lo que te llevas</span><span class="linea"></span></div>
+    <h2>Seis ideas, y una<br>pregunta antes de cada JOIN</h2>
+
+    <div class="fichas">
+      <div class="ficha">
+        <span class="clave">JOIN … ON</span>
+        <p>Pega tablas por su <b>llave compartida</b>. Los <b>alias</b> dejan de ser opcionales en cuanto hay nombres repetidos.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Fan-out</span>
+        <p>Si la llave se repite del lado derecho, <b>tus filas se multiplican</b>. No es un error, pero arruina cualquier promedio posterior.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Agrega antes de unir</span>
+        <p>Un <code>WITH</code> que colapsa a una fila por llave. <b>El patrón más útil de la sesión.</b></p>
+      </div>
+      <div class="ficha">
+        <span class="clave">INNER descarta</span>
+        <p><code>LEFT</code> conserva con <code>NULL</code>. Elegir mal borró 24,868 ceros y <b>triplicó un promedio</b>.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">COALESCE(x, 0)</span>
+        <p>Convierte «no hubo pareja» en «cero» — <b>solo cuando eso es lo que significa</b>.</p>
+      </div>
+      <div class="ficha">
+        <span class="clave">Anti-join</span>
+        <p><code>LEFT JOIN</code> + <code>IS NULL</code> para preguntar <b>qué falta</b>.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Antes de cada JOIN, una sola pregunta</span>
+      <p>
+        <strong>¿La llave es única del lado derecho?</strong> Si lo es, el <code>JOIN</code>
+        es seguro. Si no, vas a multiplicar filas — y entonces decide si eso es lo que
+        querías o si toca agregar primero.
+      </p>
+      <p>
+        Cuesta cinco segundos y te ahorra publicar un número equivocado con toda confianza.
+      </p>
+    </div>
+
+    <p>
+      Con esto cierras el tema de SQL. Ya puedes abrir una base que nunca has visto, entender
+      su estructura, filtrarla, resumirla y cruzarla — que es, literalmente, el trabajo.
+    </p>
+  </section>
+
+  <!-- ═══════════ 09 — BIBLIOGRAFÍA ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span>Bibliografía</span><span class="linea"></span></div>
+    <h2>Fuentes</h2>
+
+    <div class="biblio">
+      <div class="grupo">
+        <h3>El corpus que usamos en clase</h3>
+        <ol>
+          <li>
+            Kennedy, C. J., Bacon, G., Sahn, A. y von Vacano, C. (2020).
+            <span class="obra">Measuring a hate speech spectrum with faceted Rasch item response
+            theory and perspective-aware, explainable-by-design deep learning</span>. arXiv:2009.10277.
+            <a href="https://arxiv.org/abs/2009.10277">arxiv.org/abs/2009.10277</a>
+            <span class="nota">El diseño de anotación múltiple es justamente lo que produce el
+            fan-out que vimos hoy: cada comentario evaluado por varias personas.</span>
+          </li>
+          <li>
+            UC Berkeley D-Lab. <span class="obra">Measuring Hate Speech</span> (ficha del conjunto
+            de datos). Hugging Face.
+            <a href="https://huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech">huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech</a>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>El origen del modelo relacional</h3>
+        <ol start="3">
+          <li>
+            Codd, E. F. (1970). <span class="obra">A Relational Model of Data for Large Shared
+            Data Banks</span>. Communications of the ACM, 13(6), 377–387.
+            <span class="nota">El artículo que propuso separar los datos en tablas relacionadas
+            por llaves. El <code>JOIN</code> es la operación que vuelve a juntarlas.</span>
+          </li>
+          <li>
+            Chamberlin, D. D. y Boyce, R. F. (1974). <span class="obra">SEQUEL: A Structured
+            English Query Language</span>. En Proceedings of the 1974 ACM SIGFIDET Workshop on
+            Data Description, Access and Control, 249–264.
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Para consultar mientras practicas</h3>
+        <ol start="5">
+          <li>
+            DuckDB. <span class="obra">Cláusula FROM y JOIN</span>.
+            <a href="https://duckdb.org/docs/sql/query_syntax/from">duckdb.org/docs/sql/query_syntax/from</a>
+            <span class="nota">Además de <code>INNER</code> y <code>LEFT</code> existen
+            <code>RIGHT</code>, <code>FULL</code>, <code>CROSS</code> y
+            <code>SEMI</code>/<code>ANTI</code>, que hacen explícito el patrón de la lámina 7.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Nota sobre las cifras</h3>
+        <p class="sumario">
+          Todos los números de esta presentación —39,565 comentarios, 135,556 evaluaciones,
+          14,697 marcados, 24,868 sin marcar, y los promedios −0.9439 / −0.5674 y 3.29 / 1.22—
+          se obtuvieron ejecutando esas mismas consultas sobre el archivo publicado en Hugging
+          Face. Si regeneras los datos, vuelve a verificarlos.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="__LOGO__" alt="Tecnológico de Monterrey">
+    <span class="texto">
+      <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II · Sesión 3</span>
+    </span>
+  </footer>
+
+</main>

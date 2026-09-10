@@ -98,6 +98,11 @@ $IndexHtml = @"
             <h3>02 — Agregaciones</h3>
             <p>count, avg, min, max, GROUP BY, HAVING y el manejo de NULL.</p>
         </a>
+        <a class="card" href="03_joins/index.html">
+            <span class="badge badge-leccion">LECCIÓN</span>
+            <h3>03 — JOINs</h3>
+            <p>JOIN/ON, alias, fan-out, INNER contra LEFT y COALESCE.</p>
+        </a>
         <a class="card" href="ejercicio_01/index.html">
             <span class="badge badge-ejercicio">EJERCICIO</span>
             <h3>Ejercicio 01 — SQL</h3>
@@ -116,9 +121,10 @@ $IndexHtml | Out-File -FilePath (Join-Path $OutputDir "index.html") -Encoding UT
 # soluciones de los acordeones, y está aceptado a cambio de que puedan correr las consultas.
 # El EJERCICIO evaluado va en modo run, para que no puedan desarmar la entrega.
 $Notebooks = @(
-    @{ Path = "01_sql\01_introduccion_sql.py"; Name = "01_introduccion_sql"; Modo = "edit" },
-    @{ Path = "01_sql\02_agregaciones.py"; Name = "02_agregaciones"; Modo = "edit" },
-    @{ Path = "01_sql\ejercicio_01.py"; Name = "ejercicio_01"; Modo = "run" }
+    @{ Path = "01_sql/01_introduccion_sql.py"; Name = "01_introduccion_sql"; Modo = "edit" },
+    @{ Path = "01_sql/02_agregaciones.py"; Name = "02_agregaciones"; Modo = "edit" },
+    @{ Path = "01_sql/03_joins.py"; Name = "03_joins"; Modo = "edit" },
+    @{ Path = "01_sql/ejercicio_01.py"; Name = "ejercicio_01"; Modo = "run" }
 )
 
 $Fallos = @()
