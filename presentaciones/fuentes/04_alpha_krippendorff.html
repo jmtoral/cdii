@@ -217,6 +217,13 @@
   }
   .comentario .pie-meta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
 
+  /* Variante para citas de varios parrafos: baja el cuerpo para que no grite */
+  .comentario.larga blockquote {
+    font-size: clamp(0.95rem, 0.85rem + 0.35vw, 1.12rem);
+    font-weight: 600; display: grid; gap: 0.65rem;
+  }
+  .comentario.larga blockquote p { margin: 0; max-width: 68ch; }
+
   .encuesta { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
   .item {
     display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem;
@@ -606,7 +613,7 @@
     </div>
   </section>
 
-  <!-- ═══════════ 05 — EL PAYOFF ═══════════ -->
+  <!-- ═══════════ 07 — EL PAYOFF ═══════════ -->
   <section class="lamina">
     <div class="cinta"><span class="num">07</span><span class="rot">Nuestro corpus</span></div>
     <h2>El alpha real de<br>los datos de esta clase</h2>
@@ -679,9 +686,170 @@
     </p>
   </section>
 
-  <!-- ═══════════ 06 ═══════════ -->
+  <!-- ═══════════ 08 — UN CASO PROPIO ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">08</span><span class="rot">Qué hacer</span></div>
+    <div class="cinta"><span class="num">08</span><span class="rot">Un caso nuestro</span></div>
+    <h2>¿Afín o contraria<br>al gobierno?</h2>
+    <p class="sumario">
+      Cambiemos de corpus. Quieres entrenar un modelo que clasifique las preguntas de la
+      conferencia matutina según si son <strong>afines o contrarias al gobierno</strong>.
+      Antes de escribir una línea de código alguien tiene que etiquetar, y ahí aparece el
+      mismo problema de siempre.
+    </p>
+
+    <div class="comentario larga">
+      <span class="meta">Pregunta real de la conferencia matutina · versión estenográfica</span>
+      <blockquote>
+        <p>«Y, Presidenta, a 2 días ya de terminar el mes de mayo, el promedio de los
+        homicidios diarios continúa la tendencia del mes anterior, es decir, está por debajo
+        de los 60 homicidios al día. La tendencia a la baja en estas cifras es ya una
+        constante en los últimos meses y significa un avance muy importante en materia de
+        seguridad.</p>
+        <p>Después de años de violencia por la guerra emprendida por Felipe Calderón,
+        Presidenta, ¿podemos pensar ya que con las claras tendencias de disminución de los
+        homicidios estamos entrando en una nueva etapa donde pronto tendremos un país sin la
+        violencia heredada por los gobiernos del PRIAN?»</p>
+      </blockquote>
+      <span class="pie-meta">¿qué etiqueta le pones?</span>
+    </div>
+
+    <h3>Esta es fácil, y por eso es peligrosa</h3>
+    <p>
+      Casi cualquiera la marcaría como <strong>afín</strong>, y con razón. Pero fíjate en
+      cuántas cosas distintas ocurren dentro del mismo párrafo:
+    </p>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">1 · Reporta un dato</span>
+        <p>«por debajo de los 60 homicidios al día». Verificable y, por sí solo, neutro.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">2 · Lo evalúa</span>
+        <p>«un avance muy importante». Aquí ya dejó de describir: <strong>califica</strong>.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">3 · Reparte la culpa</span>
+        <p>«la guerra emprendida por Felipe Calderón», «heredada por los gobiernos del PRIAN».
+        Hay hostilidad, pero <strong>apunta a la oposición</strong>, no al gobierno.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">4 · Regala la conclusión</span>
+        <p>«¿podemos pensar ya que…?» No pide información: <strong>pide que le confirmen</strong>
+        algo que la propia pregunta ya afirmó.</p>
+      </div>
+    </div>
+
+    <p>
+      Cuatro movimientos, y tu etiqueta los colapsa en una sola palabra. Mientras los cuatro
+      apunten en la misma dirección —como aquí— nadie nota el problema.
+      <strong>Aparece cuando se separan.</strong>
+    </p>
+
+    <h3>Los casos donde tus anotadores se van a partir</h3>
+
+    <div class="encuesta">
+      <div class="item">
+        <span class="n">A</span><span class="campo">tono ≠ reclamo</span>
+        <span class="pregunta">Ataca a la oposición con dureza, pero le reclama al gobierno un
+        programa que no llegó a su comunidad.</span>
+        <span class="opciones">¿afín por el encuadre · contraria por el reclamo?</span>
+      </div>
+      <div class="item">
+        <span class="n">B</span><span class="campo">cifra incómoda</span>
+        <span class="pregunta">Tono neutro, sin un solo adjetivo, pero la cifra que cita
+        contradice lo que sostiene el gobierno.</span>
+        <span class="opciones">¿neutral por la forma · contraria por el fondo?</span>
+      </div>
+      <div class="item">
+        <span class="n">C</span><span class="campo">elogio con petición</span>
+        <span class="pregunta">Elogia largamente un programa y termina pidiendo que lo lleven
+        a su estado.</span>
+        <span class="opciones">¿es una postura política · o una gestión?</span>
+      </div>
+      <div class="item ternario">
+        <span class="n">D</span><span class="campo">sin eje</span>
+        <span class="pregunta">Pregunta por un tema sobre el que el gobierno todavía no ha
+        fijado una postura.</span>
+        <span class="opciones">no hay «afín» ni «contraria» que aplicar</span>
+      </div>
+    </div>
+
+    <p>
+      Ninguno de estos cuatro es un caso raro: son <strong>el día a día de la conferencia</strong>.
+      Y en cada uno, dos personas cuidadosas y de buena fe pueden marcar cosas distintas —
+      no por descuido, sino porque la instrucción no dice cuál de las dos dimensiones manda.
+    </p>
+
+    <h3>Cómo se arregla: deja de preguntar una sola cosa</h3>
+    <p>
+      «Afín o contraria» mezcla al menos dos cosas que pueden ir por separado. Sepáralas en
+      dos preguntas concretas y el acuerdo sube, porque cada anotador deja de tener que
+      resolver por su cuenta cuál pesa más:
+    </p>
+
+    <div class="encuesta">
+      <div class="item">
+        <span class="n">1</span><span class="campo">tono</span>
+        <span class="pregunta">¿Cómo trata la intervención a quien responde?</span>
+        <span class="opciones">hostil · exigente · neutral · deferente · elogioso</span>
+      </div>
+      <div class="item">
+        <span class="n">2</span><span class="campo">función</span>
+        <span class="pregunta">¿Qué está haciendo la intervención?</span>
+        <span class="opciones">pide cuentas · pide información · plantea una petición · ofrece plataforma</span>
+      </div>
+      <div class="item ternario">
+        <span class="n">0</span><span class="campo">objetivo</span>
+        <span class="pregunta">¿Respecto a quién? (como el paso 0 de la lámina 5)</span>
+        <span class="opciones">la presidenta · el gobierno federal · un programa · un gobierno local</span>
+      </div>
+    </div>
+
+    <p>
+      Después puedes combinar las dos columnas en la etiqueta que querías desde el principio.
+      La diferencia es que ahora <strong>la regla de combinación la decides tú, una sola vez y
+      por escrito</strong>, en vez de dejar que la improvise cada anotador en cada pregunta.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">Por qué esto decide tu modelo, no solo tus etiquetas</span>
+      <p>
+        Supón que etiquetas 2,000 preguntas, no calculas el alpha, entrenas el clasificador y
+        te da <strong>93% de exactitud</strong> contra tu conjunto de prueba. Suena a
+        proyecto terminado.
+      </p>
+      <p>
+        Pero si el alpha de esas etiquetas era <strong>0.5</strong>, ese 93% no significa lo
+        que parece: tu modelo aprendió a reproducir <strong>el criterio particular de quien
+        etiquetó</strong>, no el concepto de «afín». Con otro equipo de anotadores las mismas
+        preguntas habrían recibido otras etiquetas, y tu modelo se equivocaría contra ellas.
+      </p>
+      <p>
+        <strong>La confiabilidad de tus etiquetas es el techo de tu modelo.</strong> Ninguna
+        arquitectura lo levanta y ningún hiperparámetro lo arregla. Por eso el alpha va
+        <em>antes</em> del entrenamiento, no después.
+      </p>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Y si el desacuerdo no se va</span>
+      <p>
+        Puede que afines el manual, midas otra vez y el alpha siga bajo. Vale la pena
+        considerar entonces que <strong>«afín» es una percepción, no un hecho</strong>:
+        depende de quién escucha, igual que «ofensivo».
+      </p>
+      <p>
+        La salida no es forzar el consenso, sino <strong>guardar la etiqueta de cada anotador
+        y modelar la distribución</strong> — exactamente lo que hizo el D-Lab al publicar
+        <code>hate_speech_score</code> en vez de un sí/no.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 09 — QUÉ HACER ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span class="rot">Qué hacer</span></div>
     <h2>Tu alpha salió bajo.<br>¿Ahora qué?</h2>
     <p class="sumario">
       Un alpha bajo <strong>no es un fracaso</strong>: es información sobre tu instrumento.
@@ -748,9 +916,9 @@
     </div>
   </section>
 
-  <!-- ═══════════ 07 ═══════════ -->
+  <!-- ═══════════ 10 — BIBLIOGRAFÍA ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">09</span><span class="rot">Bibliografía</span></div>
+    <div class="cinta"><span class="num">10</span><span class="rot">Bibliografía</span></div>
     <h2>Fuentes</h2>
 
     <div class="biblio">
@@ -806,10 +974,23 @@
       </div>
 
       <div class="grupo">
-        <h3>Nota sobre los cálculos</h3>
+        <h3>El caso de la lámina 8</h3>
         <ol start="5">
           <li>
-            <span class="obra">Los alphas de la lámina 5 no se tomaron de ninguna
+            Presidencia de la República. <span class="obra">Versiones estenográficas de las
+            conferencias de prensa matutinas</span>.
+            <span class="nota">La pregunta que etiquetamos en la lámina 8 se tomó de una de
+            estas transcripciones, sin editar. El ejercicio de clasificarlas como afines o
+            contrarias al gobierno es el que trabajaremos como corpus propio del curso.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Nota sobre los cálculos</h3>
+        <ol start="6">
+          <li>
+            <span class="obra">Los alphas de la lámina 7 no se tomaron de ninguna
             publicación.</span>
             <span class="nota">Se calcularon para esta clase implementando la fórmula
             (matriz de coincidencias, métrica nominal y de intervalo) sobre el archivo del
