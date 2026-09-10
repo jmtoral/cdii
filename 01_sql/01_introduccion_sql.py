@@ -533,7 +533,8 @@ def _(mo):
     Fíjate en lo que acabas de ver. La columna `text` es **idéntica** en todas las filas:
     es el mismo comentario. Y sin embargo:
 
-    - `respect` **cambia** de una fila a otra: las 793 personas usaron **cinco** valores distintos.
+    - `respect` **cambia** de una fila a otra: las 793 personas usaron **cinco** valores
+      distintos. (Recuerda: en esta columna **más alto = más irrespetuoso**.)
     - `target_race` **cambia**, y aquí está lo interesante: **353 personas dijeron que sí
       ataca por raza y 440 dijeron que no**. Casi un volado sobre el mismo texto.
     - `hate_speech_score` es **idéntico** en todas: 1.48.
@@ -555,6 +556,23 @@ def _(mo):
     Eso no es un error del dataset: es su hallazgo principal. **Si algo resulta ofensivo
     depende de quién lo lee.** `hate_speech_score` existe precisamente para resumir todas
     esas opiniones en un número por comentario, y por eso sí es constante.
+
+    ### ⚠️ Y una trampa que hay que conocer antes de seguir
+
+    La columna `respect` **no mide respeto: mide falta de respeto.** Un 4 significa «muy
+    irrespetuoso» y un 0, «muy respetuoso». Lo mismo pasa con `sentiment`: el valor alto
+    es el negativo.
+
+    No es un capricho. Los autores diseñaron las diez escalas para que **el valor alto
+    siempre apunte hacia «más hostil»**, y así poder combinarlas en un solo puntaje. La
+    consecuencia es que varios nombres de columna dicen lo contrario de lo que miden.
+
+    Compruébalo tú: el comentario más hostil del corpus tiene `respect` = 3.99, y
+    «Trans rights are human rights» tiene 0.23.
+
+    **Esta es la lección de la sección 2, otra vez y más barata de aprender aquí que en
+    tu tesis:** el nombre de una columna es una pista, no una definición. Antes de
+    interpretarla, comprueba qué mide de verdad.
 
     ### Un detalle que solo se ve mirando: aquí hay dos datasets, no uno
 
@@ -914,7 +932,7 @@ def _(mo):
     Ideas para arrancar:
 
     - `SELECT text FROM comentarios WHERE insult > 3 LIMIT 10`
-    - `SELECT text, respect FROM comentarios ORDER BY respect ASC LIMIT 5`
+    - `SELECT text, respect FROM comentarios ORDER BY respect DESC LIMIT 5`
     - `SELECT count(*) FROM comentarios WHERE target_religion = true`
     """)
     return
@@ -944,8 +962,10 @@ def _(mo):
 
     ### Ejercicio 1 — Los más irrespetuosos
 
-    Muestra el **texto** y el `respect` de los **5 comentarios con menor nivel de
-    respeto**.
+    Muestra el **texto** y el `respect` de los **5 comentarios más irrespetuosos**.
+
+    ⚠️ Ojo con esta columna: `respect` **mide falta de respeto**. Un 4 significa «muy
+    irrespetuoso» y un 0, «muy respetuoso». Lo explicamos en la sección 2.
     """)
     return
 
@@ -971,12 +991,14 @@ def _(mo):
             ```sql
             SELECT text, respect
             FROM comentarios
-            ORDER BY respect ASC
+            ORDER BY respect DESC
             LIMIT 5
             ```
 
-            `ASC` ordena de menor a mayor. Es el comportamiento por omisión, pero
-            escribirlo hace explícita tu intención.
+            **`DESC`, no `ASC`.** Es la trampa del ejercicio: como `respect` mide
+            *falta* de respeto, los más irrespetuosos son los de valor más **alto**.
+            Si ordenaste ascendente obtuviste justo los contrarios — y la consulta no
+            te habría avisado de nada.
             """)
         }
     )

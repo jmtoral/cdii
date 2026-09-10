@@ -50,3 +50,9 @@ desktop.ini
 
 # Cache de HuggingFace
 .cache/
+
+# Fragmentos para publicar como Artifact (se regeneran con
+# scripts/construir_presentaciones.py). Son los MISMOS decks que
+# presentaciones/*.html pero sin <!doctype>/<head>, porque el publicador
+# de Artifacts envuelve el archivo en su propio esqueleto.
+presentaciones/.artifact/

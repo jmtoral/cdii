@@ -206,6 +206,53 @@
   figure svg { display: block; max-width: 100%; height: auto; min-width: 620px; margin: 0 auto; }
   figcaption { font-size: 0.9em; max-width: 62ch; }
 
+
+  /* ---------- Ficha de un comentario y su distribucion de juicios ---------- */
+  .comentario {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.3rem 1.4rem; display: grid; gap: 0.6rem;
+  }
+  .comentario .meta {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--azul);
+  }
+  .comentario blockquote {
+    margin: 0; font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.5rem);
+    font-weight: 700; line-height: 1.35; border-left: 6px solid var(--azul); padding-left: 1rem;
+  }
+  .comentario .pie-meta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
+
+  .encuesta { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .item {
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem;
+    padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--negro); align-items: start;
+  }
+  .item:last-child { border-bottom: 0; }
+  .item .n {
+    background: var(--negro); color: #fff; font-family: var(--mono); font-weight: 700;
+    font-size: 0.8rem; text-align: center; padding: 0.2em 0; font-variant-numeric: tabular-nums;
+  }
+  .item .campo { font-family: var(--mono); font-weight: 700; color: var(--azul); font-size: 0.88rem; }
+  .item .pregunta { grid-column: 2; font-size: 0.95em; }
+  .item .opciones {
+    grid-column: 2; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
+    margin-top: 0.2rem;
+  }
+  .item.ternario { background: var(--hueso); }
+
+  .barras { display: grid; gap: 0.45rem; }
+  .barra { display: grid; grid-template-columns: 9rem 1fr 4rem; gap: 0.8rem; align-items: center; }
+  .barra .et { font-family: var(--mono); font-size: 0.8rem; }
+  .barra .riel {
+    display: block; border: 2px solid var(--negro); height: 1.6rem; background: #fff;
+  }
+  .barra .llena { display: block; height: 100%; background: var(--azul); }
+  .barra .llena.tenue { background: var(--azul-2); }
+  .barra .val {
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+
   /* ---------- Bibliografía ---------- */
   .biblio { display: grid; gap: 1.4rem; }
   .biblio .grupo {
@@ -402,12 +449,175 @@
     </div>
   </section>
 
+  <!-- ═══════════ 05 — PASO A PASO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span class="rot">Paso a paso</span></div>
+    <h2>Cómo se etiqueta<br>un comentario</h2>
+    <p class="sumario">
+      Antes de medir el acuerdo hay que entender qué se le pidió a la gente. Este es
+      literalmente el cuestionario que contestó cada anotador de nuestro corpus, para
+      <strong>cada comentario</strong> que le tocó.
+    </p>
+
+    <div class="comentario">
+      <span class="meta">El comentario que vamos a etiquetar · id 20014</span>
+      <blockquote>&laquo;You don&rsquo;t know what I know. Name somebody colder, you monkey faced immigrant&raquo;</blockquote>
+      <span class="pie-meta">793 personas lo evaluaron · hate_speech_score = 1.48</span>
+    </div>
+
+    <h3>Paso 0 — ¿a quién va dirigido?</h3>
+    <p>
+      Primero el anotador marca <strong>qué grupos identifica como objetivo</strong> del
+      comentario: raza, religión, origen nacional, género, orientación sexual, edad,
+      discapacidad o ideología política. Puede marcar varios, o ninguno.
+    </p>
+    <p>
+      Esto importa porque <strong>las diez preguntas siguientes dicen «hacia el grupo que
+      identificaste antes»</strong>. Si dos personas eligen grupos distintos en el paso 0,
+      ya están contestando preguntas distintas — y ahí empieza buena parte del desacuerdo.
+    </p>
+
+    <h3>Pasos 1 a 10 — las diez preguntas</h3>
+
+    <div class="encuesta">
+      <div class="item">
+        <span class="n">1</span><span class="campo">sentiment</span>
+        <span class="pregunta">¿Cómo describirías el sentimiento de este comentario?</span>
+        <span class="opciones">muy negativo · algo negativo · neutral · algo positivo · muy positivo</span>
+      </div>
+      <div class="item">
+        <span class="n">2</span><span class="campo">respect</span>
+        <span class="pregunta">¿Es respetuoso hacia el grupo que identificaste?</span>
+        <span class="opciones">muy irrespetuoso · irrespetuoso · neutral · respetuoso · muy respetuoso</span>
+      </div>
+      <div class="item">
+        <span class="n">3</span><span class="campo">insult</span>
+        <span class="pregunta">«Este comentario insulta al grupo que identificaste.»</span>
+        <span class="opciones">muy en desacuerdo → muy de acuerdo</span>
+      </div>
+      <div class="item">
+        <span class="n">4</span><span class="campo">humiliate</span>
+        <span class="pregunta">«Este comentario humilla al grupo que identificaste.»</span>
+        <span class="opciones">muy en desacuerdo → muy de acuerdo</span>
+      </div>
+      <div class="item">
+        <span class="n">5</span><span class="campo">status</span>
+        <span class="pregunta">Este comentario afirma que el grupo es…</span>
+        <span class="opciones">muy inferior · inferior · ni superior ni inferior · superior · muy superior</span>
+      </div>
+      <div class="item">
+        <span class="n">6</span><span class="campo">dehumanize</span>
+        <span class="pregunta">«Este comentario deshumaniza al grupo, p. ej. comparándolo con un animal.»</span>
+        <span class="opciones">muy en desacuerdo → muy de acuerdo</span>
+      </div>
+      <div class="item">
+        <span class="n">7</span><span class="campo">violence</span>
+        <span class="pregunta">«Este comentario llama a usar violencia contra el grupo.»</span>
+        <span class="opciones">muy en desacuerdo → muy de acuerdo</span>
+      </div>
+      <div class="item">
+        <span class="n">8</span><span class="campo">genocide</span>
+        <span class="pregunta">«Este comentario llama a matar deliberadamente a un gran número de personas del grupo.»</span>
+        <span class="opciones">muy en desacuerdo → muy de acuerdo</span>
+      </div>
+      <div class="item">
+        <span class="n">9</span><span class="campo">attack_defend</span>
+        <span class="pregunta">¿El comentario ataca o defiende al grupo?</span>
+        <span class="opciones">defiende mucho · defiende · ninguna · ataca · ataca mucho</span>
+      </div>
+      <div class="item ternario">
+        <span class="n">10</span><span class="campo">hatespeech</span>
+        <span class="pregunta">¿Contiene discurso de odio, definido como «lenguaje hostil y malicioso, motivado por prejuicio, dirigido a una persona o grupo por sus características innatas reales o percibidas»?</span>
+        <span class="opciones">sí · no · no está claro</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">⚠️ La escala corre al revés de lo que dice el nombre</span>
+      <p>
+        Fíjate en la pregunta 2: las opciones van de «muy irrespetuoso» a «muy respetuoso».
+        Pero <strong>en los datos publicados el valor alto es el hostil</strong>: un
+        <code>respect</code> = 4 significa muy <em>irrespetuoso</em>.
+      </p>
+      <p>
+        Los autores lo hicieron a propósito, para que las diez escalas apunten en la misma
+        dirección y se puedan combinar en un solo puntaje. Sus palabras: <em>«a higher
+        rating on the Likert scale aligned with more hatefulness»</em>. La consecuencia
+        práctica es que <strong>el nombre de la columna dice lo contrario de lo que
+        mide</strong>, y quien no lea la documentación va a invertir sus conclusiones sin
+        enterarse.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 06 — EL EJEMPLO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span class="rot">Qué contestaron</span></div>
+    <h2>793 personas,<br>el mismo comentario</h2>
+    <p class="sumario">
+      Así se repartieron las respuestas reales al comentario de la lámina anterior. Mira
+      cómo el acuerdo <strong>cambia por completo según la pregunta</strong>.
+    </p>
+
+    <h3>Pregunta 10 · ¿Es discurso de odio?</h3>
+    <div class="barras">
+      <div class="barra">
+        <span class="et">Sí</span>
+        <span class="riel"><span class="llena" style="width:81%"></span></span>
+        <span class="val">81%</span>
+      </div>
+      <div class="barra">
+        <span class="et">No</span>
+        <span class="riel"><span class="llena tenue" style="width:12%"></span></span>
+        <span class="val">12%</span>
+      </div>
+      <div class="barra">
+        <span class="et">No está claro</span>
+        <span class="riel"><span class="llena tenue" style="width:7%"></span></span>
+        <span class="val">7%</span>
+      </div>
+    </div>
+    <p><strong>Aquí sí hay consenso:</strong> cuatro de cada cinco dijeron que es discurso de odio.</p>
+
+    <h3>Paso 0 · ¿Ataca por motivos de raza?</h3>
+    <div class="barras">
+      <div class="barra">
+        <span class="et">Sí</span>
+        <span class="riel"><span class="llena" style="width:45%"></span></span>
+        <span class="val">45%</span>
+      </div>
+      <div class="barra">
+        <span class="et">No</span>
+        <span class="riel"><span class="llena tenue" style="width:55%"></span></span>
+        <span class="val">55%</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Un volado sobre el mismo texto</span>
+      <p>
+        <strong>353 personas dijeron que sí y 440 que no.</strong> El desacuerdo no es sobre
+        <em>si</em> el comentario es hostil —en eso coinciden— sino sobre <strong>por
+        qué</strong> lo es.
+      </p>
+      <p>
+        «Monkey faced immigrant» ataca, de eso no hay duda. Pero, ¿ataca por la raza o por
+        ser migrante? Casi la mitad dice una cosa y la otra mitad, otra. <strong>Ese 50/50
+        no es distracción ni descuido: es un desacuerdo genuino</strong> sobre qué categoría
+        aplica.
+      </p>
+      <p>
+        Y es exactamente lo que el alpha de <code>target_race</code> = 0.673 está midiendo.
+      </p>
+    </div>
+  </section>
+
   <!-- ═══════════ 05 — EL PAYOFF ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">05</span><span class="rot">Nuestro corpus</span></div>
+    <div class="cinta"><span class="num">07</span><span class="rot">Nuestro corpus</span></div>
     <h2>El alpha real de<br>los datos de esta clase</h2>
     <p class="sumario">
-      Calculado sobre los 70 comentarios del conjunto de calibración, donde cientos de
+      Calculado sobre los mismos 70 comentarios del conjunto de calibración, donde cientos de
       personas evaluaron los mismos textos. Mismos anotadores, mismas instrucciones — y
       mira cómo cambia la fiabilidad según <strong>qué les preguntes</strong>.
     </p>
@@ -446,6 +656,27 @@
       </p>
     </div>
 
+    <div class="bloques">
+      <div class="bloque relleno">
+        <span class="clave">✓ Cálculo verificado</span>
+        <p>
+          Los autores del corpus publicaron sus propios alphas en un artículo posterior.
+          Para <code>target_race</code> sobre todo el corpus reportan <strong>0.672</strong>
+          — <strong>exactamente el mismo número</strong> que obtuvimos nosotros. Nuestra
+          implementación es correcta.
+        </p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Depende de dónde lo midas</span>
+        <p>
+          Sobre subconjuntos con pocas evaluaciones por comentario, ellos reportan alphas
+          de <strong>0.35 a 0.66</strong>. Sobre el conjunto de calibración, nosotros
+          obtenemos 0.66 a 0.82. <strong>Los dos son ciertos:</strong> por eso siempre hay
+          que decir sobre qué datos se calculó.
+        </p>
+      </div>
+    </div>
+
     <p>
       Por eso el corpus <strong>no</strong> publica una etiqueta binaria de «es odio / no es
       odio». Publica <code>hate_speech_score</code>, un número continuo estimado con un
@@ -456,7 +687,7 @@
 
   <!-- ═══════════ 06 ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">06</span><span class="rot">Qué hacer</span></div>
+    <div class="cinta"><span class="num">08</span><span class="rot">Qué hacer</span></div>
     <h2>Tu alpha salió bajo.<br>¿Ahora qué?</h2>
     <p class="sumario">
       Un alpha bajo <strong>no es un fracaso</strong>: es información sobre tu instrumento.
@@ -483,6 +714,32 @@
     </div>
 
     <div class="aviso">
+      <span class="titulo">Lo que dicen los autores del corpus sobre el alpha</span>
+      <p>
+        Vale la pena leerlos, porque son los que construyeron estos datos y son
+        explícitamente críticos del uso automático del coeficiente:
+      </p>
+      <p>
+        <em>«Una medida de acuerdo entre anotadores, como el alpha de Krippendorff, se usa
+        a menudo para evaluar la calidad del conjunto de datos. Mayor acuerdo sugiere
+        etiquetas de mejor calidad… <strong>Sin embargo, este punto de vista trata las
+        distintas perspectivas que ofrecen los anotadores como ruido que hay que
+        sofocar.</strong>»</em>
+      </p>
+      <p>
+        Y añaden algo aún más incómodo: aunque el acuerdo sea alto hoy, <strong>no hay
+        garantía de que otros anotadores en el futuro interpreten la pregunta igual</strong>.
+        Una «verdad de referencia» consistente puede ser estable solo por poco tiempo.
+      </p>
+      <p>
+        En su propio análisis, anotadores negros y blancos mostraron <strong>alphas
+        comparables</strong> — el coeficiente <em>no detectó</em> las diferencias
+        sistemáticas de criterio que sí encontraron con teoría de respuesta al ítem.
+        <strong>Un alpha parecido no significa que dos grupos estén etiquetando igual.</strong>
+      </p>
+    </div>
+
+    <div class="aviso">
       <span class="titulo">Y a veces el desacuerdo ES el dato</span>
       <p>
         Nuestro corpus se construyó con varios evaluadores <strong>precisamente para medir
@@ -499,7 +756,7 @@
 
   <!-- ═══════════ 07 ═══════════ -->
   <section class="lamina">
-    <div class="cinta"><span class="num">07</span><span class="rot">Bibliografía</span></div>
+    <div class="cinta"><span class="num">09</span><span class="rot">Bibliografía</span></div>
     <h2>Fuentes</h2>
 
     <div class="biblio">
@@ -534,6 +791,17 @@
             <a href="https://arxiv.org/abs/2009.10277">arxiv.org/abs/2009.10277</a>
             <span class="nota">Su modelo Rasch es la alternativa que eligieron ante la baja
             fiabilidad de una etiqueta binaria de odio.</span>
+          </li>
+          <li>
+            Sachdeva, P. S., Barreto, R., von Vacano, C. y Kennedy, C. J. (2022).
+            <span class="obra">Assessing Annotator Identity Sensitivity via Item Response
+            Theory: A Case Study in a Hate Speech Corpus</span>. En FAccT '22, 1585–1603.
+            <a href="https://doi.org/10.1145/3531146.3533216">doi.org/10.1145/3531146.3533216</a>
+            <span class="nota">De aquí sale la crítica al uso automático del alpha, la
+            confirmación de que las escalas están orientadas hacia «más hostilidad», el
+            cuestionario completo de la lámina 5 (su Tabla S2) y los alphas publicados
+            contra los que verificamos los nuestros (Tablas S3 y S4). Copia en
+            <code>referencias/</code> del repositorio.</span>
           </li>
           <li>
             UC Berkeley D-Lab. <span class="obra">Measuring Hate Speech</span> (ficha del

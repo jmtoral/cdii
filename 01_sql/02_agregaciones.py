@@ -321,7 +321,8 @@ def _(mo):
     ### Prueba tú
 
     Cambia `hate_speech_score` por `respect` o por `insult` en la celda de arriba y
-    ejecútala otra vez. Ambas van de 0 a 4. ¿Cuál tiene el promedio más alto?
+    ejecútala otra vez. Ambas van de 0 a 4, y en las dos **el valor alto es el malo**:
+    `respect` mide *falta* de respeto. ¿Cuál tiene el promedio más alto?
     """)
     return
 
@@ -447,7 +448,7 @@ def _(comentarios, mo):
         SELECT
             annotator_ideology,
             count(*)               AS evaluaciones,
-            round(avg(respect), 2) AS respeto_promedio,
+            round(avg(respect), 2) AS irrespeto_promedio,
             round(avg(insult), 2)  AS insulto_promedio
         FROM comentarios
         GROUP BY annotator_ideology
@@ -473,7 +474,7 @@ def _(comentarios, mo):
         SELECT
             annotator_ideology,
             count(*)               AS evaluaciones,
-            round(avg(respect), 2) AS respeto_promedio,
+            round(avg(respect), 2) AS irrespeto_promedio,
             round(avg(insult), 2)  AS insulto_promedio
         FROM comentarios
         GROUP BY annotator_ideology
@@ -587,7 +588,7 @@ def _(comentarios, mo):
         SELECT
             comment_id,
             count(*)                          AS evaluaciones,
-            round(avg(respect), 2)            AS respeto_promedio,
+            round(avg(respect), 2)            AS irrespeto_promedio,
             count(DISTINCT target_race)       AS opiniones_sobre_raza
         FROM comentarios
         GROUP BY comment_id
@@ -620,12 +621,12 @@ def _(comentarios, mo):
         SELECT
             comment_id,
             count(*)               AS evaluaciones,
-            round(avg(respect), 2) AS respeto_promedio
+            round(avg(respect), 2) AS irrespeto_promedio
         FROM comentarios
         GROUP BY comment_id
         HAVING count(*) > 100
            AND avg(respect) < 2
-        ORDER BY respeto_promedio ASC
+        ORDER BY irrespeto_promedio ASC
         """
     )
     return
@@ -634,8 +635,9 @@ def _(comentarios, mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    De los 70 comentarios muy evaluados, **16** además tienen un respeto promedio bajo.
-    Esos son los que mucha gente vio y casi nadie consideró respetuosos.
+    De los 70 comentarios muy evaluados, **16** tienen un `respect` promedio menor a 2,
+    o sea que la gente los consideró más bien **respetuosos**. Recuerda la dirección de
+    la escala: en esta columna el 0 es respetuoso y el 4 es muy irrespetuoso.
 
     ### `WHERE` y `HAVING` juntos
 
@@ -711,9 +713,9 @@ def _(mo):
 
     Esta sección no tiene sintaxis nueva y es la más importante de la lección.
 
-    Volvamos al promedio de respeto por ideología del anotador, ahora ordenado de mayor
-    a menor. A primera vista parece un hallazgo: *«los conservadores extremos califican
-    con más respeto»*.
+    Volvamos al promedio de `respect` por ideología del anotador, ordenado de mayor a
+    menor. Como la columna mide *falta* de respeto, a primera vista parece un hallazgo:
+    *«los conservadores extremos perciben los comentarios como más irrespetuosos»*.
     """)
     return
 
@@ -725,10 +727,10 @@ def _(comentarios, mo):
         SELECT
             annotator_ideology,
             count(*)               AS evaluaciones,
-            round(avg(respect), 2) AS respeto_promedio
+            round(avg(respect), 2) AS irrespeto_promedio
         FROM comentarios
         GROUP BY annotator_ideology
-        ORDER BY respeto_promedio DESC
+        ORDER BY irrespeto_promedio DESC
         """
     )
     return
@@ -986,7 +988,7 @@ def _(comentarios, mo):
         SELECT
             annotator_educ,
             count(*)               AS evaluaciones,
-            round(avg(respect), 2) AS respeto_promedio
+            round(avg(respect), 2) AS irrespeto_promedio
         FROM comentarios
         GROUP BY annotator_educ
         ORDER BY evaluaciones DESC

@@ -809,7 +809,7 @@ def _(anotaciones, anotadores, mo):
             ad.annotator_ideology    AS ideologia,
             count(*)                 AS evaluaciones,
             round(avg(a.insult), 2)  AS insulto_promedio,
-            round(avg(a.respect), 2) AS respeto_promedio
+            round(avg(a.respect), 2) AS irrespeto_promedio
         FROM anotaciones AS a
         JOIN anotadores AS ad
           ON a.annotator_id = ad.annotator_id
@@ -1083,7 +1083,7 @@ def _(anotaciones, anotadores, mo):
         SELECT
             ad.annotator_educ        AS escolaridad,
             count(*)                 AS evaluaciones,
-            round(avg(a.respect), 2) AS respeto_promedio
+            round(avg(a.respect), 2) AS irrespeto_promedio
         FROM anotaciones AS a
         JOIN anotadores AS ad
           ON a.annotator_id = ad.annotator_id

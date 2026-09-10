@@ -1,7 +1,7 @@
 # 🤝 HANDOFF — Estado del Proyecto CDII
 
-> **Última actualización**: 2026-08-11  
-> **Último contribuidor**: Fix de renderizado de widgets + validación de WASM en navegador
+> **Última actualización**: 2026-09-09  
+> **Último contribuidor**: Escala de `respect` corregida, lección 3 (JOINs), 4 presentaciones y paso a paso de etiquetado en el material del alpha
 
 ---
 
@@ -458,6 +458,75 @@ todo en navegador. Decisión pendiente del profesor.
 
 Nota: sus números de la §7.2 (191, 133, 8) están calculados sobre la tabla `comentarios`
 **deduplicada**, no sobre la plana. Comparados contra la tabla correcta, cuadran exactos.
+
+---
+
+## 🚨 La escala de `respect` va AL REVÉS de lo que sugiere el nombre (2026-09-09)
+
+**Esto invalidaba conclusiones en las lecciones 1, 2 y 3, y en la presentación 2.**
+Ya está corregido en todas, pero conviene no volver a tropezar.
+
+En el corpus publicado, **`respect` alto significa MÁS irrespetuoso**, no más respetuoso:
+
+| Valor | Significa |
+|---|---|
+| `respect` = 4 | muy **irrespetuoso** |
+| `respect` = 0 | muy **respetuoso** |
+
+Comprobado sobre los datos: el comentario más hostil del corpus tiene `respect` = 3.99, y
+«Trans rights are human rights» tiene 0.23.
+
+**Por qué está así.** No es un error de los autores: es deliberado. Orientaron las diez
+escalas en la misma dirección para poder combinarlas en un solo puntaje continuo
+(`hate_speech_score`) con teoría de respuesta al ítem. En sus palabras: *«a higher rating
+on the Likert scale aligned with more hatefulness»* (Sachdeva et al. 2022, §3.1; copia en
+`referencias/`). El efecto colateral es que **el nombre de la columna dice lo contrario de
+lo que mide**, y lo mismo pasa con `sentiment` y `status`.
+
+**Consecuencia práctica en el material.** `ORDER BY respect DESC` NO da los comentarios más
+respetuosos: da los más hostiles. El alias `respeto_promedio` de la lección 2 se renombró a
+`irrespeto_promedio` por lo mismo. El ejercicio 1 de la lección 1 ahora pide explícitamente
+«los más irrespetuosos», y lleva un aviso antes de que el alumno escriba la query.
+
+**Regla general que dejó esto:** antes de interpretar cualquier columna del corpus, verificar
+su dirección contra un caso extremo conocido, no contra el nombre.
+
+---
+
+## 📖 `referencias/` — fuentes verificadas (2026-09-09)
+
+Se agregó `referencias/` con el paper de FAccT '22 de los autores del corpus y un
+`README.md` que mapea, tabla por tabla, qué afirmación del material sale de qué parte del
+paper.
+
+Lo más útil que aportó:
+1. **Valida nuestro cálculo del alpha.** `scripts/calcular_alpha.py` da 0.672 para
+   `target_race` sobre todo el corpus; el paper reporta 0.672 en su Tabla S4. Coinciden.
+2. **Da el cuestionario literal** (su Tabla S2), que ahora es la lámina 05 de la
+   presentación del alpha.
+3. **Aporta la crítica al propio coeficiente**, en boca de los autores: el alpha *«trata las
+   distintas perspectivas que ofrecen los anotadores como ruido que hay que sofocar»*, y en
+   su análisis anotadores negros y blancos dieron alphas **comparables** aunque el IRT sí
+   detectara diferencias sistemáticas. Es decir: **un alpha parecido no prueba que dos
+   grupos etiqueten igual.** Está en la lámina 08.
+
+---
+
+## 🖥️ Presentaciones: dos salidas por cada fuente (2026-09-09)
+
+`scripts/construir_presentaciones.py` genera, de cada archivo en `presentaciones/fuentes/`:
+
+1. `presentaciones/NN.html` — documento completo, con `<!doctype>` y **`<meta charset="utf-8">`**.
+   Sin ese meta, GitHub Pages renderiza `Agrupar es fÃ¡cil`. Es el que se publica en el sitio.
+2. `presentaciones/.artifact/NN.html` — el mismo deck como fragmento, para publicar como
+   Artifact (el publicador pone su propio `<head>`). Está en `.gitignore`.
+
+**Los dos llevan el logo incrustado como data URI.** ⚠️ **Nunca publiques directamente un
+archivo de `fuentes/`**: todavía tiene el marcador `__LOGO__` en el `src` y el logo sale roto.
+Fue exactamente el bug de «no funcionó el logo Tec».
+
+Otra trampa que costó tiempo: en las barras de la lámina 06, un `<span>` en línea **ignora
+`width` y `height`**. El riel y su relleno necesitan `display: block` o las barras salen vacías.
 
 ---
 
