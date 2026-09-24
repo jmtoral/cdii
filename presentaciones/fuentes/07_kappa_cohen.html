@@ -995,21 +995,29 @@
     </div>
 
     <span class="archivo">seis líneas, sin paquetes</span>
-    <pre class="codigo">CATS &lt;- <span class="k">c</span>(<span class="s">"afin"</span>, <span class="s">"critica"</span>, <span class="s">"neutral"</span>)
-
+    <pre class="codigo"><span class="c"># Pe = suma de p_a(c) * p_b(c). El inner_join se come las categorias que</span>
+<span class="c"># solo uso uno de los dos: su termino vale 0 de todos modos.</span>
 kappa_cohen &lt;- <span class="k">function</span>(a, b) {
-  tab &lt;- <span class="k">table</span>(<span class="k">factor</span>(a, levels = CATS), <span class="k">factor</span>(b, levels = CATS))
-  n  &lt;- <span class="k">sum</span>(tab)
-  Po &lt;- <span class="k">sum</span>(<span class="k">diag</span>(tab)) / n
-  Pe &lt;- <span class="k">sum</span>(<span class="k">rowSums</span>(tab) * <span class="k">colSums</span>(tab)) / n^2
-  (Po - Pe) / (1 - Pe)
+  d  &lt;- <span class="k">tibble</span>(a = a, b = b) |&gt; <span class="k">filter</span>(!<span class="k">is.na</span>(a), !<span class="k">is.na</span>(b))
+  n  &lt;- <span class="k">nrow</span>(d)
+  Po &lt;- <span class="k">mean</span>(d$a == d$b)
+  Pe &lt;- <span class="k">inner_join</span>(<span class="k">count</span>(d, etiqueta = a, name = <span class="s">"n_a"</span>),
+                   <span class="k">count</span>(d, etiqueta = b, name = <span class="s">"n_b"</span>),
+                   by = <span class="s">"etiqueta"</span>) |&gt;
+    <span class="k">summarise</span>(Pe = <span class="k">sum</span>(n_a * n_b) / n^2) |&gt;
+    <span class="k">pull</span>(Pe)
+  <span class="k">c</span>(Po = Po, Pe = Pe, kappa = (Po - Pe) / (1 - Pe), n = n)
 }
 
-<span class="c"># El baseline correcto: cada humano contra la mayoría de los OTROS cuatro</span>
-<span class="k">sapply</span>(1:5, \(i) {
-  otros &lt;- <span class="k">apply</span>(<span class="k">select</span>(ronda2, a1:a5)[, -i], 1, \(x) <span class="k">names</span>(<span class="k">which.max</span>(<span class="k">table</span>(x))))
-  <span class="k">kappa_cohen</span>(ronda2[[<span class="k">paste0</span>(<span class="s">"a"</span>, i)]], otros)
-})</pre>
+<span class="c"># Las 10 parejas de un jalon.</span>
+<span class="k">expand_grid</span>(i = 1:5, j = 1:5) |&gt;
+  <span class="k">filter</span>(i &lt; j) |&gt;
+  <span class="k">mutate</span>(res = <span class="k">map2</span>(i, j, \(x, y)
+                    <span class="k">as_tibble_row</span>(<span class="k">kappa_cohen</span>(ronda2[[<span class="k">str_c</span>(<span class="s">"a"</span>, x)]],
+                                              ronda2[[<span class="k">str_c</span>(<span class="s">"a"</span>, y)]])))) |&gt;
+  <span class="k">unnest</span>(res) |&gt;
+  <span class="k">transmute</span>(pareja = <span class="k">str_c</span>(<span class="s">"A"</span>, i, <span class="s">"-A"</span>, j), Po, Pe, kappa) |&gt;
+  <span class="k">arrange</span>(<span class="k">desc</span>(kappa))</pre>
 
     <div class="aviso">
       <span class="titulo">Y lo que la kappa nunca te va a decir</span>

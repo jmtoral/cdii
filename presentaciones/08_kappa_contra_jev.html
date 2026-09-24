@@ -850,57 +850,80 @@
     </p>
 
     <span class="archivo">ejercicio_alpha.R · PARTE D</span>
-    <pre class="codigo">CATS &lt;- <span class="k">c</span>(<span class="s">"afin"</span>, <span class="s">"critica"</span>, <span class="s">"neutral"</span>)
+    <pre class="codigo"><span class="c"># Todo en formato largo: una fila por juicio (pregunta, anotador, etiqueta).</span>
+juicios &lt;- <span class="k">function</span>(tabla) {
+  tabla |&gt;
+    <span class="k">pivot_longer</span>(-pregunta, names_to = <span class="s">"anotador"</span>, values_to = <span class="s">"etiqueta"</span>) |&gt;
+    <span class="k">filter</span>(!<span class="k">is.na</span>(etiqueta))
+}
 
-<span class="c"># Po = la diagonal de la tabla cruzada, entre el total.</span>
-<span class="c"># Pe = suma de (total de fila x total de columna) / n^2. Cada juez conserva</span>
-<span class="c">#      SUS proporciones: ahi esta la diferencia con el alpha.</span>
+<span class="c"># Po = la proporcion de items donde los dos pusieron lo mismo.</span>
+<span class="c"># Pe = suma de p_a(c) * p_b(c). Cada juez conserva SUS proporciones: ahi</span>
+<span class="c">#      esta la diferencia con el alpha, que echa todo en una sola bolsa.</span>
+<span class="c"># El inner_join se come las categorias que solo uso uno: su termino es 0.</span>
 kappa_cohen &lt;- <span class="k">function</span>(a, b) {
-  tab &lt;- <span class="k">table</span>(<span class="k">factor</span>(a, levels = CATS), <span class="k">factor</span>(b, levels = CATS))
-  n  &lt;- <span class="k">sum</span>(tab)
-  Po &lt;- <span class="k">sum</span>(<span class="k">diag</span>(tab)) / n
-  Pe &lt;- <span class="k">sum</span>(<span class="k">rowSums</span>(tab) * <span class="k">colSums</span>(tab)) / n^2
-  <span class="k">c</span>(Po = Po, Pe = Pe, kappa = (Po - Pe) / (1 - Pe))
+  d  &lt;- <span class="k">tibble</span>(a = a, b = b) |&gt; <span class="k">filter</span>(!<span class="k">is.na</span>(a), !<span class="k">is.na</span>(b))
+  n  &lt;- <span class="k">nrow</span>(d)
+  Po &lt;- <span class="k">mean</span>(d$a == d$b)
+  Pe &lt;- <span class="k">inner_join</span>(<span class="k">count</span>(d, etiqueta = a, name = <span class="s">"n_a"</span>),
+                   <span class="k">count</span>(d, etiqueta = b, name = <span class="s">"n_b"</span>),
+                   by = <span class="s">"etiqueta"</span>) |&gt;
+    <span class="k">summarise</span>(Pe = <span class="k">sum</span>(n_a * n_b) / n^2) |&gt;
+    <span class="k">pull</span>(Pe)
+  <span class="k">c</span>(Po = Po, Pe = Pe, kappa = (Po - Pe) / (1 - Pe), n = n)
+}
+
+<span class="c"># La tabla cruzada: las celdas fuera de la diagonal dicen QUE se confunde</span>
+<span class="c"># con que, y eso es lo accionable. El kappa solo dice cuanto.</span>
+cruce &lt;- <span class="k">function</span>(a, b) {
+  <span class="k">tibble</span>(a = a, b = b) |&gt;
+    <span class="k">count</span>(a, b) |&gt;
+    <span class="k">pivot_wider</span>(names_from = b, values_from = n, values_fill = 0)
 }
 
 <span class="c"># --- D.1  Persona fija contra persona fija --------------------------------</span>
-<span class="k">kappa_cohen</span>(ronda2$a1, ronda2$a2)
-
-<span class="c"># La tabla cruzada, que es de donde salen los dos numeros. Las celdas fuera</span>
-<span class="c"># de la diagonal dicen QUE se confunde con que: eso es lo accionable.</span>
-<span class="k">table</span>(A1 = <span class="k">factor</span>(ronda2$a1, levels = CATS),
-      A2 = <span class="k">factor</span>(ronda2$a2, levels = CATS))
+<span class="k">kappa_cohen</span>(ronda2$a1, ronda2$a2)   <span class="c">#> Po 0.90  Pe 0.45  kappa 0.818</span>
+<span class="k">cruce</span>(ronda2$a1, ronda2$a2)
 
 <span class="c"># --- D.2  Persona fija contra Jev -----------------------------------------</span>
-<span class="c"># Requiere haber corrido la PARTE B. Jev entra con su etiqueta discreta:</span>
-<span class="c"># la confianza se pierde aqui, y es una decision, no un detalle.</span>
-jev_postura &lt;- jev_salida$jev_postura[<span class="k">match</span>(ronda2$pregunta, jev_salida$pregunta)]
-
-<span class="k">kappa_cohen</span>(ronda2$a1, jev_postura)
+<span class="c"># Requiere la PARTE B. `todo` es ronda2 con la columna `jev` pegada.</span>
+<span class="c"># Jev entra con su etiqueta discreta: la confianza se pierde aqui, y es</span>
+<span class="c"># una decision, no un detalle.</span>
+<span class="k">kappa_cohen</span>(todo$a1, todo$jev)      <span class="c">#> Po 0.90  Pe 0.50  kappa 0.800</span>
+<span class="k">cruce</span>(todo$a1, todo$jev)
 
 <span class="c"># --- D.3  Los cinco contra Jev, con su baseline ---------------------------</span>
 <span class="c"># OJO con los empates: con cuatro votantes un 2-2 no tiene mayoria, y</span>
-<span class="c"># which.max() la inventaria en silencio. Aqui devolvemos NA y se excluye.</span>
-mayoria_sin &lt;- <span class="k">function</span>(i) {
-  <span class="k">apply</span>(<span class="k">select</span>(ronda2, a1:a5)[, -i], 1, \(x) {
-    tt &lt;- <span class="k">sort</span>(<span class="k">table</span>(x), decreasing = <span class="k">TRUE</span>)
-    <span class="k">if</span> (<span class="k">length</span>(tt) &gt; 1 &amp;&amp; tt[1] == tt[2]) <span class="k">NA_character_</span> <span class="k">else</span> <span class="k">names</span>(tt)[1]
-  })
-}
-
-kappa_pareado &lt;- <span class="k">function</span>(a, b) {
-  ok &lt;- !<span class="k">is.na</span>(a) &amp; !<span class="k">is.na</span>(b)
-  <span class="k">c</span>(<span class="k">kappa_cohen</span>(a[ok], b[ok]), n = <span class="k">sum</span>(ok))
+<span class="c"># which.max() la inventaria en silencio. Devolvemos NA y kappa_cohen</span>
+<span class="c"># excluye esos items (por eso reporta su propio n).</span>
+mayoria_sin &lt;- <span class="k">function</span>(tabla, i) {
+  tabla |&gt;
+    <span class="k">select</span>(!<span class="k">all_of</span>(<span class="k">str_c</span>(<span class="s">"a"</span>, i))) |&gt;
+    <span class="k">juicios</span>() |&gt;
+    <span class="k">count</span>(pregunta, etiqueta, name = <span class="s">"votos"</span>) |&gt;
+    <span class="k">group_by</span>(pregunta) |&gt;
+    <span class="k">arrange</span>(<span class="k">desc</span>(votos), .by_group = <span class="k">TRUE</span>) |&gt;
+    <span class="k">summarise</span>(
+      mayoria = <span class="k">if</span> (<span class="k">n</span>() &gt; 1 &amp;&amp; votos[1] == votos[2]) <span class="k">NA_character_</span> <span class="k">else</span> <span class="k">first</span>(etiqueta),
+      .groups = <span class="s">"drop"</span>
+    )
 }
 
 <span class="k">map_dfr</span>(1:5, \(i) {
-  humano &lt;- ronda2[[<span class="k">paste0</span>(<span class="s">"a"</span>, i)]]
-  kj &lt;- <span class="k">kappa_cohen</span>(humano, jev_postura)
-  kb &lt;- <span class="k">kappa_pareado</span>(humano, <span class="k">mayoria_sin</span>(i))
-  <span class="k">tibble</span>(anotador = <span class="k">paste0</span>(<span class="s">"A"</span>, i),
-         acuerdo_jev = kj[[<span class="s">"Po"</span>]], Pe_jev = kj[[<span class="s">"Pe"</span>]], kappa_jev = kj[[<span class="s">"kappa"</span>]],
-         baseline_humano = kb[[<span class="s">"kappa"</span>]], n_baseline = kb[[<span class="s">"n"</span>]],
-         brecha = kj[[<span class="s">"kappa"</span>]] - kb[[<span class="s">"kappa"</span>]])
+  d &lt;- todo |&gt;
+    <span class="k">select</span>(pregunta, humano = <span class="k">all_of</span>(<span class="k">str_c</span>(<span class="s">"a"</span>, i)), jev) |&gt;
+    <span class="k">left_join</span>(<span class="k">mayoria_sin</span>(ronda2, i), by = <span class="s">"pregunta"</span>)
+
+  kj &lt;- <span class="k">kappa_cohen</span>(d$humano, d$jev)
+  kb &lt;- <span class="k">kappa_cohen</span>(d$humano, d$mayoria)
+
+  <span class="k">tibble</span>(anotador        = <span class="k">str_c</span>(<span class="s">"A"</span>, i),
+         acuerdo_jev     = kj[[<span class="s">"Po"</span>]],
+         Pe_jev          = kj[[<span class="s">"Pe"</span>]],
+         kappa_jev       = kj[[<span class="s">"kappa"</span>]],
+         baseline_humano = kb[[<span class="s">"kappa"</span>]],
+         n_baseline      = kb[[<span class="s">"n"</span>]],
+         brecha          = kj[[<span class="s">"kappa"</span>]] - kb[[<span class="s">"kappa"</span>]])
 })</pre>
 
     <div class="bloques">

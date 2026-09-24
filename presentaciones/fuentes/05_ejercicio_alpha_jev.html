@@ -941,13 +941,17 @@ jev_salida &lt;- preguntas |&gt;
     </p>
 
     <span class="archivo">ejercicio_alpha.R · parte C, lectura 1</span>
-    <pre class="codigo">u_con_jev &lt;- ronda2 |&gt;
-  <span class="k">left_join</span>(jev_salida, by = <span class="s">"pregunta"</span>) |&gt;
-  <span class="k">select</span>(pregunta, a1:a5, jev = jev_postura) |&gt;
-  <span class="k">como_unidades</span>()
+    <pre class="codigo"><span class="c"># Todo vive en formato largo: una fila por juicio. Meter a Jev de sexto</span>
+<span class="c"># anotador es agregar 10 filas, y `alpha_nominal` no se entera.</span>
+todo &lt;- ronda2 |&gt;
+  <span class="k">left_join</span>(<span class="k">select</span>(jev_salida, pregunta, jev), by = <span class="s">"pregunta"</span>)
 
-<span class="k">alpha_nominal</span>(u2)          <span class="c"># solo los 5 humanos  → 0.691</span>
-<span class="k">alpha_nominal</span>(u_con_jev)   <span class="c"># con Jev de sexto    → ?</span></pre>
+<span class="k">tibble</span>(quienes = <span class="k">c</span>(<span class="s">"solo los 5 humanos"</span>, <span class="s">"con Jev de sexto"</span>),
+       d       = <span class="k">list</span>(j2, <span class="k">juicios</span>(todo))) |&gt;
+  <span class="k">mutate</span>(alpha = <span class="k">map_dbl</span>(d, alpha_nominal)) |&gt;
+  <span class="k">select</span>(-d)
+<span class="c">#> solo los 5 humanos   0.691</span>
+<span class="c">#> con Jev de sexto     ?</span></pre>
 
     <div class="aviso">
       <span class="titulo">Lo que cuesta hacer esto, y hay que decirlo en voz alta</span>
@@ -1023,8 +1027,8 @@ jev_salida &lt;- preguntas |&gt;
     </p>
 
     <span class="archivo">ejercicio_alpha.R · parte C, lectura 2</span>
-    <pre class="codigo">comparacion &lt;- ronda2 |&gt;
-  <span class="k">pivot_longer</span>(-pregunta, names_to = <span class="s">"anotador"</span>, values_to = <span class="s">"etiqueta"</span>) |&gt;
+    <pre class="codigo"><span class="c"># j2 ya es la ronda 2 en formato largo: juicios(ronda2)</span>
+comparacion &lt;- j2 |&gt;
   <span class="k">group_by</span>(pregunta) |&gt;
   <span class="k">summarise</span>(humanos_p_afin = <span class="k">mean</span>(etiqueta == <span class="s">"afin"</span>)) |&gt;
   <span class="k">left_join</span>(jev_salida, by = <span class="s">"pregunta"</span>) |&gt;
