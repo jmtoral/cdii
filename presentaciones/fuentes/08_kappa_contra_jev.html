@@ -1,0 +1,993 @@
+<title>Kappa: persona contra persona, persona contra modelo — Manuel Toral</title>
+
+<style>
+  /*
+    Neobrutalismo en azul y blanco del Tec: bordes negros gruesos, sombras duras
+    sin difuminar, bloques de color plano, tipografía pesada. Sin degradados,
+    sin esquinas redondeadas, sin sutilezas.
+  */
+  :root {
+    --papel:   #ffffff;
+    --hueso:   #eef2ff;
+    --azul:    #0432a1;
+    --azul-2:  #4a7ae8;
+    --negro:   #0b0b0b;
+    --gris:    #565b6b;
+
+    --borde: 3px solid var(--negro);
+    --sombra: 8px 8px 0 var(--negro);
+    --sombra-chica: 5px 5px 0 var(--negro);
+
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+    --paso: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  /* Se queda en claro en los dos temas: es material para proyectar y el
+     neobrutalismo depende del contraste negro sobre blanco. En preferencia
+     oscura solo bajamos el brillo del papel. */
+  @media (prefers-color-scheme: dark) {
+    :root { --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e; }
+  }
+  :root[data-theme="dark"] {
+    --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e;
+  }
+  :root[data-theme="light"] {
+    --papel: #ffffff; --hueso: #eef2ff; --negro: #0b0b0b; --gris: #565b6b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--negro);
+    font-family: var(--display);
+    font-size: clamp(15px, 0.85rem + 0.35vw, 18px);
+    line-height: 1.55;
+  }
+
+  .deck { max-width: 1160px; margin: 0 auto; padding: 0 var(--paso) 4rem; }
+
+  .lamina { padding: clamp(2.5rem, 5vw, 4.5rem) 0; display: grid; gap: clamp(1.1rem, 2.2vw, 1.8rem); }
+
+  /* ---------- Cinta de sección ---------- */
+  .cinta { display: flex; align-items: stretch; gap: 0; }
+  .cinta .num {
+    background: var(--azul); color: #fff; border: var(--borde); border-right: 0;
+    font-family: var(--mono); font-weight: 700; font-size: 1rem;
+    padding: 0.35rem 0.8rem; font-variant-numeric: tabular-nums;
+  }
+  .cinta .rot {
+    background: var(--papel); border: var(--borde);
+    font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.35rem 1rem; display: flex; align-items: center;
+    box-shadow: var(--sombra-chica);
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.03em; }
+  h2 { font-size: clamp(1.8rem, 1rem + 3.4vw, 3.4rem); line-height: 1.02; }
+  h3 { font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.3rem); letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 62ch; }
+  .sumario { font-size: 1.1em; max-width: 56ch; }
+  strong { color: var(--azul); }
+  code { font-family: var(--mono); font-size: 0.94em; background: var(--hueso); padding: 0.1em 0.3em; border: 1px solid var(--negro); }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 90vh; align-content: center; }
+  .marca-caja {
+    border: var(--borde); background: #fff; box-shadow: var(--sombra);
+    padding: 0.9rem 1.2rem; width: fit-content;
+  }
+  .marca-caja img { display: block; width: clamp(180px, 24vw, 250px); height: auto; }
+  .portada .kicker {
+    background: var(--negro); color: #fff; width: fit-content;
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 0.4rem 0.9rem;
+  }
+  .portada h1 {
+    font-size: clamp(2.6rem, 1rem + 8vw, 6.5rem);
+    line-height: 0.92; letter-spacing: -0.05em;
+  }
+  .portada h1 em { font-style: normal; color: var(--azul); }
+  .firma {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.1rem 1.3rem; width: fit-content;
+    font-family: var(--mono); font-size: 0.88rem; display: grid; gap: 0.1rem;
+  }
+  .firma b { font-size: 1rem; }
+
+  /* ---------- Bloques ---------- */
+  .bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.4rem; }
+  .bloque {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; display: grid; gap: 0.5rem; align-content: start;
+  }
+  .bloque .clave {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.2em 0.5em;
+  }
+  .bloque p { font-size: 0.95em; }
+  .bloque.relleno { background: var(--hueso); }
+  .bloque.invertido { background: var(--negro); color: #fff; }
+  .bloque.invertido .clave { background: #fff; color: var(--negro); }
+  .bloque.invertido strong { color: var(--azul-2); }
+
+  /* ---------- El golpe: dos cifras enfrentadas ---------- */
+  .duelo { display: grid; grid-template-columns: 1fr; gap: 1.4rem; align-items: stretch; }
+  @media (min-width: 780px) { .duelo { grid-template-columns: 1fr 1fr; } }
+  .duelo > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.5rem;
+    display: grid; gap: 0.4rem; align-content: center;
+  }
+  .duelo .rotulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .duelo .cifra {
+    font-size: clamp(3rem, 1rem + 9vw, 6rem); font-weight: 800;
+    line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+  }
+  .duelo .nota { font-size: 0.95em; }
+  .enganoso { background: var(--papel); }
+  .enganoso .cifra { color: var(--negro); }
+  .real { background: var(--azul); color: #fff; }
+  .real .cifra { color: #fff; }
+
+  /* ---------- Fórmula ---------- */
+  .formula {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.8rem 1.4rem; display: grid; gap: 1rem; justify-items: center; text-align: center;
+  }
+  .formula .expr {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(1.4rem, 0.8rem + 3vw, 2.6rem); letter-spacing: -0.02em;
+  }
+  .formula .expr .op { color: var(--azul); }
+  .formula .glosa { font-size: 0.95em; max-width: 54ch; }
+
+  /* ---------- Escala de umbrales ---------- */
+  .escala { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .banda {
+    display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 1.2rem;
+    padding: 1rem 1.2rem; border-bottom: var(--borde); align-items: baseline;
+  }
+  .banda:last-child { border-bottom: 0; }
+  .banda .rango {
+    font-family: var(--mono); font-weight: 800;
+    font-size: clamp(1rem, 0.8rem + 0.7vw, 1.35rem); font-variant-numeric: tabular-nums;
+  }
+  .banda .que { font-weight: 700; }
+  .banda .detalle { grid-column: 2; font-size: 0.94em; }
+  .banda.fiable { background: var(--azul); color: #fff; }
+  .banda.tentativa { background: var(--hueso); }
+  .banda.descartar { background: var(--negro); color: #fff; }
+  .banda.descartar .detalle { color: #c9cede; }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: var(--borde); box-shadow: var(--sombra); background: var(--papel); }
+  table { border-collapse: collapse; width: 100%; min-width: 540px; font-size: 0.95em; }
+  th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid var(--negro); }
+  th {
+    background: var(--negro); color: #fff; font-family: var(--mono);
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  td { font-family: var(--mono); }
+  td.a { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.si  td.a { color: var(--azul); }
+  tr.no  td { background: var(--negro); color: #fff; }
+  .veredicto { font-family: var(--display); font-weight: 700; font-size: 0.88em; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: var(--borde); background: var(--negro); color: #fff;
+    box-shadow: var(--sombra); padding: 1.3rem 1.4rem; display: grid; gap: 0.5rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--azul-2);
+  }
+  .aviso p { max-width: 68ch; }
+  .aviso strong { color: var(--azul-2); }
+  .aviso code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+
+  /* ---------- Figura ---------- */
+  figure { margin: 0; display: grid; gap: 0.8rem; }
+  .lienzo { overflow-x: auto; border: var(--borde); background: var(--papel); box-shadow: var(--sombra); padding: 1.2rem; }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 620px; margin: 0 auto; }
+  figcaption { font-size: 0.9em; max-width: 62ch; }
+
+
+  /* ---------- Ficha de un comentario y su distribucion de juicios ---------- */
+  .comentario {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.3rem 1.4rem; display: grid; gap: 0.6rem;
+  }
+  .comentario .meta {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--azul);
+  }
+  .comentario blockquote {
+    margin: 0; font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.5rem);
+    font-weight: 700; line-height: 1.35; border-left: 6px solid var(--azul); padding-left: 1rem;
+  }
+  .comentario .pie-meta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
+
+  /* Variante para citas de varios parrafos: baja el cuerpo para que no grite */
+  .comentario.larga blockquote {
+    font-size: clamp(0.95rem, 0.85rem + 0.35vw, 1.12rem);
+    font-weight: 600; display: grid; gap: 0.65rem;
+  }
+  .comentario.larga blockquote p { margin: 0; max-width: 68ch; }
+
+  .encuesta { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .item {
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem;
+    padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--negro); align-items: start;
+  }
+  .item:last-child { border-bottom: 0; }
+  .item .n {
+    background: var(--negro); color: #fff; font-family: var(--mono); font-weight: 700;
+    font-size: 0.8rem; text-align: center; padding: 0.2em 0; font-variant-numeric: tabular-nums;
+  }
+  .item .campo { font-family: var(--mono); font-weight: 700; color: var(--azul); font-size: 0.88rem; }
+  .item .pregunta { grid-column: 2; font-size: 0.95em; }
+  .item .opciones {
+    grid-column: 2; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
+    margin-top: 0.2rem;
+  }
+  .item.ternario { background: var(--hueso); }
+
+  .barras { display: grid; gap: 0.45rem; }
+  .barra { display: grid; grid-template-columns: 9rem 1fr 4rem; gap: 0.8rem; align-items: center; }
+  .barra .et { font-family: var(--mono); font-size: 0.8rem; }
+  .barra .riel {
+    display: block; border: 2px solid var(--negro); height: 1.6rem; background: #fff;
+  }
+  .barra .llena { display: block; height: 100%; background: var(--azul); }
+  .barra .llena.tenue { background: var(--azul-2); }
+  .barra .val {
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Bibliografía ---------- */
+  .biblio { display: grid; gap: 1.4rem; }
+  .biblio .grupo {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 1.1rem 1.3rem; display: grid; gap: 0.7rem;
+  }
+  .biblio h3 {
+    font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--azul);
+  }
+  .biblio ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.8rem; }
+  .biblio li { font-size: 0.94em; line-height: 1.55; max-width: 74ch; }
+  .biblio .obra { font-style: italic; }
+  .biblio .nota { display: block; color: var(--gris); font-size: 0.92em; margin-top: 0.15rem; }
+
+  /* ---------- Pie ---------- */
+  .pie {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    margin-top: 2rem; padding: 1.2rem 1.4rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .pie img { width: 130px; height: auto; display: block; }
+  .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
+
+  a { color: var(--azul); font-weight: 600; text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  /* ═══════ Añadidos de esta lámina ═══════ */
+
+  /* ---------- Pasos numerados del cálculo ---------- */
+  .pasos { display: grid; gap: 1.3rem; }
+  .paso {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem;
+    display: grid; grid-template-columns: 3rem 1fr; gap: 0.6rem 1.1rem; align-items: center;
+  }
+  .paso > .n {
+    background: var(--azul); color: #fff; border: var(--borde);
+    font-family: var(--mono); font-weight: 800; font-size: 1.1rem;
+    text-align: center; padding: 0.3rem 0; align-self: start;
+    font-variant-numeric: tabular-nums;
+  }
+  .paso .cuerpo { grid-column: 2; display: grid; gap: 0.8rem; }
+  .paso.final { background: var(--hueso); }
+
+  /* ---------- Aritmética en bloque ---------- */
+  .cuenta {
+    border: var(--borde); background: var(--hueso); padding: 1rem 1.1rem;
+    font-family: var(--mono); font-size: 0.88rem; line-height: 1.7;
+    display: grid; gap: 0.15rem; overflow-x: auto; font-variant-numeric: tabular-nums;
+  }
+  .cuenta .l { white-space: pre; }
+  .cuenta .l.sep { border-top: 2px solid var(--negro); margin-top: 0.4rem; padding-top: 0.5rem; }
+  .cuenta .res { font-weight: 800; color: var(--azul); font-size: 1.15em; }
+  .cuenta .ac { color: var(--gris); }
+
+  /* ---------- Código ---------- */
+  pre.codigo {
+    margin: 0; border: var(--borde); background: var(--negro); color: #e8ecf7;
+    box-shadow: var(--sombra); padding: 1.1rem 1.2rem; overflow-x: auto;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.55;
+  }
+  pre.codigo .c { color: #949cb4; }
+  pre.codigo .s { color: #ffd479; }
+  pre.codigo .k { color: #7fb8ff; font-weight: 700; }
+  .archivo {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.25em 0.7em;
+  }
+
+  /* ---------- Tabla de etiquetas ---------- */
+  table.etiquetas td.e { text-align: center; font-weight: 800; width: 3.2rem; }
+  table.etiquetas td.e.A { background: var(--azul); color: #fff; }
+  table.etiquetas td.e.C { background: var(--negro); color: #fff; }
+  table.etiquetas td.e.N { background: var(--hueso); color: var(--negro); }
+  table.etiquetas td.tema { font-family: var(--display); font-weight: 600; }
+  table.etiquetas td.cuentas { text-align: right; font-variant-numeric: tabular-nums; }
+  .leyenda {
+    display: flex; flex-wrap: wrap; gap: 0.6rem; font-family: var(--mono); font-size: 0.78rem;
+  }
+  .leyenda span { border: 2px solid var(--negro); padding: 0.2em 0.6em; font-weight: 700; }
+  .leyenda .A { background: var(--azul); color: #fff; }
+  .leyenda .C { background: var(--negro); color: #fff; }
+  .leyenda .N { background: var(--hueso); }
+
+  /* ---------- Matriz cuadrada ---------- */
+  table.matriz th.lado {
+    background: var(--papel); color: var(--negro);
+    text-transform: none; letter-spacing: 0; font-size: 0.85rem; font-weight: 800;
+  }
+  table.matriz td { text-align: right; font-variant-numeric: tabular-nums; }
+  table.matriz td.diag { background: var(--hueso); font-weight: 800; }
+  table.matriz td.foco { background: var(--azul); color: #fff; font-weight: 800; }
+
+  /* ---------- Dos lecturas enfrentadas ---------- */
+  .contraste { display: grid; gap: 1.4rem; }
+  @media (min-width: 820px) { .contraste { grid-template-columns: 1fr 1fr; } }
+  .contraste > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.3rem 1.4rem;
+    display: grid; gap: 0.7rem; align-content: start;
+  }
+  .contraste .marbete {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; width: fit-content;
+    padding: 0.2em 0.6em; border: 2px solid var(--negro);
+  }
+  .contraste > div.claro { background: var(--papel); }
+  .contraste > div.claro .marbete { background: var(--azul); color: #fff; }
+  .contraste > div.oscuro { background: var(--negro); color: #fff; }
+  .contraste > div.oscuro .marbete { background: #fff; color: var(--negro); }
+  .contraste > div.oscuro strong { color: var(--azul-2); }
+  .contraste > div.oscuro code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+  .contraste h3 { font-size: 1.2rem; }
+  .contraste p { font-size: 0.96em; max-width: none; }
+
+  /* ---------- Listas ---------- */
+  .lista { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; }
+  .lista li { max-width: 64ch; }
+  .lista li::marker { font-weight: 800; color: var(--azul); }
+
+  /* ---------- Casilla para llenar ---------- */
+  .blanco {
+    display: inline-block; min-width: 4.5rem; border-bottom: 3px solid var(--azul);
+    font-family: var(--mono); color: var(--gris); text-align: center;
+  }
+
+  /* ---------- Columnas de etiquetas enfrentadas ---------- */
+  table.duo td.e { text-align: center; font-weight: 800; width: 5.5rem; font-family: var(--mono); font-size: 0.85rem; }
+  table.duo td.e.A { background: var(--azul); color: #fff; }
+  table.duo td.e.C { background: var(--negro); color: #fff; }
+  table.duo td.e.N { background: var(--hueso); color: var(--negro); }
+  table.duo td.ok { text-align: center; font-weight: 800; color: var(--azul); }
+  table.duo td.mal { text-align: center; font-weight: 800; background: var(--negro); color: #fff; }
+  table.duo th.inv { background: var(--azul); }
+
+  /* ---------- Aviso de dato no real ---------- */
+  .simulado {
+    border: var(--borde); background: #ffd166; color: var(--negro);
+    box-shadow: var(--sombra-chica); padding: 0.9rem 1.1rem;
+    display: grid; gap: 0.3rem;
+  }
+  .simulado .et {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .simulado p { font-size: 0.93em; max-width: 70ch; }
+  .simulado strong { color: var(--negro); text-decoration: underline; }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="lamina portada">
+    <div class="marca-caja"><img src="__LOGO__" alt="Tecnológico de Monterrey"></div>
+    <span class="kicker">Material de apoyo · kappa en la práctica</span>
+    <h1>Tú contra<br>otro, y tú<br>contra <em>Jev</em></h1>
+    <p class="sumario">
+      La misma aritmética dos veces: primero con dos personas, después con una persona y un
+      modelo. Mismo <strong>90% de acuerdo</strong> en los dos casos — y
+      <strong>kappas distintas</strong>. Por qué, y el script que lo calcula.
+    </p>
+    <div class="firma">
+      <b>Manuel Toral</b>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Escuela de Ingeniería y Ciencias</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">01</span><span class="rot">El montaje</span></div>
+    <h2>Dos columnas,<br>un número</h2>
+    <p class="sumario">
+      La kappa de Cohen solo admite <strong>dos jueces</strong>. Eso, que en un equipo de cinco
+      es un estorbo, aquí es justo lo que hace falta: <strong>«un humano contra el
+      modelo» son exactamente dos</strong>.
+    </p>
+
+    <div class="formula">
+      <span class="expr">κ <span class="op">=</span> (P<sub>o</sub> − P<sub>e</sub>) / (1 − P<sub>e</sub>)</span>
+      <p class="glosa">
+        <strong>P<sub>o</sub></strong>: qué fracción de ítems coincidieron.
+        <strong>P<sub>e</sub></strong>: qué fracción coincidirían al azar, respetando las
+        proporciones de cada uno. Lo de abajo es el margen que había por ganar.
+      </p>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Los datos</span>
+        <p>La <strong>ronda 2</strong> del ejercicio de etiquetado: 10 preguntas de la
+        conferencia matutina, ya con la rúbrica escrita.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Por qué la ronda 2</span>
+        <p>Porque los textos de <code>yes</code> y <code>no</code> que recibe Jev son
+        <strong>la misma rúbrica</strong>. Comparar contra la ronda 1 mediría dos criterios
+        distintos y no diría nada.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">El plan</span>
+        <p>Primero <strong>A1 contra A2</strong>. Después <strong>A1 contra Jev</strong>,
+        cambiando una sola columna. Y al final, el script.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">02</span><span class="rot">Humano vs humano</span></div>
+    <h2>A1 contra A2</h2>
+
+    <div class="tabla-envoltura">
+      <table class="duo">
+        <thead>
+          <tr><th>#</th><th>A1</th><th>A2</th><th>¿igual?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P01</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P02</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P03</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P04</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P05</td><td class="e A">afín</td><td class="e N">neutral</td><td class="mal">✘</td></tr>
+          <tr><td>P06</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P07</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P08</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P09</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P10</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <h3>P<sub>o</sub> — cuenta las palomas</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">palomas = 9      ítems = 10</span>
+            <span class="l sep res">Po = 9 / 10 = 0.90</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">2</span>
+        <h3>Cuenta hacia abajo cada columna</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">A1:   afín <b>5</b>   crítica <b>5</b>   neutral <b>0</b>    →   0.5  /  0.5  /  0.0</span>
+            <span class="l">A2:   afín <b>4</b>   crítica <b>5</b>   neutral <b>1</b>    →   0.4  /  0.5  /  0.1</span>
+          </div>
+          <p>A1 <strong>nunca usó «neutral»</strong>. Guarda ese cero: en el paso 3 hace trabajo.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">3</span>
+        <h3>P<sub>e</sub> — multiplica y suma</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">afín        0.5  ×  0.4   =  0.20</span>
+            <span class="l">crítica     0.5  ×  0.5   =  0.25</span>
+            <span class="l">neutral     0.0  ×  0.1   =  0.00     ← el cero de A1 anula la celda</span>
+            <span class="l sep res">Pe = 0.20 + 0.25 + 0.00 = 0.45</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso final">
+        <span class="n">4</span>
+        <h3>Sustituye</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">        0.90 − 0.45        0.45</span>
+            <span class="l">κ  =  ─────────────  =  ──────</span>
+            <span class="l">        1.00 − 0.45        0.55</span>
+            <span class="l sep res">κ = 0.818</span>
+          </div>
+          <p>
+            Había 0.55 de margen arriba del azar; se ganaron 0.45.
+            <strong>Este es el número contra el cual hay que juzgar a Jev</strong>: así de
+            parecidos son dos humanos del mismo equipo, con la misma rúbrica.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">03</span><span class="rot">Humano vs modelo</span></div>
+    <h2>A1 contra Jev</h2>
+    <p class="sumario">
+      Misma columna A1, mismas 10 preguntas. Lo único que cambia es la segunda columna:
+      ahora es la <code>postura</code> que devolvió <code>jev_choice</code>.
+    </p>
+
+    <div class="simulado">
+      <span class="et">⚠ Columna de Jev ilustrativa</span>
+      <p>
+        Estas etiquetas de Jev <strong>no son una corrida real</strong>: están puestas a mano
+        para que la aritmética se pueda seguir. Cuando corras la PARTE B del script vas a
+        obtener otras. <strong>El procedimiento es el que importa, no estos números.</strong>
+      </p>
+    </div>
+
+    <div class="tabla-envoltura">
+      <table class="duo">
+        <thead>
+          <tr><th>#</th><th>A1</th><th class="inv">Jev</th><th>¿igual?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P01</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P02</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P03</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P04</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P05</td><td class="e A">afín</td><td class="e A">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P06</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P07</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P08</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P09</td><td class="e C">crítica</td><td class="e A">afín</td><td class="mal">✘</td></tr>
+          <tr><td>P10</td><td class="e C">crítica</td><td class="e C">crítica</td><td class="ok">✔</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      La única discrepancia es <strong>P09</strong>, la del candidato de Morena. Jev la leyó
+      como «le pega a un partido, luego es afín»; A1 aplicó el candado de la rúbrica
+      («criticar a Morena es criticar al gobierno»). <strong>El desacuerdo tiene una causa
+      identificable</strong>, que es justo lo que queremos de esta comparación.
+    </p>
+
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <h3>P<sub>o</sub></h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">palomas = 9      ítems = 10</span>
+            <span class="l sep res">Po = 0.90     ← idéntico al caso anterior</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">2</span>
+        <h3>Las columnas</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">A1:    afín <b>5</b>   crítica <b>5</b>   neutral <b>0</b>    →   0.5  /  0.5  /  0.0</span>
+            <span class="l">Jev:   afín <b>6</b>   crítica <b>4</b>   neutral <b>0</b>    →   0.6  /  0.4  /  0.0</span>
+          </div>
+          <p>
+            <strong>Jev tampoco usó «neutral» ni una vez.</strong> Eso no es casualidad y en la
+            lámina 05 se retoma.
+          </p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">3</span>
+        <h3>P<sub>e</sub></h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">afín        0.5  ×  0.6   =  0.30</span>
+            <span class="l">crítica     0.5  ×  0.4   =  0.20</span>
+            <span class="l">neutral     0.0  ×  0.0   =  0.00</span>
+            <span class="l sep res">Pe = 0.50     ← antes era 0.45</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso final">
+        <span class="n">4</span>
+        <h3>Sustituye</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">        0.90 − 0.50        0.40</span>
+            <span class="l">κ  =  ─────────────  =  ──────</span>
+            <span class="l">        1.00 − 0.50        0.50</span>
+            <span class="l sep res">κ = 0.800</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span class="rot">El hallazgo</span></div>
+    <h2>Mismo 90%,<br>distinta kappa</h2>
+
+    <div class="duelo">
+      <div class="enganoso">
+        <span class="rotulo">A1 contra A2</span>
+        <span class="cifra">0.818</span>
+        <span class="nota">P<sub>o</sub> = 0.90 · P<sub>e</sub> = 0.45</span>
+      </div>
+      <div class="real">
+        <span class="rotulo">A1 contra Jev</span>
+        <span class="cifra">0.800</span>
+        <span class="nota">P<sub>o</sub> = 0.90 · P<sub>e</sub> = 0.50</span>
+      </div>
+    </div>
+
+    <p class="sumario">
+      Coincidieron en 9 de 10 en los dos casos. La kappa sale distinta porque
+      <strong>P<sub>e</sub> cambió</strong>, y P<sub>e</sub> no depende de los aciertos:
+      depende de <strong>cómo reparte sus etiquetas cada juez</strong>.
+    </p>
+
+    <div class="cuenta">
+      <span class="l ac">el único término que se movió:</span>
+      <span class="l">A1 × A2 :   0.5 × 0.4  +  0.5 × 0.5  +  0.0 × 0.1   =   0.45</span>
+      <span class="l">A1 × Jev:   0.5 × <b>0.6</b>  +  0.5 × <b>0.4</b>  +  0.0 × 0.0   =   <b>0.50</b></span>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">La regla</span>
+        <p>P<sub>e</sub> sube cuando los dos jueces <strong>concentran sus etiquetas en las
+        mismas pocas categorías</strong>. Y P<sub>e</sub> alto significa
+        <strong>menos margen por ganar</strong>, así que la misma cantidad de aciertos vale
+        menos kappa.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Por qué esto le pega a los modelos</span>
+        <p>Jev repartió <strong>6/4/0</strong>; A2 repartió 4/5/1. Un juez que casi no usa una
+        de las categorías es <strong>más predecible</strong>, y la kappa se lo cobra.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">Y está bien que se lo cobre</span>
+        <p>Un modelo que <strong>nunca dice «neutral»</strong> es menos informativo que uno que
+        lo usa cuando toca. Coincidir con él es más fácil, y la kappa refleja exactamente eso.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Lo que hay que llevarse</span>
+      <p>
+        <strong>Nunca compares dos kappas sin mirar sus P<sub>e</sub>.</strong> Una kappa de
+        0.80 contra un juez muy concentrado no es la misma cosa que una de 0.80 contra un juez
+        que usa toda la escala. Reporta siempre <strong>P<sub>o</sub>, P<sub>e</sub> y κ</strong>,
+        los tres.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 05 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span class="rot">Los cinco</span></div>
+    <h2>¿Contra qué<br>se compara un 0.800?</h2>
+    <p class="sumario">
+      Un número suelto no dice nada. El baseline correcto no es 1.0 ni «lo que saquen dos
+      humanos cualesquiera»: es <strong>lo que saca esa misma persona contra la mayoría de los
+      otros cuatro</strong>.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th></th><th>acuerdo</th><th>P<sub>e</sub></th><th>κ vs Jev</th><th>baseline humano</th><th>brecha</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>A1</td><td class="a">90%</td><td class="a">0.50</td><td class="a">+0.800</td><td class="a">+1.000</td><td class="a">−0.200</td></tr>
+          <tr><td>A2</td><td class="a">80%</td><td class="a">0.44</td><td class="a">+0.643</td><td class="a">+0.818</td><td class="a">−0.175</td></tr>
+          <tr><td>A3</td><td class="a">80%</td><td class="a">0.44</td><td class="a">+0.643</td><td class="a">+0.795</td><td class="a">−0.153</td></tr>
+          <tr><td>A4</td><td class="a">80%</td><td class="a">0.46</td><td class="a">+0.630</td><td class="a">+0.800</td><td class="a">−0.170</td></tr>
+          <tr class="si"><td>A5</td><td class="a">90%</td><td class="a">0.46</td><td class="a">+0.815</td><td class="a">+0.636</td><td class="a">+0.178</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>Cuatro de cinco tienen brecha negativa:</strong> Jev se les parece menos de lo que
+      se les parecen sus propios compañeros. No es un desastre —0.63 a 0.80 sigue siendo
+      «sustancial»— pero sí dice que Jev todavía no está dentro del equipo.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">A5 es la fila interesante</span>
+      <p>
+        Es la única con brecha <strong>positiva</strong>: Jev se le parece más que sus
+        compañeros. ¿Por qué? Porque A5 es quien marcó <strong>P09 como afín</strong> — el mismo
+        tropiezo que Jev. <strong>Coinciden en el error</strong>, no en el criterio.
+      </p>
+      <p>
+        Por eso la tabla no se lee buscando el número más alto: se lee buscando
+        <strong>quién comparte qué</strong> con el modelo.
+      </p>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">El detalle técnico que muerde: los empates</span>
+      <p>
+        «La mayoría de los otros cuatro» <strong>no existe si se parten 2–2</strong>. Pasa en
+        P05 para A1, A3 y A4 (por eso su baseline sale sobre <strong>9 ítems</strong>, no 10).
+      </p>
+      <p>
+        <code>which.max(table(x))</code> en R <strong>no te avisa</strong>: devuelve en silencio
+        la primera categoría en orden alfabético. El script de la lámina 07 devuelve
+        <code>NA</code> y excluye esos ítems. Si no lo haces, tu baseline depende de cómo se
+        llamen tus categorías.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 06 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span class="rot">Las asimetrías</span></div>
+    <h2>Lo que cambia cuando<br>el segundo juez es un modelo</h2>
+
+    <div class="contraste">
+      <div class="claro">
+        <span class="marbete">Lo que la kappa no sabe</span>
+        <h3>Es simétrica</h3>
+        <p>
+          <code>kappa(A1, Jev)</code> y <code>kappa(Jev, A1)</code> dan lo mismo. La fórmula
+          <strong>no sabe cuál de los dos es el humano</strong>, ni le importa.
+        </p>
+        <p>
+          Consecuencia: <strong>κ alto no es «Jev acertó»</strong>. Es «Jev se parece a A1». Si
+          A1 tiene un sesgo, Jev se lo confirma y tú crees que validaste algo.
+        </p>
+        <p>
+          Para hablar de acierto hace falta un patrón de oro, y en «¿esta pregunta es afín?»
+          no existe: por eso todo esto se llama <em>acuerdo</em> y no <em>exactitud</em>.
+        </p>
+      </div>
+      <div class="oscuro">
+        <span class="marbete">Lo que le quitas a Jev</span>
+        <h3>La confianza se tira</h3>
+        <p>
+          Jev no devolvió «afín»: devolvió <strong>afín con una confianza</strong>, y el
+          <code>noul</code> devolvió una probabilidad. La kappa lee etiquetas, así que todo eso
+          se pierde en el camino.
+        </p>
+        <p>
+          «Afín con 0.51» entra tratada igual que «afín con 0.99». <strong>Es una decisión de
+          diseño, no un detalle técnico.</strong>
+        </p>
+        <p>
+          Si vas a tirar esa información de todos modos, pregúntate antes si no te conviene
+          <strong>no colapsar</strong>: comparar <code>p(afín)</code> contra la proporción de
+          humanos que dijo afín conserva justo lo que la kappa destruye.
+        </p>
+      </div>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Si la brecha sale negativa para los cinco</span>
+        <p>No culpes al modelo todavía. Lo más probable es que <strong>la rúbrica y los textos
+        de <code>yes</code>/<code>no</code> no digan lo mismo</strong>. Léelos lado a lado
+        antes de nada.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Si sale positiva para uno solo</span>
+        <p>Ve a ver <strong>en qué ítems</strong> coinciden. Como con A5: compartir un error no
+        es compartir un criterio.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">Si sale positiva para los cinco</span>
+        <p>Jev está más cerca del equipo que el equipo de sí mismo. Sospecha:
+        revisa que no estés comparando contra una <strong>mayoría</strong> en vez de contra
+        personas.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span class="rot">El script</span></div>
+    <h2>Todo esto,<br>en R</h2>
+    <p class="sumario">
+      Sin paquetes extra: no hace falta <code>irr</code>. Está en
+      <code>03_machine_learning/prueba_jev/ejercicio_alpha.R</code> como <strong>PARTE D</strong>,
+      y usa el <code>jev_salida</code> que produce la PARTE B.
+    </p>
+
+    <span class="archivo">ejercicio_alpha.R · PARTE D</span>
+    <pre class="codigo">CATS &lt;- <span class="k">c</span>(<span class="s">"afin"</span>, <span class="s">"critica"</span>, <span class="s">"neutral"</span>)
+
+<span class="c"># Po = la diagonal de la tabla cruzada, entre el total.</span>
+<span class="c"># Pe = suma de (total de fila x total de columna) / n^2. Cada juez conserva</span>
+<span class="c">#      SUS proporciones: ahi esta la diferencia con el alpha.</span>
+kappa_cohen &lt;- <span class="k">function</span>(a, b) {
+  tab &lt;- <span class="k">table</span>(<span class="k">factor</span>(a, levels = CATS), <span class="k">factor</span>(b, levels = CATS))
+  n  &lt;- <span class="k">sum</span>(tab)
+  Po &lt;- <span class="k">sum</span>(<span class="k">diag</span>(tab)) / n
+  Pe &lt;- <span class="k">sum</span>(<span class="k">rowSums</span>(tab) * <span class="k">colSums</span>(tab)) / n^2
+  <span class="k">c</span>(Po = Po, Pe = Pe, kappa = (Po - Pe) / (1 - Pe))
+}
+
+<span class="c"># --- D.1  Persona fija contra persona fija --------------------------------</span>
+<span class="k">kappa_cohen</span>(ronda2$a1, ronda2$a2)
+
+<span class="c"># La tabla cruzada, que es de donde salen los dos numeros. Las celdas fuera</span>
+<span class="c"># de la diagonal dicen QUE se confunde con que: eso es lo accionable.</span>
+<span class="k">table</span>(A1 = <span class="k">factor</span>(ronda2$a1, levels = CATS),
+      A2 = <span class="k">factor</span>(ronda2$a2, levels = CATS))
+
+<span class="c"># --- D.2  Persona fija contra Jev -----------------------------------------</span>
+<span class="c"># Requiere haber corrido la PARTE B. Jev entra con su etiqueta discreta:</span>
+<span class="c"># la confianza se pierde aqui, y es una decision, no un detalle.</span>
+jev_postura &lt;- jev_salida$jev_postura[<span class="k">match</span>(ronda2$pregunta, jev_salida$pregunta)]
+
+<span class="k">kappa_cohen</span>(ronda2$a1, jev_postura)
+
+<span class="c"># --- D.3  Los cinco contra Jev, con su baseline ---------------------------</span>
+<span class="c"># OJO con los empates: con cuatro votantes un 2-2 no tiene mayoria, y</span>
+<span class="c"># which.max() la inventaria en silencio. Aqui devolvemos NA y se excluye.</span>
+mayoria_sin &lt;- <span class="k">function</span>(i) {
+  <span class="k">apply</span>(<span class="k">select</span>(ronda2, a1:a5)[, -i], 1, \(x) {
+    tt &lt;- <span class="k">sort</span>(<span class="k">table</span>(x), decreasing = <span class="k">TRUE</span>)
+    <span class="k">if</span> (<span class="k">length</span>(tt) &gt; 1 &amp;&amp; tt[1] == tt[2]) <span class="k">NA_character_</span> <span class="k">else</span> <span class="k">names</span>(tt)[1]
+  })
+}
+
+kappa_pareado &lt;- <span class="k">function</span>(a, b) {
+  ok &lt;- !<span class="k">is.na</span>(a) &amp; !<span class="k">is.na</span>(b)
+  <span class="k">c</span>(<span class="k">kappa_cohen</span>(a[ok], b[ok]), n = <span class="k">sum</span>(ok))
+}
+
+<span class="k">map_dfr</span>(1:5, \(i) {
+  humano &lt;- ronda2[[<span class="k">paste0</span>(<span class="s">"a"</span>, i)]]
+  kj &lt;- <span class="k">kappa_cohen</span>(humano, jev_postura)
+  kb &lt;- <span class="k">kappa_pareado</span>(humano, <span class="k">mayoria_sin</span>(i))
+  <span class="k">tibble</span>(anotador = <span class="k">paste0</span>(<span class="s">"A"</span>, i),
+         acuerdo_jev = kj[[<span class="s">"Po"</span>]], Pe_jev = kj[[<span class="s">"Pe"</span>]], kappa_jev = kj[[<span class="s">"kappa"</span>]],
+         baseline_humano = kb[[<span class="s">"kappa"</span>]], n_baseline = kb[[<span class="s">"n"</span>]],
+         brecha = kj[[<span class="s">"kappa"</span>]] - kb[[<span class="s">"kappa"</span>]])
+})</pre>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Las partes D.1 y D.3 corren sin API key</span>
+        <p>Solo necesitan las etiquetas humanas. Puedes probar todo el andamiaje antes de gastar
+        una sola llamada.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">D.2 necesita la PARTE B</span>
+        <p>Que es la que llama al modelo: <strong>10 llamadas</strong>, una por pregunta.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">Sustituye tus datos</span>
+        <p>Cambia los <code>tribble</code> de <code>ronda1</code> y <code>ronda2</code> por las
+        etiquetas de tu equipo y todo lo demás corre igual.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 08 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span class="rot">Cierre</span></div>
+    <h2>Tres líneas<br>para el reporte</h2>
+
+    <div class="encuesta">
+      <div class="item">
+        <span class="n">1</span><span class="campo">los tres números</span>
+        <span class="pregunta">Nunca reportes κ solo. <strong>P<sub>o</sub>, P<sub>e</sub> y
+        κ</strong>, porque dos kappas iguales con P<sub>e</sub> distintos no significan lo
+        mismo.</span>
+        <span class="opciones">«Po 0.90 · Pe 0.50 · κ 0.800»</span>
+      </div>
+      <div class="item">
+        <span class="n">2</span><span class="campo">el baseline</span>
+        <span class="pregunta">Junto a la κ contra Jev, la κ de esa persona contra la mayoría de
+        los <strong>otros</strong> cuatro. Sin eso, 0.800 no se puede juzgar.</span>
+        <span class="opciones">y di sobre cuántos ítems, si hubo empates</span>
+      </div>
+      <div class="item ternario">
+        <span class="n">3</span><span class="campo">el ítem culpable</span>
+        <span class="pregunta">La tabla cruzada y <strong>qué celda</strong> concentra el
+        desacuerdo. Un número sin el ítem que lo causó no se puede arreglar.</span>
+        <span class="opciones">«todo el desacuerdo es P09: el candado de Morena»</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Y la advertencia de siempre</span>
+      <p>
+        Todo esto mide <strong>acuerdo</strong>. Que Jev se parezca a tu equipo no lo vuelve
+        correcto, y que no se parezca no lo vuelve incorrecto: en las dos direcciones, lo
+        primero que hay que revisar es si <strong>la rúbrica y los criterios del modelo dicen
+        lo mismo</strong>.
+      </p>
+    </div>
+
+    <div class="biblio">
+      <div class="grupo">
+        <h3>De dónde sale cada cosa</h3>
+        <ol>
+          <li>
+            Cohen, J. (1960). <span class="obra">A Coefficient of Agreement for Nominal
+            Scales.</span> Educational and Psychological Measurement, 20(1), 37–46.
+          </li>
+          <li>
+            <span class="obra">Las etiquetas humanas.</span>
+            <span class="nota">Ronda 2 del ejercicio de etiquetado, en
+            <code>scripts/ejercicio_alpha_equipos.py</code> y en los <code>tribble</code> de
+            <code>ejercicio_alpha.R</code>. Las kappas, los P<sub>e</sub> y los baselines de la
+            lámina 05 se recalculan ahí.</span>
+          </li>
+          <li>
+            <span class="obra">La columna de Jev.</span>
+            <span class="nota">Ilustrativa, puesta a mano. No es una corrida del modelo: corre
+            la PARTE B del script para obtener la tuya.</span>
+          </li>
+          <li>
+            <span class="obra">Presentaciones relacionadas.</span>
+            <span class="nota">«La kappa de Cohen» tiene la derivación completa, los tres muros
+            del coeficiente y la comparación con el alpha. «El alpha de tu equipo, y Jev» es el
+            ejercicio del que salen estos datos.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="__LOGO__" alt="Tecnológico de Monterrey">
+    <span class="texto">
+      <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+    </span>
+  </footer>
+
+</main>

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Manuel Toral">
+<title>La kappa de Cohen — Manuel Toral</title>
+<style>
+  /*
+    Neobrutalismo en azul y blanco del Tec: bordes negros gruesos, sombras duras
+    sin difuminar, bloques de color plano, tipografía pesada. Sin degradados,
+    sin esquinas redondeadas, sin sutilezas.
+  */
+  :root {
+    --papel:   #ffffff;
+    --hueso:   #eef2ff;
+    --azul:    #0432a1;
+    --azul-2:  #4a7ae8;
+    --negro:   #0b0b0b;
+    --gris:    #565b6b;
+
+    --borde: 3px solid var(--negro);
+    --sombra: 8px 8px 0 var(--negro);
+    --sombra-chica: 5px 5px 0 var(--negro);
+
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+    --paso: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  /* Se queda en claro en los dos temas: es material para proyectar y el
+     neobrutalismo depende del contraste negro sobre blanco. En preferencia
+     oscura solo bajamos el brillo del papel. */
+  @media (prefers-color-scheme: dark) {
+    :root { --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e; }
+  }
+  :root[data-theme="dark"] {
+    --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e;
+  }
+  :root[data-theme="light"] {
+    --papel: #ffffff; --hueso: #eef2ff; --negro: #0b0b0b; --gris: #565b6b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--negro);
+    font-family: var(--display);
+    font-size: clamp(15px, 0.85rem + 0.35vw, 18px);
+    line-height: 1.55;
+  }
+
+  .deck { max-width: 1160px; margin: 0 auto; padding: 0 var(--paso) 4rem; }
+
+  .lamina { padding: clamp(2.5rem, 5vw, 4.5rem) 0; display: grid; gap: clamp(1.1rem, 2.2vw, 1.8rem); }
+
+  /* ---------- Cinta de sección ---------- */
+  .cinta { display: flex; align-items: stretch; gap: 0; }
+  .cinta .num {
+    background: var(--azul); color: #fff; border: var(--borde); border-right: 0;
+    font-family: var(--mono); font-weight: 700; font-size: 1rem;
+    padding: 0.35rem 0.8rem; font-variant-numeric: tabular-nums;
+  }
+  .cinta .rot {
+    background: var(--papel); border: var(--borde);
+    font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.35rem 1rem; display: flex; align-items: center;
+    box-shadow: var(--sombra-chica);
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.03em; }
+  h2 { font-size: clamp(1.8rem, 1rem + 3.4vw, 3.4rem); line-height: 1.02; }
+  h3 { font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.3rem); letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 62ch; }
+  .sumario { font-size: 1.1em; max-width: 56ch; }
+  strong { color: var(--azul); }
+  code { font-family: var(--mono); font-size: 0.94em; background: var(--hueso); padding: 0.1em 0.3em; border: 1px solid var(--negro); }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 90vh; align-content: center; }
+  .marca-caja {
+    border: var(--borde); background: #fff; box-shadow: var(--sombra);
+    padding: 0.9rem 1.2rem; width: fit-content;
+  }
+  .marca-caja img { display: block; width: clamp(180px, 24vw, 250px); height: auto; }
+  .portada .kicker {
+    background: var(--negro); color: #fff; width: fit-content;
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 0.4rem 0.9rem;
+  }
+  .portada h1 {
+    font-size: clamp(2.6rem, 1rem + 8vw, 6.5rem);
+    line-height: 0.92; letter-spacing: -0.05em;
+  }
+  .portada h1 em { font-style: normal; color: var(--azul); }
+  .firma {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.1rem 1.3rem; width: fit-content;
+    font-family: var(--mono); font-size: 0.88rem; display: grid; gap: 0.1rem;
+  }
+  .firma b { font-size: 1rem; }
+
+  /* ---------- Bloques ---------- */
+  .bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.4rem; }
+  .bloque {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; display: grid; gap: 0.5rem; align-content: start;
+  }
+  .bloque .clave {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.2em 0.5em;
+  }
+  .bloque p { font-size: 0.95em; }
+  .bloque.relleno { background: var(--hueso); }
+  .bloque.invertido { background: var(--negro); color: #fff; }
+  .bloque.invertido .clave { background: #fff; color: var(--negro); }
+  .bloque.invertido strong { color: var(--azul-2); }
+
+  /* ---------- El golpe: dos cifras enfrentadas ---------- */
+  .duelo { display: grid; grid-template-columns: 1fr; gap: 1.4rem; align-items: stretch; }
+  @media (min-width: 780px) { .duelo { grid-template-columns: 1fr 1fr; } }
+  .duelo > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.5rem;
+    display: grid; gap: 0.4rem; align-content: center;
+  }
+  .duelo .rotulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .duelo .cifra {
+    font-size: clamp(3rem, 1rem + 9vw, 6rem); font-weight: 800;
+    line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+  }
+  .duelo .nota { font-size: 0.95em; }
+  .enganoso { background: var(--papel); }
+  .enganoso .cifra { color: var(--negro); }
+  .real { background: var(--azul); color: #fff; }
+  .real .cifra { color: #fff; }
+
+  /* ---------- Fórmula ---------- */
+  .formula {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.8rem 1.4rem; display: grid; gap: 1rem; justify-items: center; text-align: center;
+  }
+  .formula .expr {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(1.4rem, 0.8rem + 3vw, 2.6rem); letter-spacing: -0.02em;
+  }
+  .formula .expr .op { color: var(--azul); }
+  .formula .glosa { font-size: 0.95em; max-width: 54ch; }
+
+  /* ---------- Escala de umbrales ---------- */
+  .escala { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .banda {
+    display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 1.2rem;
+    padding: 1rem 1.2rem; border-bottom: var(--borde); align-items: baseline;
+  }
+  .banda:last-child { border-bottom: 0; }
+  .banda .rango {
+    font-family: var(--mono); font-weight: 800;
+    font-size: clamp(1rem, 0.8rem + 0.7vw, 1.35rem); font-variant-numeric: tabular-nums;
+  }
+  .banda .que { font-weight: 700; }
+  .banda .detalle { grid-column: 2; font-size: 0.94em; }
+  .banda.fiable { background: var(--azul); color: #fff; }
+  .banda.tentativa { background: var(--hueso); }
+  .banda.descartar { background: var(--negro); color: #fff; }
+  .banda.descartar .detalle { color: #c9cede; }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: var(--borde); box-shadow: var(--sombra); background: var(--papel); }
+  table { border-collapse: collapse; width: 100%; min-width: 540px; font-size: 0.95em; }
+  th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid var(--negro); }
+  th {
+    background: var(--negro); color: #fff; font-family: var(--mono);
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  td { font-family: var(--mono); }
+  td.a { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.si  td.a { color: var(--azul); }
+  tr.no  td { background: var(--negro); color: #fff; }
+  .veredicto { font-family: var(--display); font-weight: 700; font-size: 0.88em; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: var(--borde); background: var(--negro); color: #fff;
+    box-shadow: var(--sombra); padding: 1.3rem 1.4rem; display: grid; gap: 0.5rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--azul-2);
+  }
+  .aviso p { max-width: 68ch; }
+  .aviso strong { color: var(--azul-2); }
+  .aviso code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+
+  /* ---------- Figura ---------- */
+  figure { margin: 0; display: grid; gap: 0.8rem; }
+  .lienzo { overflow-x: auto; border: var(--borde); background: var(--papel); box-shadow: var(--sombra); padding: 1.2rem; }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 620px; margin: 0 auto; }
+  figcaption { font-size: 0.9em; max-width: 62ch; }
+
+
+  /* ---------- Ficha de un comentario y su distribucion de juicios ---------- */
+  .comentario {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.3rem 1.4rem; display: grid; gap: 0.6rem;
+  }
+  .comentario .meta {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--azul);
+  }
+  .comentario blockquote {
+    margin: 0; font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.5rem);
+    font-weight: 700; line-height: 1.35; border-left: 6px solid var(--azul); padding-left: 1rem;
+  }
+  .comentario .pie-meta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
+
+  /* Variante para citas de varios parrafos: baja el cuerpo para que no grite */
+  .comentario.larga blockquote {
+    font-size: clamp(0.95rem, 0.85rem + 0.35vw, 1.12rem);
+    font-weight: 600; display: grid; gap: 0.65rem;
+  }
+  .comentario.larga blockquote p { margin: 0; max-width: 68ch; }
+
+  .encuesta { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .item {
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem;
+    padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--negro); align-items: start;
+  }
+  .item:last-child { border-bottom: 0; }
+  .item .n {
+    background: var(--negro); color: #fff; font-family: var(--mono); font-weight: 700;
+    font-size: 0.8rem; text-align: center; padding: 0.2em 0; font-variant-numeric: tabular-nums;
+  }
+  .item .campo { font-family: var(--mono); font-weight: 700; color: var(--azul); font-size: 0.88rem; }
+  .item .pregunta { grid-column: 2; font-size: 0.95em; }
+  .item .opciones {
+    grid-column: 2; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
+    margin-top: 0.2rem;
+  }
+  .item.ternario { background: var(--hueso); }
+
+  .barras { display: grid; gap: 0.45rem; }
+  .barra { display: grid; grid-template-columns: 9rem 1fr 4rem; gap: 0.8rem; align-items: center; }
+  .barra .et { font-family: var(--mono); font-size: 0.8rem; }
+  .barra .riel {
+    display: block; border: 2px solid var(--negro); height: 1.6rem; background: #fff;
+  }
+  .barra .llena { display: block; height: 100%; background: var(--azul); }
+  .barra .llena.tenue { background: var(--azul-2); }
+  .barra .val {
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Bibliografía ---------- */
+  .biblio { display: grid; gap: 1.4rem; }
+  .biblio .grupo {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 1.1rem 1.3rem; display: grid; gap: 0.7rem;
+  }
+  .biblio h3 {
+    font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--azul);
+  }
+  .biblio ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.8rem; }
+  .biblio li { font-size: 0.94em; line-height: 1.55; max-width: 74ch; }
+  .biblio .obra { font-style: italic; }
+  .biblio .nota { display: block; color: var(--gris); font-size: 0.92em; margin-top: 0.15rem; }
+
+  /* ---------- Pie ---------- */
+  .pie {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    margin-top: 2rem; padding: 1.2rem 1.4rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .pie img { width: 130px; height: auto; display: block; }
+  .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
+
+  a { color: var(--azul); font-weight: 600; text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  /* ═══════ Añadidos de esta lámina ═══════ */
+
+  /* ---------- Pasos numerados del cálculo ---------- */
+  .pasos { display: grid; gap: 1.3rem; }
+  .paso {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem;
+    display: grid; grid-template-columns: 3rem 1fr; gap: 0.6rem 1.1rem; align-items: center;
+  }
+  .paso > .n {
+    background: var(--azul); color: #fff; border: var(--borde);
+    font-family: var(--mono); font-weight: 800; font-size: 1.1rem;
+    text-align: center; padding: 0.3rem 0; align-self: start;
+    font-variant-numeric: tabular-nums;
+  }
+  .paso .cuerpo { grid-column: 2; display: grid; gap: 0.8rem; }
+  .paso.final { background: var(--hueso); }
+
+  /* ---------- Aritmética en bloque ---------- */
+  .cuenta {
+    border: var(--borde); background: var(--hueso); padding: 1rem 1.1rem;
+    font-family: var(--mono); font-size: 0.88rem; line-height: 1.7;
+    display: grid; gap: 0.15rem; overflow-x: auto; font-variant-numeric: tabular-nums;
+  }
+  .cuenta .l { white-space: pre; }
+  .cuenta .l.sep { border-top: 2px solid var(--negro); margin-top: 0.4rem; padding-top: 0.5rem; }
+  .cuenta .res { font-weight: 800; color: var(--azul); font-size: 1.15em; }
+  .cuenta .ac { color: var(--gris); }
+
+  /* ---------- Código ---------- */
+  pre.codigo {
+    margin: 0; border: var(--borde); background: var(--negro); color: #e8ecf7;
+    box-shadow: var(--sombra); padding: 1.1rem 1.2rem; overflow-x: auto;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.55;
+  }
+  pre.codigo .c { color: #949cb4; }
+  pre.codigo .s { color: #ffd479; }
+  pre.codigo .k { color: #7fb8ff; font-weight: 700; }
+  .archivo {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.25em 0.7em;
+  }
+
+  /* ---------- Tabla de etiquetas ---------- */
+  table.etiquetas td.e { text-align: center; font-weight: 800; width: 3.2rem; }
+  table.etiquetas td.e.A { background: var(--azul); color: #fff; }
+  table.etiquetas td.e.C { background: var(--negro); color: #fff; }
+  table.etiquetas td.e.N { background: var(--hueso); color: var(--negro); }
+  table.etiquetas td.tema { font-family: var(--display); font-weight: 600; }
+  table.etiquetas td.cuentas { text-align: right; font-variant-numeric: tabular-nums; }
+  .leyenda {
+    display: flex; flex-wrap: wrap; gap: 0.6rem; font-family: var(--mono); font-size: 0.78rem;
+  }
+  .leyenda span { border: 2px solid var(--negro); padding: 0.2em 0.6em; font-weight: 700; }
+  .leyenda .A { background: var(--azul); color: #fff; }
+  .leyenda .C { background: var(--negro); color: #fff; }
+  .leyenda .N { background: var(--hueso); }
+
+  /* ---------- Matriz cuadrada ---------- */
+  table.matriz th.lado {
+    background: var(--papel); color: var(--negro);
+    text-transform: none; letter-spacing: 0; font-size: 0.85rem; font-weight: 800;
+  }
+  table.matriz td { text-align: right; font-variant-numeric: tabular-nums; }
+  table.matriz td.diag { background: var(--hueso); font-weight: 800; }
+  table.matriz td.foco { background: var(--azul); color: #fff; font-weight: 800; }
+
+  /* ---------- Dos lecturas enfrentadas ---------- */
+  .contraste { display: grid; gap: 1.4rem; }
+  @media (min-width: 820px) { .contraste { grid-template-columns: 1fr 1fr; } }
+  .contraste > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.3rem 1.4rem;
+    display: grid; gap: 0.7rem; align-content: start;
+  }
+  .contraste .marbete {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; width: fit-content;
+    padding: 0.2em 0.6em; border: 2px solid var(--negro);
+  }
+  .contraste > div.claro { background: var(--papel); }
+  .contraste > div.claro .marbete { background: var(--azul); color: #fff; }
+  .contraste > div.oscuro { background: var(--negro); color: #fff; }
+  .contraste > div.oscuro .marbete { background: #fff; color: var(--negro); }
+  .contraste > div.oscuro strong { color: var(--azul-2); }
+  .contraste > div.oscuro code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+  .contraste h3 { font-size: 1.2rem; }
+  .contraste p { font-size: 0.96em; max-width: none; }
+
+  /* ---------- Listas ---------- */
+  .lista { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; }
+  .lista li { max-width: 64ch; }
+  .lista li::marker { font-weight: 800; color: var(--azul); }
+
+  /* ---------- Casilla para llenar ---------- */
+  .blanco {
+    display: inline-block; min-width: 4.5rem; border-bottom: 3px solid var(--azul);
+    font-family: var(--mono); color: var(--gris); text-align: center;
+  }
+
+  /* ---------- Fila de pares etiquetados ---------- */
+  table.pares td.ok { background: var(--azul); color: #fff; text-align: center; font-weight: 800; }
+  table.pares td.mal { background: var(--negro); color: #fff; text-align: center; font-weight: 800; }
+  table.pares td.et { font-family: var(--mono); }
+
+  /* ---------- Lista de kappas por pareja ---------- */
+  .kappas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .kappas > div {
+    border-right: 2px solid var(--negro); border-bottom: 2px solid var(--negro);
+    padding: 0.8rem 0.9rem; display: grid; gap: 0.15rem;
+  }
+  .kappas .par { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--gris); }
+  .kappas .k { font-family: var(--mono); font-weight: 800; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+  .kappas .ac { font-family: var(--mono); font-size: 0.72rem; color: var(--gris); }
+  .kappas > div.baja { background: var(--negro); color: #fff; }
+  .kappas > div.baja .par, .kappas > div.baja .ac { color: #c9cede; }
+  .kappas > div.alta .k { color: var(--azul); }
+</style>
+</head>
+<body>
+</head>
+<body>
+<main class="deck">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="lamina portada">
+    <div class="marca-caja"><img src="data:image/jpeg;base64,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gFBlckTXQe4XHBXJE0mDgB5LOD4Lkizpew+/UIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIURAahqDRendQvjkudvbLIwANkDixwHhzNIJC2OkpYqSnhp4YhHFEwNY0dGhowAPgu4iy5TaUXJtLsvYwopPaXUwFlEWDIREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREB//Z" alt="Tecnológico de Monterrey"></div>
+    <span class="kicker">Material de apoyo · coeficientes de acuerdo</span>
+    <h1>La kappa<br>de <em>Cohen</em></h1>
+    <p class="sumario">
+      El coeficiente de acuerdo más citado del mundo, en cinco pasos con números sustituidos
+      uno por uno. Y las tres cosas que no puede hacer, que son justo las que
+      <strong>casi siempre hacen falta</strong>.
+    </p>
+    <div class="firma">
+      <b>Manuel Toral</b>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Escuela de Ingeniería y Ciencias</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">01</span><span class="rot">El problema</span></div>
+    <h2>Dos personas coinciden<br>en 8 de 10</h2>
+    <p class="sumario">
+      Suena a que comparten criterio. Pero si de esas 10 preguntas, 5 eran obviamente críticas
+      y los dos las marcaron así sin pensar, <strong>¿cuánto del 80% es criterio y cuánto es
+      que el corpus estaba cargado?</strong>
+    </p>
+
+    <div class="duelo">
+      <div class="enganoso">
+        <span class="rotulo">Acuerdo crudo</span>
+        <span class="cifra">80%</span>
+        <span class="nota">Lo que ves si nada más cuentas palomas.</span>
+      </div>
+      <div class="real">
+        <span class="rotulo">Kappa de Cohen</span>
+        <span class="cifra">0.655</span>
+        <span class="nota">Lo que queda después de descontar el acuerdo que salía gratis.</span>
+      </div>
+    </div>
+
+    <p>
+      Cohen (1960) propuso la corrección más simple posible: <strong>estimar cuánto
+      coincidirían dos personas que no leyeran nada</strong> y repartieran etiquetas con sus
+      manías de siempre, y descontarlo. Es la misma idea que el D<sub>e</sub> del alpha de
+      Krippendorff, con otra receta.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">Ojo con el nombre</span>
+      <p>
+        <strong>Kappa de Cohen</strong> y <strong>alpha de Krippendorff</strong> miden lo
+        mismo: acuerdo entre jueces corregido por azar. El <strong>alpha de Cronbach</strong>
+        no: ese mide si varios ítems de un cuestionario están midiendo el mismo constructo.
+        Comparte el nombre con Krippendorff y nada más.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">02</span><span class="rot">La fórmula</span></div>
+    <h2>Tres piezas,<br>una división</h2>
+
+    <div class="formula">
+      <span class="expr">κ <span class="op">=</span> (P<sub>o</sub> − P<sub>e</sub>) / (1 − P<sub>e</sub>)</span>
+      <p class="glosa">
+        Arriba: el acuerdo que <strong>sobró</strong> por encima del azar.
+        Abajo: el acuerdo que <strong>sobraba por ganar</strong>.
+        La división convierte eso en «qué fracción del margen se ganaron».
+      </p>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">P<sub>o</sub> · observado</span>
+        <p>La proporción de ítems en que los dos pusieron lo mismo. <strong>Contar palomas y
+        dividir.</strong></p>
+      </div>
+      <div class="bloque">
+        <span class="clave">P<sub>e</sub> · esperado</span>
+        <p>Lo que coincidirían al azar, <strong>respetando las manías de cada quien</strong>:
+        para cada categoría, multiplicas las dos proporciones y sumas.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">1 − P<sub>e</sub></span>
+        <p>El margen que había arriba del azar. Si P<sub>e</sub> = 0.42, solo quedaba
+        <strong>0.58</strong> por ganar, no 1.00.</p>
+      </div>
+    </div>
+
+    <div class="escala">
+      <div class="banda fiable">
+        <span class="rango">κ = 1</span>
+        <span class="que">Acuerdo perfecto</span>
+        <span class="detalle">P<sub>o</sub> = 1. Coincidieron en todo.</span>
+      </div>
+      <div class="banda tentativa">
+        <span class="rango">κ = 0</span>
+        <span class="que">Exactamente el azar</span>
+        <span class="detalle">P<sub>o</sub> = P<sub>e</sub>. Coincidieron, pero ni un ápice más de lo que se explica solo por sus proporciones.</span>
+      </div>
+      <div class="banda descartar">
+        <span class="rango">κ &lt; 0</span>
+        <span class="que">Peor que el azar</span>
+        <span class="detalle">Entendieron la instrucción de formas opuestas, o hay un error en los datos. Sí pasa: más adelante hay un −0.061 real.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">03</span><span class="rot">Paso a paso</span></div>
+    <h2>Un ejemplo completo,<br>número por número</h2>
+    <p class="sumario">
+      Dos anotadores del ejercicio de etiquetado —<strong>A1 y A2</strong>— sobre las mismas
+      10 preguntas de la conferencia matutina. Kappa solo admite dos jueces, así que estos dos.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table class="pares">
+        <thead>
+          <tr><th>#</th><th>A1</th><th>A2</th><th>¿igual?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P01</td><td class="et">afín</td><td class="et">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P02</td><td class="et">afín</td><td class="et">neutral</td><td class="mal">✘</td></tr>
+          <tr><td>P03</td><td class="et">afín</td><td class="et">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P04</td><td class="et">afín</td><td class="et">afín</td><td class="ok">✔</td></tr>
+          <tr><td>P05</td><td class="et">neutral</td><td class="et">afín</td><td class="mal">✘</td></tr>
+          <tr><td>P06</td><td class="et">crítica</td><td class="et">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P07</td><td class="et">crítica</td><td class="et">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P08</td><td class="et">crítica</td><td class="et">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P09</td><td class="et">crítica</td><td class="et">crítica</td><td class="ok">✔</td></tr>
+          <tr><td>P10</td><td class="et">crítica</td><td class="et">crítica</td><td class="ok">✔</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pasos">
+
+      <div class="paso">
+        <span class="n">1</span>
+        <h3>P<sub>o</sub>: cuenta las palomas</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">palomas  =  8        ítems  =  10</span>
+            <span class="l sep">Po  =  8 / 10</span>
+            <span class="l res">Po = 0.80</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">2</span>
+        <h3>Cuenta hacia abajo cada columna</h3>
+        <div class="cuerpo">
+          <p>Cuántas veces usó cada quien cada categoría. Son <strong>las manías</strong> de
+          cada anotador.</p>
+          <div class="cuenta">
+            <span class="l">A1:   afín <b>4</b>   crítica <b>5</b>   neutral <b>1</b>      (total 10)</span>
+            <span class="l">A2:   afín <b>4</b>   crítica <b>5</b>   neutral <b>1</b>      (total 10)</span>
+            <span class="l sep ac">como proporciones, dividiendo entre 10</span>
+            <span class="l">A1:   afín 0.4   crítica 0.5   neutral 0.1</span>
+            <span class="l">A2:   afín 0.4   crítica 0.5   neutral 0.1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">3</span>
+        <h3>P<sub>e</sub>: multiplica pareja por pareja y suma</h3>
+        <div class="cuerpo">
+          <p>
+            Si cada quien tirara sus etiquetas al aire respetando sus propias proporciones,
+            ¿qué tan seguido caerían en la misma?
+          </p>
+          <div class="cuenta">
+            <span class="l">afín        0.4  ×  0.4   =  0.16</span>
+            <span class="l">crítica     0.5  ×  0.5   =  0.25</span>
+            <span class="l">neutral     0.1  ×  0.1   =  0.01</span>
+            <span class="l sep">Pe  =  0.16 + 0.25 + 0.01</span>
+            <span class="l res">Pe = 0.42</span>
+          </div>
+          <p>
+            <strong>Léelo:</strong> dos personas que no leyeran nada coincidirían el
+            <strong>42%</strong> de las veces. Ese acuerdo no vale nada.
+          </p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">4</span>
+        <h3>Sustituye</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">        Po − Pe        0.80 − 0.42        0.38</span>
+            <span class="l">κ  =  ──────────  =  ─────────────  =  ──────</span>
+            <span class="l">        1  − Pe        1.00 − 0.42        0.58</span>
+            <span class="l sep res">κ = 0.655</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso final">
+        <span class="n">5</span>
+        <h3>Léelo</h3>
+        <div class="cuerpo">
+          <p>
+            Había <strong>0.58</strong> de margen arriba del azar (de 0.42 a 1.00). Se ganaron
+            <strong>0.38</strong> de ese margen. <code>0.38 / 0.58 = 65.5%</code> del camino.
+          </p>
+          <p>
+            Por eso «80% de acuerdo» se convierte en <strong>0.655</strong>:
+            <strong>más de la mitad de ese 80% salía gratis</strong> por lo cargado que estaba
+            el corpus hacia «crítica».
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span class="rot">Lo mismo, en tabla</span></div>
+    <h2>La tabla cruzada</h2>
+    <p class="sumario">
+      Es la presentación clásica y hace visible de dónde salen los dos números. Las filas son
+      A1, las columnas A2, y cada celda cuenta en cuántas preguntas cayó esa combinación.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table class="matriz">
+        <thead>
+          <tr><th></th><th>A2 afín</th><th>A2 crítica</th><th>A2 neutral</th><th>total A1</th></tr>
+        </thead>
+        <tbody>
+          <tr><th class="lado">A1 afín</th><td class="diag">3</td><td>0</td><td class="foco">1</td><td>4</td></tr>
+          <tr><th class="lado">A1 crítica</th><td>0</td><td class="diag">5</td><td>0</td><td>5</td></tr>
+          <tr><th class="lado">A1 neutral</th><td class="foco">1</td><td>0</td><td class="diag">0</td><td>1</td></tr>
+          <tr><th class="lado">total A2</th><td>4</td><td>5</td><td>1</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">La diagonal es P<sub>o</sub></span>
+        <p><strong>3 + 5 + 0 = 8</strong>, entre 10. Los casos donde los dos pusieron lo mismo.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Los márgenes son P<sub>e</sub></span>
+        <p>Multiplicas total de fila × total de columna, categoría por categoría, y divides
+        entre <strong>10² = 100</strong>: (4·4 + 5·5 + 1·1)/100 = <strong>0.42</strong>.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">Fuera de la diagonal: el diagnóstico</span>
+        <p>Las dos celdas con 1 son <strong>afín ↔ neutral</strong>. Todo el desacuerdo de esta
+        pareja es el umbral de «neutral»; nunca confundieron afín con crítica.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La receta corta, si la prefieres en una línea</span>
+      <p>
+        <code>Pe = Σ (total de fila<sub>c</sub> × total de columna<sub>c</sub>) / n²</code>.
+        Es literalmente la tabla de contingencia bajo independencia, lo mismo que calcula una
+        ji-cuadrada.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 05 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span class="rot">Con más de dos</span></div>
+    <h2>Cinco personas<br>son diez kappas</h2>
+    <p class="sumario">
+      La kappa de Cohen <strong>solo admite dos jueces</strong>. Con los cinco del ejercicio no
+      hay una kappa: hay <strong>C(5,2) = 10</strong>. Estas son las de la ronda 1.
+    </p>
+
+    <div class="kappas">
+      <div class="alta"><span class="par">A1 – A3</span><span class="k">+0.692</span><span class="ac">80% acuerdo</span></div>
+      <div class="alta"><span class="par">A1 – A5</span><span class="k">+0.683</span><span class="ac">80% acuerdo</span></div>
+      <div class="alta"><span class="par">A1 – A2</span><span class="k">+0.655</span><span class="ac">80% acuerdo</span></div>
+      <div class="alta"><span class="par">A2 – A4</span><span class="k">+0.559</span><span class="ac">70% acuerdo</span></div>
+      <div class="alta"><span class="par">A3 – A5</span><span class="k">+0.552</span><span class="ac">70% acuerdo</span></div>
+      <div><span class="par">A2 – A3</span><span class="k">+0.385</span><span class="ac">60% acuerdo</span></div>
+      <div><span class="par">A2 – A5</span><span class="k">+0.365</span><span class="ac">60% acuerdo</span></div>
+      <div><span class="par">A1 – A4</span><span class="k">+0.265</span><span class="ac">50% acuerdo</span></div>
+      <div class="baja"><span class="par">A4 – A5</span><span class="k">+0.000</span><span class="ac">30% acuerdo</span></div>
+      <div class="baja"><span class="par">A3 – A4</span><span class="k">−0.061</span><span class="ac">30% acuerdo</span></div>
+    </div>
+
+    <h3>Diez números no son un diagnóstico. Promédialos por persona:</h3>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>anotador</th><th>κ promedio con los otros 4</th><th>α dejándolo fuera</th><th>veredicto</th></tr>
+        </thead>
+        <tbody>
+          <tr class="si"><td>A1</td><td class="a">+0.574</td><td class="a">0.305</td><td class="veredicto">el más alineado</td></tr>
+          <tr><td>A2</td><td class="a">+0.491</td><td class="a">0.355</td><td class="veredicto">normal</td></tr>
+          <tr><td>A3</td><td class="a">+0.392</td><td class="a">0.415</td><td class="veredicto">normal</td></tr>
+          <tr class="no"><td>A4</td><td class="a">+0.191</td><td class="a">0.561</td><td class="veredicto">está midiendo otra cosa</td></tr>
+          <tr><td>A5</td><td class="a">+0.400</td><td class="a">0.417</td><td class="veredicto">normal</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      El alpha del equipo completo es <strong>0.408</strong>. Sacar a A4 lo sube a
+      <strong>0.561</strong>. Dos métodos independientes señalan a la misma persona: A4 no está
+      siendo descuidado, está <strong>aplicando otra definición</strong> — usó «neutral» el
+      doble que los demás.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">Qué se hace con eso</span>
+      <p>
+        <strong>No se corre a A4.</strong> Se le pregunta qué entendió. Casi siempre la
+        respuesta señala una ambigüedad real del manual que los otros cuatro resolvieron por su
+        cuenta, cada quien a su modo, sin darse cuenta de que estaban improvisando.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 06 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span class="rot">Los tres muros</span></div>
+    <h2>Lo que la kappa<br>no puede hacer</h2>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">1 · Solo dos jueces</span>
+        <p>No es una limitación de implementación: la fórmula <strong>está definida para dos
+        marginales</strong>. Con más, o promedias parejas (y ya no tienes un coeficiente, tienes
+        un promedio de coeficientes), o te pasas a <strong>Fleiss</strong> o al alpha.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">2 · Datos completos</span>
+        <p>Los dos jueces tienen que haber evaluado <strong>todo</strong>. En un corpus real
+        casi nadie evalúa todo: el del D-Lab tiene comentarios con 2 evaluaciones y otros con
+        815. Kappa no sabe qué hacer con eso; el alpha sí.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">3 · Nominal</span>
+        <p>En su forma básica castiga igual «3 contra 4» que «0 contra 4». Existe la
+        <strong>kappa ponderada</strong> para escalas ordenadas, pero los pesos los escoges tú
+        y ya estás tomando la misma decisión que con la métrica del alpha.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">4 · La paradoja</span>
+        <p>Con categorías muy desbalanceadas puedes tener <strong>95% de acuerdo y κ ≈ 0</strong>.
+        No es un error: es que con una etiqueta rarísima, coincidir no prueba nada. Feinstein y
+        Cicchetti (1990) le pusieron nombre.</p>
+      </div>
+    </div>
+
+    <div class="escala">
+      <div class="banda fiable">
+        <span class="rango">0.81 – 1.00</span>
+        <span class="que">Casi perfecto</span>
+        <span class="detalle">Los cortes de Landis y Koch (1977), los más citados para kappa.</span>
+      </div>
+      <div class="banda tentativa">
+        <span class="rango">0.61 – 0.80</span>
+        <span class="que">Sustancial</span>
+        <span class="detalle">Ahí caen A1–A2, A1–A3 y A1–A5 del ejercicio.</span>
+      </div>
+      <div class="banda tentativa">
+        <span class="rango">0.41 – 0.60</span>
+        <span class="que">Moderado</span>
+        <span class="detalle">A2–A4 y A3–A5.</span>
+      </div>
+      <div class="banda descartar">
+        <span class="rango">≤ 0.40</span>
+        <span class="que">De escaso a nulo</span>
+        <span class="detalle">Todas las parejas donde aparece A4.</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Esos cortes son todavía más arbitrarios que los de Krippendorff</span>
+      <p>
+        Landis y Koch los propusieron <strong>sin justificación empírica</strong>, y lo dijeron
+        en el propio artículo. Krippendorff al menos derivó los suyos de cuánto riesgo de
+        concluir mal se acepta. <strong>Reporta el número y para qué lo vas a usar</strong>,
+        no la etiqueta de la banda.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span class="rot">La diferencia real</span></div>
+    <h2>Dónde Cohen<br>se separa del alpha</h2>
+    <p class="sumario">
+      Los dos descuentan el azar. La diferencia está en <strong>cómo modelan el azar</strong>, y
+      no es cosmética.
+    </p>
+
+    <div class="contraste">
+      <div class="claro">
+        <span class="marbete">Cohen · marginales separadas</span>
+        <h3>Cada juez con sus manías</h3>
+        <p>
+          <code>Pe = Σ p<sub>A</sub>(c) · p<sub>B</sub>(c)</code>
+        </p>
+        <p>
+          Asume que cada anotador tiene su propia propensión y <strong>se la concede</strong>.
+          Si A dice «afín» el 80% del tiempo y B el 40%, eso entra en el modelo de azar en vez
+          de contarse como desacuerdo.
+        </p>
+      </div>
+      <div class="oscuro">
+        <span class="marbete">Krippendorff · una sola bolsa</span>
+        <h3>Jueces intercambiables</h3>
+        <p>
+          <code>De</code> sale de <strong>todas las etiquetas juntas</strong>, sin distinguir
+          quién las puso.
+        </p>
+        <p>
+          Es lo que quieres si la idea es que <strong>el manual funcione con cualquier
+          anotador</strong>, no solo con estos dos. Un sesgo sistemático cuenta como desacuerdo,
+          porque lo es.
+        </p>
+      </div>
+    </div>
+
+    <h3>La consecuencia, medida sobre las 10 parejas del ejercicio</h3>
+    <p>
+      Scott's π es la versión «de una sola bolsa» de la kappa, así que la comparación aísla
+      exactamente ese efecto:
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>pareja</th><th>acuerdo</th><th>κ Cohen</th><th>π Scott</th><th>brecha</th></tr>
+        </thead>
+        <tbody>
+          <tr class="si"><td>A1 – A2</td><td class="a">80%</td><td class="a">+0.655</td><td class="a">+0.655</td><td class="a">+0.000</td></tr>
+          <tr><td>A1 – A3</td><td class="a">80%</td><td class="a">+0.692</td><td class="a">+0.685</td><td class="a">+0.007</td></tr>
+          <tr><td>A1 – A5</td><td class="a">80%</td><td class="a">+0.683</td><td class="a">+0.675</td><td class="a">+0.008</td></tr>
+          <tr><td>A1 – A4</td><td class="a">50%</td><td class="a">+0.265</td><td class="a">+0.225</td><td class="a">+0.040</td></tr>
+          <tr class="no"><td>A4 – A5</td><td class="a">30%</td><td class="a">+0.000</td><td class="a">−0.053</td><td class="a">+0.053</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>Cohen siempre sale igual o más alto.</strong> Y la brecha crece justo donde las
+      manías divergen: A1 y A2 usaron las tres categorías en la <em>misma</em> proporción
+      (4/5/1 los dos) y la brecha es <strong>exactamente cero</strong>. A4 y A5, que reparten
+      muy distinto, se separan 0.053.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">Cómo usar esto a tu favor</span>
+      <p>
+        Calcula los dos. <strong>La brecha entre κ y π es una medida del sesgo sistemático</strong>
+        entre esos dos anotadores. Si es grande, no tienes un problema de ruido: tienes dos
+        personas aplicando definiciones distintas de forma consistente, que es un problema
+        distinto y se arregla distinto.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 08 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span class="rot">El muro de fondo</span></div>
+    <h2>Con un solo ítem,<br>tampoco hay kappa</h2>
+    <p class="sumario">
+      La pregunta que aparece siempre: «¿puedo sacar una kappa de <em>esta</em> pregunta, para
+      ver si es fácil o difícil?». No, y vale la pena entender por qué, porque la razón
+      <strong>no es específica de la kappa</strong>.
+    </p>
+
+    <div class="cuenta">
+      <span class="l ac">un solo ítem. A dice «afín», B dice «afín».</span>
+      <span class="l"></span>
+      <span class="l">A usó «afín» 1 vez de 1   →   p<sub>A</sub>(afín) = 1.0</span>
+      <span class="l">B usó «afín» 1 vez de 1   →   p<sub>B</sub>(afín) = 1.0</span>
+      <span class="l sep">Pe  =  1.0 × 1.0  =  1.00</span>
+      <span class="l">Po  =  1.00</span>
+      <span class="l">κ   =  (1.00 − 1.00) / (1.00 − 1.00)</span>
+      <span class="l res">κ = 0 / 0 — indefinido</span>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Si coinciden</span>
+        <p><strong>0/0.</strong> Indefinido. No es 1.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Si discrepan</span>
+        <p>P<sub>o</sub> = 0 y P<sub>e</sub> = 0 → <strong>κ = 0</strong>. Siempre.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">Y con el alpha, igual</span>
+        <p>D<sub>o</sub> = D<sub>e</sub> por la misma razón → <strong>α = 0</strong>. No es un
+        defecto de un coeficiente: <strong>es lo que significa «corregido por azar»</strong>.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La razón de fondo</span>
+      <p>
+        El modelo de azar <strong>se estima de tus propios datos</strong>. Con un solo ítem, la
+        única evidencia sobre «qué tan comunes son las categorías» es ese ítem, así que el azar
+        queda calibrado exactamente sobre lo que estás midiendo y no sobra nada que atribuirle
+        al criterio.
+      </p>
+      <p>
+        Dicho de otro modo: no puedes distinguir <strong>«coincidieron porque la regla es
+        clara»</strong> de <strong>«coincidieron porque aquí todo es afín de todos modos»</strong>.
+        Para separarlas necesitas varios ítems que difieran entre sí.
+      </p>
+    </div>
+
+    <h3>Lo que sí puedes calcular por ítem</h3>
+    <p>
+      El <strong>desacuerdo observado</strong>, sin corregir. Con m jueces:
+      <code>(m² − Σ n<sub>c</sub>²) / (m − 1)</code>. Ordena tus ítems por ese número y tienes
+      tus casos difíciles. No lo llames kappa ni alpha: es desacuerdo crudo, y para
+      <strong>encontrar dónde mirar</strong> es exactamente lo que necesitas.
+    </p>
+  </section>
+
+  <!-- ═══════════ 09 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span class="rot">Con un modelo</span></div>
+    <h2>Kappa contra Jev,<br>y la trampa de la mayoría</h2>
+    <p class="sumario">
+      Kappa es de dos jueces, y «el equipo contra el modelo» son dos. Encaja bien — si evitas
+      la trampa.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>diseño</th><th>qué te dice</th><th>problema</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Jev vs cada humano</td><td class="veredicto">con quién se parece</td><td class="veredicto">5 números, ningún resumen</td></tr>
+          <tr class="no"><td>Jev vs la mayoría</td><td class="veredicto">un número limpio</td><td class="veredicto">la mayoría no es un anotador</td></tr>
+          <tr><td>Jev vs un humano fijo</td><td class="veredicto">honesto</td><td class="veredicto">arbitrario</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Por qué la mayoría infla: míralo con los humanos</h3>
+    <p>
+      Si mides a cada anotador del equipo contra la mayoría del propio equipo:
+    </p>
+
+    <div class="cuenta">
+      <span class="l ac">                    vs mayoría de los 5      vs mayoría de los OTROS 4</span>
+      <span class="l">  A1                    <b>+1.000</b>                  +0.655       ← infla +0.345</span>
+      <span class="l">  A2                    +0.655                  +0.655</span>
+      <span class="l">  A3                    +0.692                  +0.692</span>
+      <span class="l">  A4                    +0.265                  +0.265</span>
+      <span class="l">  A5                    +0.683                  +0.683</span>
+    </div>
+
+    <p>
+      <strong>A1 sacó κ = 1.000.</strong> ¿Es un anotador perfecto? No: A1 <em>es</em> la
+      mayoría en las 10 preguntas, así que se está comparando consigo mismo. Sacado del
+      cálculo, cae a 0.655 como todos.
+    </p>
+
+    <div class="aviso">
+      <span class="titulo">Jev no vota, pero el problema no se va del todo</span>
+      <p>
+        Jev no contribuyó a la mayoría, así que no hay circularidad. Pero la etiqueta
+        mayoritaria <strong>es un objeto suavizado</strong>: tiene menos ruido que cualquier
+        individuo, así que el acuerdo contra ella corre más alto que contra una persona.
+      </p>
+      <p>
+        <strong>El diseño que sí cierra:</strong> Jev contra la mayoría de los 5, comparado
+        contra la columna derecha de arriba — cada humano contra la mayoría de los
+        <em>otros</em> 4. Mismo tipo de baseline, comparación legítima.
+      </p>
+    </div>
+
+    <span class="archivo">seis líneas, sin paquetes</span>
+    <pre class="codigo">CATS &lt;- <span class="k">c</span>(<span class="s">"afin"</span>, <span class="s">"critica"</span>, <span class="s">"neutral"</span>)
+
+kappa_cohen &lt;- <span class="k">function</span>(a, b) {
+  tab &lt;- <span class="k">table</span>(<span class="k">factor</span>(a, levels = CATS), <span class="k">factor</span>(b, levels = CATS))
+  n  &lt;- <span class="k">sum</span>(tab)
+  Po &lt;- <span class="k">sum</span>(<span class="k">diag</span>(tab)) / n
+  Pe &lt;- <span class="k">sum</span>(<span class="k">rowSums</span>(tab) * <span class="k">colSums</span>(tab)) / n^2
+  (Po - Pe) / (1 - Pe)
+}
+
+<span class="c"># El baseline correcto: cada humano contra la mayoría de los OTROS cuatro</span>
+<span class="k">sapply</span>(1:5, \(i) {
+  otros &lt;- <span class="k">apply</span>(<span class="k">select</span>(ronda2, a1:a5)[, -i], 1, \(x) <span class="k">names</span>(<span class="k">which.max</span>(<span class="k">table</span>(x))))
+  <span class="k">kappa_cohen</span>(ronda2[[<span class="k">paste0</span>(<span class="s">"a"</span>, i)]], otros)
+})</pre>
+
+    <div class="aviso">
+      <span class="titulo">Y lo que la kappa nunca te va a decir</span>
+      <p>
+        Kappa mide <strong>acuerdo, no acierto</strong>. Es simétrica: no sabe quién es el
+        humano y quién el modelo. Un κ alto significa que Jev se parece a tu equipo — si tu
+        equipo comparte un sesgo, Jev te lo confirma y tú crees que validaste algo.
+      </p>
+      <p>
+        Y para calcularla hay que <strong>tirar la probabilidad</strong> de Jev. Si vas a hacer
+        eso, considera antes si no te conviene no colapsar: comparar <code>p(afín)</code>
+        contra la proporción de humanos que dijo afín conserva justo la información que la
+        kappa destruye.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 10 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">10</span><span class="rot">El desenlace</span></div>
+    <h2>Y al final,<br>casi da lo mismo</h2>
+    <p class="sumario">
+      Los tres coeficientes sobre exactamente los mismos datos del ejercicio de etiquetado:
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>coeficiente</th><th>ronda 1 · sin rúbrica</th><th>ronda 2 · con rúbrica</th></tr>
+        </thead>
+        <tbody>
+          <tr class="si"><td>α de Krippendorff</td><td class="a">0.408</td><td class="a">0.691</td></tr>
+          <tr><td>κ de Fleiss (los 5 juntos)</td><td class="a">0.396</td><td class="a">0.684</td></tr>
+          <tr><td>κ de Cohen, promedio de las 10 parejas</td><td class="a">0.409</td><td class="a">0.687</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="duelo">
+      <div class="enganoso">
+        <span class="rotulo">Escoger coeficiente</span>
+        <span class="cifra">0.015</span>
+        <span class="nota">El rango entre los tres. Prácticamente nada.</span>
+      </div>
+      <div class="real">
+        <span class="rotulo">Escribir la rúbrica</span>
+        <span class="cifra">+0.28</span>
+        <span class="nota">Tres frases, la misma gente, las mismas preguntas.</span>
+      </div>
+    </div>
+
+    <p>
+      Con datos completos y anotadores parecidos, <strong>la elección de coeficiente no es donde
+      está la acción</strong>. Discutir Cohen contra Krippendorff antes de haber escrito el
+      manual de codificación es optimizar la tercera cifra decimal de un número que va a cambiar
+      0.28 en cuanto alguien escriba dos párrafos.
+    </p>
+
+    <h3>Cuándo sí importa la elección</h3>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Datos faltantes</span>
+        <p>No todos evalúan todo. <strong>Cohen no puede</strong>; el alpha sí. Es el caso
+        normal en corpus reales.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Más de dos jueces</span>
+        <p><strong>Cohen no puede.</strong> Fleiss o alpha.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Escalas ordenadas</span>
+        <p>El alpha de intervalo lo hace de fábrica; la kappa necesita pesos que
+        <strong>escoges tú</strong>.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">Sesgo sistemático</span>
+        <p>Si sospechas que dos anotadores aplican definiciones distintas de forma consistente,
+        <strong>la brecha entre κ y π es tu medida</strong>.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La regla práctica para esta clase</span>
+      <p>
+        <strong>Usa el alpha de Krippendorff</strong> por defecto: aguanta cualquier número de
+        jueces, datos faltantes y cualquier escala, que son las tres cosas que te vas a
+        encontrar. Saca kappas de Cohen por pareja <strong>como diagnóstico</strong>, para
+        encontrar al anotador que está midiendo otra cosa.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 11 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">11</span><span class="rot">Fuentes</span></div>
+    <h2>Fuentes</h2>
+
+    <div class="biblio">
+      <div class="grupo">
+        <h3>Los coeficientes, en orden de aparición histórica</h3>
+        <ol>
+          <li>
+            Scott, W. A. (1955). <span class="obra">Reliability of Content Analysis: The Case of
+            Nominal Scale Coding.</span> Public Opinion Quarterly, 19(3), 321–325.
+            <span class="nota">El π de la lámina 07: la versión «de una sola bolsa», anterior a
+            Cohen y conceptualmente más cercana al alpha.</span>
+          </li>
+          <li>
+            Cohen, J. (1960). <span class="obra">A Coefficient of Agreement for Nominal
+            Scales.</span> Educational and Psychological Measurement, 20(1), 37–46.
+            <span class="nota">El artículo original. La decisión de usar las marginales de cada
+            juez por separado está argumentada ahí, y es lo que lo separa de Scott.</span>
+          </li>
+          <li>
+            Fleiss, J. L. (1971). <span class="obra">Measuring Nominal Scale Agreement Among
+            Many Raters.</span> Psychological Bulletin, 76(5), 378–382.
+            <span class="nota">La extensión a más de dos jueces. Pese al nombre, es una
+            generalización del π de Scott, no de la kappa de Cohen.</span>
+          </li>
+          <li>
+            Landis, J. R. y Koch, G. G. (1977). <span class="obra">The Measurement of Observer
+            Agreement for Categorical Data.</span> Biometrics, 33(1), 159–174.
+            <span class="nota">De aquí salen los cortes «sustancial», «moderado», etc. Los
+            propusieron explícitamente como arbitrarios.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Las paradojas</h3>
+        <ol>
+          <li>
+            Feinstein, A. R. y Cicchetti, D. V. (1990). <span class="obra">High Agreement but
+            Low Kappa: I. The Problems of Two Paradoxes.</span> Journal of Clinical
+            Epidemiology, 43(6), 543–549.
+            <span class="nota">El 95% de acuerdo con κ ≈ 0 de la lámina 06, y el efecto de las
+            marginales desbalanceadas.</span>
+          </li>
+          <li>
+            Krippendorff, K. (2004). <span class="obra">Reliability in Content Analysis: Some
+            Common Misconceptions and Recommendations.</span> Human Communication Research,
+            30(3), 411–433.
+            <span class="nota">La crítica a la kappa desde el lado del análisis de contenido, y
+            el argumento de por qué las marginales de cada juez no deberían concederse.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Los datos y el código de esta clase</h3>
+        <ol>
+          <li>
+            <span class="obra">Todas las cifras de estas láminas.</span>
+            <span class="nota">Salen de la ronda 1 y la ronda 2 del ejercicio de etiquetado, en
+            <code>scripts/ejercicio_alpha_equipos.py</code>. Las kappas, el π de Scott, el
+            promedio por anotador y el alpha dejando a cada quien fuera se recalculan ahí.</span>
+          </li>
+          <li>
+            <span class="obra">Presentaciones relacionadas.</span>
+            <span class="nota">«El alpha de Krippendorff» explica el D<sub>o</sub>/D<sub>e</sub>
+            y el corpus del D-Lab. «El alpha de tu equipo, y Jev» es el ejercicio del que salen
+            estos datos. «Una pregunta, cinco pedazos» es su versión corta.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="data:image/jpeg;base64,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gFBlckTXQe4XHBXJE0mDgB5LOD4Lkizpew+/UIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIURAahqDRendQvjkudvbLIwANkDixwHhzNIJC2OkpYqSnhp4YhHFEwNY0dGhowAPgu4iy5TaUXJtLsvYwopPaXUwFlEWDIREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREB//Z" alt="Tecnológico de Monterrey">
+    <span class="texto">
+      <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+    </span>
+  </footer>
+
+</main>
+</body>
+</html>

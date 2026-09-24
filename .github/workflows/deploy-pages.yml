@@ -122,6 +122,10 @@ jobs:
                   <a class="card" href="presentaciones/03_joins.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>JOINs: cruzar tablas sin arruinar los números</h3><p>JOIN/ON, fan-out, INNER contra LEFT, COALESCE y anti-join</p></a>
                   <a class="card" href="03_joins/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>03 — JOINs</h3><p>Cruzar tablas por su llave sin multiplicar filas por accidente</p></a>
                   <a class="card" href="presentaciones/04_alpha_krippendorff.html"><span class="badge badge-metodo">MÉTODO</span><h3>El alpha de Krippendorff</h3><p>Cómo se mide si las etiquetas son confiables, y por qué el porcentaje de acuerdo miente</p></a>
+                  <a class="card" href="presentaciones/08_kappa_contra_jev.html"><span class="badge badge-metodo">MÉTODO</span><h3>Tú contra otro, y tú contra Jev</h3><p>La kappa calculada dos veces: humano contra humano y humano contra modelo, con el script en R</p></a>
+                  <a class="card" href="presentaciones/07_kappa_cohen.html"><span class="badge badge-metodo">MÉTODO</span><h3>La kappa de Cohen</h3><p>El coeficiente paso a paso, sus tres muros, en qué se separa del alpha y por qué al final casi da lo mismo</p></a>
+                  <a class="card" href="presentaciones/06_ejercicio_una_pregunta.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Una pregunta, cinco pedazos</h3><p>Versión corta: por qué una sola unidad no da alpha, segmentar la pregunta y medir el desacuerdo que la unanimidad escondía</p></a>
+                  <a class="card" href="presentaciones/05_ejercicio_alpha_jev.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>El alpha de tu equipo, y Jev</h3><p>Versión larga: diez preguntas, dos rondas, el alpha a mano y la comparación contra Jev</p></a>
                   <a class="card" href="ejercicio_01/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Ejercicio 01 — SQL</h3><p>7 preguntas para practicar SQL</p></a>
               </div>
           </body>

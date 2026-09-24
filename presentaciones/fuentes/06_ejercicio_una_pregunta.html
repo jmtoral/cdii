@@ -1,0 +1,1233 @@
+<title>Una pregunta, cinco pedazos — Manuel Toral</title>
+
+<style>
+  /*
+    Neobrutalismo en azul y blanco del Tec: bordes negros gruesos, sombras duras
+    sin difuminar, bloques de color plano, tipografía pesada. Sin degradados,
+    sin esquinas redondeadas, sin sutilezas.
+  */
+  :root {
+    --papel:   #ffffff;
+    --hueso:   #eef2ff;
+    --azul:    #0432a1;
+    --azul-2:  #4a7ae8;
+    --negro:   #0b0b0b;
+    --gris:    #565b6b;
+
+    --borde: 3px solid var(--negro);
+    --sombra: 8px 8px 0 var(--negro);
+    --sombra-chica: 5px 5px 0 var(--negro);
+
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+    --paso: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  /* Se queda en claro en los dos temas: es material para proyectar y el
+     neobrutalismo depende del contraste negro sobre blanco. En preferencia
+     oscura solo bajamos el brillo del papel. */
+  @media (prefers-color-scheme: dark) {
+    :root { --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e; }
+  }
+  :root[data-theme="dark"] {
+    --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e;
+  }
+  :root[data-theme="light"] {
+    --papel: #ffffff; --hueso: #eef2ff; --negro: #0b0b0b; --gris: #565b6b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--negro);
+    font-family: var(--display);
+    font-size: clamp(15px, 0.85rem + 0.35vw, 18px);
+    line-height: 1.55;
+  }
+
+  .deck { max-width: 1160px; margin: 0 auto; padding: 0 var(--paso) 4rem; }
+
+  .lamina { padding: clamp(2.5rem, 5vw, 4.5rem) 0; display: grid; gap: clamp(1.1rem, 2.2vw, 1.8rem); }
+
+  /* ---------- Cinta de sección ---------- */
+  .cinta { display: flex; align-items: stretch; gap: 0; }
+  .cinta .num {
+    background: var(--azul); color: #fff; border: var(--borde); border-right: 0;
+    font-family: var(--mono); font-weight: 700; font-size: 1rem;
+    padding: 0.35rem 0.8rem; font-variant-numeric: tabular-nums;
+  }
+  .cinta .rot {
+    background: var(--papel); border: var(--borde);
+    font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.35rem 1rem; display: flex; align-items: center;
+    box-shadow: var(--sombra-chica);
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.03em; }
+  h2 { font-size: clamp(1.8rem, 1rem + 3.4vw, 3.4rem); line-height: 1.02; }
+  h3 { font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.3rem); letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 62ch; }
+  .sumario { font-size: 1.1em; max-width: 56ch; }
+  strong { color: var(--azul); }
+  code { font-family: var(--mono); font-size: 0.94em; background: var(--hueso); padding: 0.1em 0.3em; border: 1px solid var(--negro); }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 90vh; align-content: center; }
+  .marca-caja {
+    border: var(--borde); background: #fff; box-shadow: var(--sombra);
+    padding: 0.9rem 1.2rem; width: fit-content;
+  }
+  .marca-caja img { display: block; width: clamp(180px, 24vw, 250px); height: auto; }
+  .portada .kicker {
+    background: var(--negro); color: #fff; width: fit-content;
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 0.4rem 0.9rem;
+  }
+  .portada h1 {
+    font-size: clamp(2.6rem, 1rem + 8vw, 6.5rem);
+    line-height: 0.92; letter-spacing: -0.05em;
+  }
+  .portada h1 em { font-style: normal; color: var(--azul); }
+  .firma {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.1rem 1.3rem; width: fit-content;
+    font-family: var(--mono); font-size: 0.88rem; display: grid; gap: 0.1rem;
+  }
+  .firma b { font-size: 1rem; }
+
+  /* ---------- Bloques ---------- */
+  .bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.4rem; }
+  .bloque {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; display: grid; gap: 0.5rem; align-content: start;
+  }
+  .bloque .clave {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.2em 0.5em;
+  }
+  .bloque p { font-size: 0.95em; }
+  .bloque.relleno { background: var(--hueso); }
+  .bloque.invertido { background: var(--negro); color: #fff; }
+  .bloque.invertido .clave { background: #fff; color: var(--negro); }
+  .bloque.invertido strong { color: var(--azul-2); }
+
+  /* ---------- El golpe: dos cifras enfrentadas ---------- */
+  .duelo { display: grid; grid-template-columns: 1fr; gap: 1.4rem; align-items: stretch; }
+  @media (min-width: 780px) { .duelo { grid-template-columns: 1fr 1fr; } }
+  .duelo > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.5rem;
+    display: grid; gap: 0.4rem; align-content: center;
+  }
+  .duelo .rotulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .duelo .cifra {
+    font-size: clamp(3rem, 1rem + 9vw, 6rem); font-weight: 800;
+    line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+  }
+  .duelo .nota { font-size: 0.95em; }
+  .enganoso { background: var(--papel); }
+  .enganoso .cifra { color: var(--negro); }
+  .real { background: var(--azul); color: #fff; }
+  .real .cifra { color: #fff; }
+
+  /* ---------- Fórmula ---------- */
+  .formula {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.8rem 1.4rem; display: grid; gap: 1rem; justify-items: center; text-align: center;
+  }
+  .formula .expr {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(1.4rem, 0.8rem + 3vw, 2.6rem); letter-spacing: -0.02em;
+  }
+  .formula .expr .op { color: var(--azul); }
+  .formula .glosa { font-size: 0.95em; max-width: 54ch; }
+
+  /* ---------- Escala de umbrales ---------- */
+  .escala { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .banda {
+    display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 1.2rem;
+    padding: 1rem 1.2rem; border-bottom: var(--borde); align-items: baseline;
+  }
+  .banda:last-child { border-bottom: 0; }
+  .banda .rango {
+    font-family: var(--mono); font-weight: 800;
+    font-size: clamp(1rem, 0.8rem + 0.7vw, 1.35rem); font-variant-numeric: tabular-nums;
+  }
+  .banda .que { font-weight: 700; }
+  .banda .detalle { grid-column: 2; font-size: 0.94em; }
+  .banda.fiable { background: var(--azul); color: #fff; }
+  .banda.tentativa { background: var(--hueso); }
+  .banda.descartar { background: var(--negro); color: #fff; }
+  .banda.descartar .detalle { color: #c9cede; }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: var(--borde); box-shadow: var(--sombra); background: var(--papel); }
+  table { border-collapse: collapse; width: 100%; min-width: 540px; font-size: 0.95em; }
+  th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid var(--negro); }
+  th {
+    background: var(--negro); color: #fff; font-family: var(--mono);
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  td { font-family: var(--mono); }
+  td.a { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.si  td.a { color: var(--azul); }
+  tr.no  td { background: var(--negro); color: #fff; }
+  .veredicto { font-family: var(--display); font-weight: 700; font-size: 0.88em; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: var(--borde); background: var(--negro); color: #fff;
+    box-shadow: var(--sombra); padding: 1.3rem 1.4rem; display: grid; gap: 0.5rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--azul-2);
+  }
+  .aviso p { max-width: 68ch; }
+  .aviso strong { color: var(--azul-2); }
+  .aviso code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+
+  /* ---------- Figura ---------- */
+  figure { margin: 0; display: grid; gap: 0.8rem; }
+  .lienzo { overflow-x: auto; border: var(--borde); background: var(--papel); box-shadow: var(--sombra); padding: 1.2rem; }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 620px; margin: 0 auto; }
+  figcaption { font-size: 0.9em; max-width: 62ch; }
+
+
+  /* ---------- Ficha de un comentario y su distribucion de juicios ---------- */
+  .comentario {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.3rem 1.4rem; display: grid; gap: 0.6rem;
+  }
+  .comentario .meta {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--azul);
+  }
+  .comentario blockquote {
+    margin: 0; font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.5rem);
+    font-weight: 700; line-height: 1.35; border-left: 6px solid var(--azul); padding-left: 1rem;
+  }
+  .comentario .pie-meta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
+
+  /* Variante para citas de varios parrafos: baja el cuerpo para que no grite */
+  .comentario.larga blockquote {
+    font-size: clamp(0.95rem, 0.85rem + 0.35vw, 1.12rem);
+    font-weight: 600; display: grid; gap: 0.65rem;
+  }
+  .comentario.larga blockquote p { margin: 0; max-width: 68ch; }
+
+  .encuesta { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .item {
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem;
+    padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--negro); align-items: start;
+  }
+  .item:last-child { border-bottom: 0; }
+  .item .n {
+    background: var(--negro); color: #fff; font-family: var(--mono); font-weight: 700;
+    font-size: 0.8rem; text-align: center; padding: 0.2em 0; font-variant-numeric: tabular-nums;
+  }
+  .item .campo { font-family: var(--mono); font-weight: 700; color: var(--azul); font-size: 0.88rem; }
+  .item .pregunta { grid-column: 2; font-size: 0.95em; }
+  .item .opciones {
+    grid-column: 2; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
+    margin-top: 0.2rem;
+  }
+  .item.ternario { background: var(--hueso); }
+
+  .barras { display: grid; gap: 0.45rem; }
+  .barra { display: grid; grid-template-columns: 9rem 1fr 4rem; gap: 0.8rem; align-items: center; }
+  .barra .et { font-family: var(--mono); font-size: 0.8rem; }
+  .barra .riel {
+    display: block; border: 2px solid var(--negro); height: 1.6rem; background: #fff;
+  }
+  .barra .llena { display: block; height: 100%; background: var(--azul); }
+  .barra .llena.tenue { background: var(--azul-2); }
+  .barra .val {
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Bibliografía ---------- */
+  .biblio { display: grid; gap: 1.4rem; }
+  .biblio .grupo {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 1.1rem 1.3rem; display: grid; gap: 0.7rem;
+  }
+  .biblio h3 {
+    font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--azul);
+  }
+  .biblio ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.8rem; }
+  .biblio li { font-size: 0.94em; line-height: 1.55; max-width: 74ch; }
+  .biblio .obra { font-style: italic; }
+  .biblio .nota { display: block; color: var(--gris); font-size: 0.92em; margin-top: 0.15rem; }
+
+  /* ---------- Pie ---------- */
+  .pie {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    margin-top: 2rem; padding: 1.2rem 1.4rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .pie img { width: 130px; height: auto; display: block; }
+  .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
+
+  a { color: var(--azul); font-weight: 600; text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  /* ═══════ Añadidos de esta lámina ═══════ */
+
+  /* ---------- Pasos numerados del cálculo ---------- */
+  .pasos { display: grid; gap: 1.3rem; }
+  .paso {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem;
+    display: grid; grid-template-columns: 3rem 1fr; gap: 0.6rem 1.1rem; align-items: center;
+  }
+  .paso > .n {
+    background: var(--azul); color: #fff; border: var(--borde);
+    font-family: var(--mono); font-weight: 800; font-size: 1.1rem;
+    text-align: center; padding: 0.3rem 0; align-self: start;
+    font-variant-numeric: tabular-nums;
+  }
+  .paso .cuerpo { grid-column: 2; display: grid; gap: 0.8rem; }
+  .paso.final { background: var(--hueso); }
+
+  /* ---------- Aritmética en bloque ---------- */
+  .cuenta {
+    border: var(--borde); background: var(--hueso); padding: 1rem 1.1rem;
+    font-family: var(--mono); font-size: 0.88rem; line-height: 1.7;
+    display: grid; gap: 0.15rem; overflow-x: auto; font-variant-numeric: tabular-nums;
+  }
+  .cuenta .l { white-space: pre; }
+  .cuenta .l.sep { border-top: 2px solid var(--negro); margin-top: 0.4rem; padding-top: 0.5rem; }
+  .cuenta .res { font-weight: 800; color: var(--azul); font-size: 1.15em; }
+  .cuenta .ac { color: var(--gris); }
+
+  /* ---------- Código ---------- */
+  pre.codigo {
+    margin: 0; border: var(--borde); background: var(--negro); color: #e8ecf7;
+    box-shadow: var(--sombra); padding: 1.1rem 1.2rem; overflow-x: auto;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.55;
+  }
+  pre.codigo .c { color: #949cb4; }
+  pre.codigo .s { color: #ffd479; }
+  pre.codigo .k { color: #7fb8ff; font-weight: 700; }
+  .archivo {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.25em 0.7em;
+  }
+
+  /* ---------- Tabla de etiquetas ---------- */
+  table.etiquetas td.e { text-align: center; font-weight: 800; width: 3.2rem; }
+  table.etiquetas td.e.A { background: var(--azul); color: #fff; }
+  table.etiquetas td.e.C { background: var(--negro); color: #fff; }
+  table.etiquetas td.e.N { background: var(--hueso); color: var(--negro); }
+  table.etiquetas td.tema { font-family: var(--display); font-weight: 600; }
+  table.etiquetas td.cuentas { text-align: right; font-variant-numeric: tabular-nums; }
+  .leyenda {
+    display: flex; flex-wrap: wrap; gap: 0.6rem; font-family: var(--mono); font-size: 0.78rem;
+  }
+  .leyenda span { border: 2px solid var(--negro); padding: 0.2em 0.6em; font-weight: 700; }
+  .leyenda .A { background: var(--azul); color: #fff; }
+  .leyenda .C { background: var(--negro); color: #fff; }
+  .leyenda .N { background: var(--hueso); }
+
+  /* ---------- Matriz cuadrada ---------- */
+  table.matriz th.lado {
+    background: var(--papel); color: var(--negro);
+    text-transform: none; letter-spacing: 0; font-size: 0.85rem; font-weight: 800;
+  }
+  table.matriz td { text-align: right; font-variant-numeric: tabular-nums; }
+  table.matriz td.diag { background: var(--hueso); font-weight: 800; }
+  table.matriz td.foco { background: var(--azul); color: #fff; font-weight: 800; }
+
+  /* ---------- Dos lecturas enfrentadas ---------- */
+  .contraste { display: grid; gap: 1.4rem; }
+  @media (min-width: 820px) { .contraste { grid-template-columns: 1fr 1fr; } }
+  .contraste > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.3rem 1.4rem;
+    display: grid; gap: 0.7rem; align-content: start;
+  }
+  .contraste .marbete {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; width: fit-content;
+    padding: 0.2em 0.6em; border: 2px solid var(--negro);
+  }
+  .contraste > div.claro { background: var(--papel); }
+  .contraste > div.claro .marbete { background: var(--azul); color: #fff; }
+  .contraste > div.oscuro { background: var(--negro); color: #fff; }
+  .contraste > div.oscuro .marbete { background: #fff; color: var(--negro); }
+  .contraste > div.oscuro strong { color: var(--azul-2); }
+  .contraste > div.oscuro code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+  .contraste h3 { font-size: 1.2rem; }
+  .contraste p { font-size: 0.96em; max-width: none; }
+
+  /* ---------- Listas ---------- */
+  .lista { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; }
+  .lista li { max-width: 64ch; }
+  .lista li::marker { font-weight: 800; color: var(--azul); }
+
+  /* ---------- Casilla para llenar ---------- */
+  .blanco {
+    display: inline-block; min-width: 4.5rem; border-bottom: 3px solid var(--azul);
+    font-family: var(--mono); color: var(--gris); text-align: center;
+  }
+
+  /* ---------- Segmentos de una pregunta ---------- */
+  .segmentos { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .seg {
+    display: grid; grid-template-columns: 3.4rem 1fr; gap: 0.3rem 1rem;
+    padding: 1rem 1.1rem; border-bottom: 2px solid var(--negro); align-items: start;
+  }
+  .seg:last-child { border-bottom: 0; }
+  .seg .id {
+    background: var(--azul); color: #fff; border: 2px solid var(--negro);
+    font-family: var(--mono); font-weight: 800; font-size: 0.82rem;
+    text-align: center; padding: 0.25em 0;
+  }
+  .seg .txt { font-size: 0.97em; }
+  .seg .rol {
+    grid-column: 2; font-family: var(--mono); font-size: 0.74rem;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--azul);
+  }
+  .seg.gris { background: var(--hueso); }
+  .seg.gris .id { background: var(--negro); }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="lamina portada">
+    <div class="marca-caja"><img src="__LOGO__" alt="Tecnológico de Monterrey"></div>
+    <span class="kicker">Ejercicio en equipo · versión corta</span>
+    <h1>Una pregunta,<br><em>cinco pedazos</em></h1>
+    <p class="sumario">
+      Los cinco integrantes coinciden al <strong>100%</strong> en que la pregunta es afín.
+      Y de ahí no sale ningún alpha. El ejercicio es entender por qué, partirla, y volver a
+      medir.
+    </p>
+    <div class="firma">
+      <b>Manuel Toral</b>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Escuela de Ingeniería y Ciencias</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 — EL ENCARGO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">01</span><span class="rot">El encargo</span></div>
+    <h2>Una sola pregunta,<br>una sola sesión</h2>
+    <p class="sumario">
+      Versión corta del ejercicio de etiquetado: en vez de diez preguntas, <strong>una sola</strong>
+      — la de la lámina 08 de la presentación anterior. Cinco integrantes por equipo, unos
+      60 minutos, y el mismo cálculo a mano.
+    </p>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Paso 0 · 5 min</span>
+        <p>Los cinco etiquetan la pregunta <strong>entera</strong>: afín, crítica o neutral.
+        En silencio, en un papelito, sin enseñarlo.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Ronda 1 · 15 min</span>
+        <p>La pregunta llega <strong>partida en cinco fragmentos</strong>. Cada quien etiqueta
+        los cinco, por separado y sin consultarse.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Cálculo · 20 min</span>
+        <p>El alpha a mano, siete pasos. Son <strong>25 etiquetas</strong>: cabe en media hoja
+        y en una calculadora de teléfono.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">Ronda 2 + Jev · 20 min</span>
+        <p>Escriben la rúbrica, vuelven a etiquetar, recalculan, y corren
+        <code>script_prueba.R</code> sobre esta misma pregunta.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La regla de siempre</span>
+      <p>
+        En el paso 0 y en la ronda 1 <strong>nadie habla</strong>. Si se ponen de acuerdo
+        antes, van a medir su conversación y no su instrumento, y el ejercicio no sirve de
+        nada. Tampoco corrijan nada después de ver las etiquetas de los demás.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 — LA PREGUNTA ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">02</span><span class="rot">Paso 0</span></div>
+    <h2>La pregunta,<br>entera</h2>
+    <p class="sumario">
+      Versión estenográfica de una pregunta real de la conferencia matutina. Léela completa y
+      etiquétala: <strong>afín, crítica o neutral</strong>. Sin más manual que eso.
+    </p>
+
+    <div class="comentario larga">
+      <span class="meta">Pregunta real · conferencia matutina · versión estenográfica</span>
+      <blockquote>
+        <p>«Y, Presidenta, a 2 días ya de terminar el mes de mayo, el promedio de los
+        homicidios diarios continúa la tendencia del mes anterior, es decir, está por debajo
+        de los 60 homicidios al día. La tendencia a la baja en estas cifras es ya una
+        constante en los últimos meses y significa un avance muy importante en materia de
+        seguridad.</p>
+        <p>Después de años de violencia por la guerra emprendida por Felipe Calderón,
+        Presidenta, ¿podemos pensar ya que con las claras tendencias de disminución de los
+        homicidios estamos entrando en una nueva etapa donde pronto tendremos un país sin la
+        violencia heredada por los gobiernos del PRIAN?»</p>
+      </blockquote>
+      <span class="pie-meta">una etiqueta · cinco personas</span>
+    </div>
+
+    <div class="duelo">
+      <div class="real">
+        <span class="rotulo">Lo que pasa siempre</span>
+        <span class="cifra">5/5</span>
+        <span class="nota">Los cinco marcan <strong>afín</strong>. Acuerdo crudo del 100%.
+        Nadie duda, nadie discute.</span>
+      </div>
+      <div class="enganoso">
+        <span class="rotulo">El alpha de eso</span>
+        <span class="cifra">—</span>
+        <span class="nota">No existe. No «salió bajo»: <strong>no se puede calcular</strong>.
+        Y esa es la primera lección del ejercicio.</span>
+      </div>
+    </div>
+
+    <p>
+      Antes de seguir, apuesten: <strong>¿de qué parte de la pregunta viene ese acuerdo?</strong>
+      Cada quien subraya la frase que, en su opinión, es la que la vuelve afín. Guarden los
+      papeles.
+    </p>
+  </section>
+
+  <!-- ═══════════ 03 — POR QUÉ NO EXISTE ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">03</span><span class="rot">El problema</span></div>
+    <h2>Con una sola unidad,<br>el alpha es cero</h2>
+    <p class="sumario">
+      No es una limitación práctica ni un problema de muestra pequeña. Es
+      <strong>aritmética</strong>, y se ve en tres renglones.
+    </p>
+
+    <div class="formula">
+      <span class="expr">α <span class="op">=</span> 1 <span class="op">−</span> D<sub>o</sub> / D<sub>e</sub></span>
+      <p class="glosa">
+        D<sub>e</sub> es el desacuerdo que habría al azar <strong>dado lo comunes que son las
+        categorías en tu corpus</strong>. Si tu corpus es una sola unidad, «lo común en el
+        corpus» y «lo que pasó en esa unidad» <em>son la misma cosa</em>.
+      </p>
+    </div>
+
+    <div class="cuenta">
+      <span class="l ac">una unidad, m = 5 anotadores, así que n = 5</span>
+      <span class="l"></span>
+      <span class="l">Do  =  Σ n<sub>c</sub>(5 − n<sub>c</sub>)  /  [ (m−1) · n ]   =   Σ n<sub>c</sub>(5 − n<sub>c</sub>)  /  20</span>
+      <span class="l">De  =  Σ n<sub>c</sub>(n − n<sub>c</sub>)  /  [ n(n−1) ]     =   Σ n<sub>c</sub>(5 − n<sub>c</sub>)  /  20</span>
+      <span class="l sep ac">el mismo numerador y el mismo denominador</span>
+      <span class="l res">Do = De  →  α = 0, siempre</span>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Si discrepan 4–1</span>
+        <p>D<sub>o</sub> = 0.40 y D<sub>e</sub> = 0.40. <strong>α = 0</strong>.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Si discrepan 2–2–1</span>
+        <p>D<sub>o</sub> = 0.80 y D<sub>e</sub> = 0.80. <strong>α = 0</strong> otra vez.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">Si coinciden 5–0</span>
+        <p>D<sub>o</sub> = 0 y D<sub>e</sub> = <strong>0</strong>. El alpha es
+        <strong>0/0: indefinido</strong>. No es 1. Ojo con esto, porque es el caso que más
+        engaña.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">La intuición, sin fórmulas</span>
+      <p>
+        El alpha no mide si coincidieron: mide <strong>si coincidieron más de lo que el azar
+        explicaría</strong>. Y el azar se calcula con la mezcla de categorías que hay en tu
+        corpus. Con una sola unidad, la mezcla del corpus <em>es</em> lo que hizo esa unidad,
+        así que el azar predice exactamente lo que observaste y no sobra nada que atribuirle
+        al criterio.
+      </p>
+      <p>
+        <strong>El alpha necesita variación entre unidades.</strong> Sin ella no hay contra
+        qué comparar. Por eso el resto del ejercicio existe.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 — LA SEGMENTACIÓN ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span class="rot">La salida</span></div>
+    <h2>Partir la pregunta<br>en sus movimientos</h2>
+    <p class="sumario">
+      Si una pregunta no da unidades, las unidades tienen que salir <strong>de adentro</strong>.
+      Es la misma descomposición de la lámina 08 de la presentación anterior, con el tercer
+      movimiento partido en sus dos mitades.
+    </p>
+
+    <div class="segmentos">
+      <div class="seg">
+        <span class="id">S1</span>
+        <span class="txt">«a 2 días ya de terminar el mes de mayo, el promedio de los homicidios
+        diarios continúa la tendencia del mes anterior, es decir, está por debajo de los 60
+        homicidios al día»</span>
+        <span class="rol">reporta un dato · verificable</span>
+      </div>
+      <div class="seg gris">
+        <span class="id">S2</span>
+        <span class="txt">«La tendencia a la baja en estas cifras es ya una constante en los
+        últimos meses y significa un avance muy importante en materia de seguridad»</span>
+        <span class="rol">lo evalúa · deja de describir y califica</span>
+      </div>
+      <div class="seg">
+        <span class="id">S3</span>
+        <span class="txt">«Después de años de violencia por la guerra emprendida por Felipe
+        Calderón…»</span>
+        <span class="rol">reparte la culpa · hostil, pero hacia la oposición</span>
+      </div>
+      <div class="seg gris">
+        <span class="id">S4</span>
+        <span class="txt">«¿podemos pensar ya que con las claras tendencias de disminución de
+        los homicidios estamos entrando en una nueva etapa donde pronto tendremos un país sin
+        la violencia…?»</span>
+        <span class="rol">regala la conclusión · pide que le confirmen lo que ya afirmó</span>
+      </div>
+      <div class="seg">
+        <span class="id">S5</span>
+        <span class="txt">«…heredada por los gobiernos del PRIAN»</span>
+        <span class="rol">reparte la culpa, otra vez · ahora a un partido</span>
+      </div>
+    </div>
+
+    <p>
+      Cinco fragmentos, <strong>la misma escala de tres categorías</strong>, los mismos cinco
+      anotadores. Ahora sí hay cinco unidades que pueden diferir entre sí, y por lo tanto hay
+      un alpha que calcular.
+    </p>
+
+    <h3>La matriz del equipo de ejemplo, ronda 1</h3>
+
+    <div class="leyenda">
+      <span class="A">A = afín</span>
+      <span class="C">C = crítica</span>
+      <span class="N">N = neutral</span>
+      <span>5 anotadores × 5 fragmentos = 25 etiquetas</span>
+    </div>
+
+    <div class="tabla-envoltura">
+      <table class="etiquetas">
+        <thead>
+          <tr><th>#</th><th>A1</th><th>A2</th><th>A3</th><th>A4</th><th>A5</th><th>A / C / N</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>S1</td><td class="e N">N</td><td class="e N">N</td><td class="e A">A</td><td class="e N">N</td><td class="e A">A</td><td class="cuentas">2 / 0 / 3</td></tr>
+          <tr><td>S2</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="cuentas">5 / 0 / 0</td></tr>
+          <tr><td>S3</td><td class="e A">A</td><td class="e A">A</td><td class="e C">C</td><td class="e A">A</td><td class="e N">N</td><td class="cuentas">3 / 1 / 1</td></tr>
+          <tr><td>S4</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e N">N</td><td class="e A">A</td><td class="cuentas">4 / 0 / 1</td></tr>
+          <tr><td>S5</td><td class="e A">A</td><td class="e C">C</td><td class="e A">A</td><td class="e A">A</td><td class="e N">N</td><td class="cuentas">3 / 1 / 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Miren lo que acaba de pasar</span>
+      <p>
+        La pregunta entera tuvo <strong>acuerdo perfecto</strong>. Sus pedazos tienen acuerdo
+        en <strong>uno solo de cinco</strong> (S2, la evaluación explícita). La unanimidad del
+        paso 0 no venía de que los cinco leyeran la pregunta igual: venía de que
+        <strong>S2 es tan obvia que arrastró al resto</strong>.
+      </p>
+      <p>
+        Comparen con los papelitos del paso 0: casi seguro que no todos subrayaron la misma
+        frase, aunque todos pusieran la misma etiqueta.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 05 — EL CÁLCULO ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span class="rot">Paso a paso</span></div>
+    <h2>El alpha a mano,<br>en siete pasos</h2>
+    <p class="sumario">
+      Con 5 anotadores y ninguna casilla vacía: <strong>m = 5</strong> en las cinco unidades,
+      <strong>n = 25</strong> etiquetas en total.
+    </p>
+
+    <div class="pasos">
+
+      <div class="paso">
+        <span class="n">1</span>
+        <h3>Cuenta los votos de cada categoría, fragmento por fragmento</h3>
+        <div class="cuerpo">
+          <p>
+            Es la columna <code>A / C / N</code> de la lámina anterior. De aquí en adelante
+            <strong>quién dijo qué ya no importa</strong>: al alpha solo le importa cuántos
+            coincidieron. A ese conteo le decimos <code>n<sub>uc</sub></code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">2</span>
+        <h3>Convierte cada fragmento en su cantidad de desacuerdo</h3>
+        <div class="cuerpo">
+          <p>
+            Para cada uno: <strong>Σ n<sub>uc</sub> · (5 − n<sub>uc</sub>)</strong>, dividido
+            entre <strong>m − 1 = 4</strong>. Cuenta los pares que <em>no</em> coinciden.
+          </p>
+          <div class="cuenta">
+            <span class="l">S1   2/0/3    2·3 + 0·5 + 3·2  = 12     12/4 = <b>3.0</b></span>
+            <span class="l">S2   5/0/0    5·0 + 0·5 + 0·5  =  0      0/4 = <b>0.0</b></span>
+            <span class="l">S3   3/1/1    3·2 + 1·4 + 1·4  = 14     14/4 = <b>3.5</b></span>
+            <span class="l">S4   4/0/1    4·1 + 0·5 + 1·4  =  8      8/4 = <b>2.0</b></span>
+            <span class="l">S5   3/1/1    3·2 + 1·4 + 1·4  = 14     14/4 = <b>3.5</b></span>
+            <span class="l sep">suma de la última columna                  <b>12.0</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">3</span>
+        <h3>Divide entre el total de etiquetas: D<sub>o</sub></h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l ac">n = 5 fragmentos × 5 anotadores</span>
+            <span class="l">n  =  25</span>
+            <span class="l sep">Do = 12.0 / 25</span>
+            <span class="l res">Do = 0.480</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">4</span>
+        <h3>Suma las columnas: los marginales</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">afín      2 + 5 + 3 + 4 + 3   =  <b>17</b></span>
+            <span class="l">crítica   0 + 0 + 1 + 0 + 1   =   <b>2</b></span>
+            <span class="l">neutral   3 + 0 + 1 + 1 + 1   =   <b>6</b></span>
+            <span class="l sep ac">comprobación: 17 + 2 + 6 = 25 = n ✔</span>
+          </div>
+          <p>
+            Si esto no cuadra, párate aquí: hay un error de transcripción y todo lo demás va a
+            salir mal.
+          </p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">5</span>
+        <h3>Con los marginales, el desacuerdo esperado por azar</h3>
+        <div class="cuerpo">
+          <p>
+            <strong>D<sub>e</sub> = Σ n<sub>c</sub>(n − n<sub>c</sub>) / n(n−1)</strong>.
+            El mismo cálculo del paso 2, pero sobre la bolsa completa de 25 etiquetas.
+          </p>
+          <div class="cuenta">
+            <span class="l">afín      17 · (25 − 17)  =  17 · 8   =  136</span>
+            <span class="l">crítica    2 · (25 −  2)  =   2 · 23  =   46</span>
+            <span class="l">neutral    6 · (25 −  6)  =   6 · 19  =  114</span>
+            <span class="l sep">suma  =  296        n(n−1)  =  25 · 24  =  600</span>
+            <span class="l">De  =  296 / 600</span>
+            <span class="l res">De = 0.4933</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <span class="n">6</span>
+        <h3>La resta</h3>
+        <div class="cuerpo">
+          <div class="cuenta">
+            <span class="l">α  =  1 − 0.480 / 0.4933  =  1 − 0.973</span>
+            <span class="l res">α = 0.027</span>
+          </div>
+          <div class="duelo">
+            <div class="enganoso">
+              <span class="rotulo">Acuerdo crudo</span>
+              <span class="cifra">52%</span>
+              <span class="nota">26 de los 50 pares coinciden. Suena a moneda al aire, pero a
+              algo.</span>
+            </div>
+            <div class="real">
+              <span class="rotulo">Alpha</span>
+              <span class="cifra">0.027</span>
+              <span class="nota">Indistinguible de tirar los dados. Con 17 de 25 etiquetas en
+              «afín», el azar solo ya produce <strong>51%</strong> de acuerdo.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso final">
+        <span class="n">7</span>
+        <h3>¿Dónde está el desacuerdo?</h3>
+        <div class="cuerpo">
+          <p>
+            Reparte los pares de cada fragmento en una matriz: la celda (fila, columna) acumula
+            <strong>n<sub>uc</sub> · n<sub>uk</sub> / (m−1)</strong>. La diagonal son los pares
+            que coinciden; lo de fuera, el desacuerdo.
+          </p>
+          <div class="tabla-envoltura">
+            <table class="matriz">
+              <thead>
+                <tr><th></th><th>afín</th><th>crítica</th><th>neutral</th><th>total</th></tr>
+              </thead>
+              <tbody>
+                <tr><th class="lado">afín</th><td class="diag">11.50</td><td>1.50</td><td class="foco">4.00</td><td>17</td></tr>
+                <tr><th class="lado">crítica</th><td>1.50</td><td class="diag">0.00</td><td>0.50</td><td>2</td></tr>
+                <tr><th class="lado">neutral</th><td class="foco">4.00</td><td>0.50</td><td class="diag">1.50</td><td>6</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cuenta">
+            <span class="l">afín ↔ neutral      2 × 4.00 = 8.0   de 12.0   <b>67%</b> del desacuerdo</span>
+            <span class="l">afín ↔ crítica      2 × 1.50 = 3.0   de 12.0   <b>25%</b></span>
+            <span class="l">crítica ↔ neutral   2 × 0.50 = 1.0   de 12.0   <b> 8%</b></span>
+          </div>
+          <p>
+            Dos diagnósticos, los dos accionables. Uno: <strong>el grueso del desacuerdo es el
+            umbral de «neutral»</strong> — qué hacer con un dato verificable (S1) y con una
+            pregunta que no afirma (S4). Dos: fíjense en la diagonal de «crítica»,
+            <strong>0.00</strong>. Los dos que usaron «crítica» la usaron en fragmentos
+            distintos: <strong>nunca coincidieron entre sí</strong>.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════ 06 — LA RONDA 2 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span class="rot">La ronda 2</span></div>
+    <h2>Escribe la regla<br>y vuelve a medir</h2>
+    <p class="sumario">
+      Con el diagnóstico del paso 7, el equipo escribió dos frases y volvió a etiquetar
+      <strong>los mismos cinco fragmentos</strong>. Nada más cambió.
+    </p>
+
+    <div class="comentario">
+      <span class="meta">La rúbrica que escribieron — dos frases, eso bastó</span>
+      <blockquote>
+        «Un <strong>dato verificable solo</strong> no es afín ni crítico: es neutral, aunque el
+        dato le convenga a alguien. <strong>Atacar a un rival del gobierno es afín</strong>,
+        aunque el tono sea hostil: lo que decide es a quién se le carga la culpa, no qué tan
+        fuerte se dice.»
+      </blockquote>
+      <span class="pie-meta">escrita una vez · aplicada por los cinco</span>
+    </div>
+
+    <div class="tabla-envoltura">
+      <table class="etiquetas">
+        <thead>
+          <tr><th>#</th><th>A1</th><th>A2</th><th>A3</th><th>A4</th><th>A5</th><th>A / C / N</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>S1</td><td class="e N">N</td><td class="e N">N</td><td class="e N">N</td><td class="e N">N</td><td class="e N">N</td><td class="cuentas">0 / 0 / 5</td></tr>
+          <tr><td>S2</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="cuentas">5 / 0 / 0</td></tr>
+          <tr><td>S3</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e N">N</td><td class="cuentas">4 / 0 / 1</td></tr>
+          <tr><td>S4</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="cuentas">5 / 0 / 0</td></tr>
+          <tr><td>S5</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="e A">A</td><td class="cuentas">5 / 0 / 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cuenta">
+      <span class="l ac">mismos siete pasos, datos de la ronda 2</span>
+      <span class="l">paso 2  suma de desacuerdos por unidad        =   2.0</span>
+      <span class="l">paso 3  Do = 2.0 / 25                        =  0.080</span>
+      <span class="l">paso 4  marginales:  afín 19 · crítica 0 · neutral 6</span>
+      <span class="l">paso 5  De = (19·6 + 0·25 + 6·19) / 600  =  228/600  =  0.380</span>
+      <span class="l sep">paso 6  α = 1 − 0.080 / 0.380</span>
+      <span class="l res">α = 0.789</span>
+    </div>
+
+    <div class="duelo">
+      <div class="enganoso">
+        <span class="rotulo">Ronda 1 · instrucción vaga</span>
+        <span class="cifra">0.027</span>
+        <span class="nota">Acuerdo crudo 52%. Indistinguible del azar.</span>
+      </div>
+      <div class="real">
+        <span class="rotulo">Ronda 2 · con rúbrica</span>
+        <span class="cifra">0.789</span>
+        <span class="nota">Acuerdo crudo 92%. Tramo «conclusiones tentativas», casi en 0.800.</span>
+      </div>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Lo que cambió</span>
+        <p>Dos frases. De <strong>0.027 a 0.789</strong> sin tocar el texto ni cambiar a nadie.
+        Casi todo el desacuerdo entre anotadores no es humano: es instruccional.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Lo que queda</span>
+        <p>Todo el desacuerdo restante está en <strong>S3</strong>: el único que siguió
+        leyendo «guerra emprendida por Calderón» como hostilidad y no como reparto de culpa.
+        Un fragmento, una frase más de rúbrica.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">La trampa aritmética</span>
+        <p>«Crítica» <strong>desapareció</strong>: quedaron dos categorías efectivas, D<sub>e</sub>
+        bajó de 0.493 a 0.380, y por eso α se quedó en 0.789 y no en <strong>0.838</strong>.
+        Con menos categorías el azar acierta más, y el alpha te cobra ese crédito gratis.</p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Dos advertencias sobre este número</span>
+      <p>
+        <strong>Cinco unidades son muy pocas.</strong> Con n = 25, un solo anotador que cambie
+        una etiqueta mueve el alpha varias centésimas. Este ejercicio enseña el procedimiento
+        y el diagnóstico; <strong>no produce un alpha reportable</strong>. Para eso hacen falta
+        decenas de unidades — la versión de diez preguntas es el siguiente paso.
+      </p>
+      <p>
+        Y si a su equipo le salió <strong>0/0</strong> —los cinco coincidieron en los cinco
+        fragmentos con una sola categoría— no es acuerdo perfecto: es que
+        <strong>no hay variación que medir</strong>. Segmenten más fino o agreguen una pregunta.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 — JEV ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span class="rot">Jev</span></div>
+    <h2>La misma pregunta,<br>contestada por un modelo</h2>
+    <p class="sumario">
+      Jev es el modelo de <em>System One</em> de TypeSafe: en vez de escribir un párrafo,
+      devuelve <strong>juicios tipados y probabilidades</strong> que el código consume directo.
+      Y hay un script de esta clase construido <strong>alrededor de esta misma pregunta</strong>.
+    </p>
+
+    <span class="archivo">03_machine_learning/prueba_jev/script_prueba.R</span>
+    <p>
+      Recórranlo tal cual, de arriba abajo. Son cinco pasos sobre el mismo texto que acaban de
+      etiquetar:
+    </p>
+
+    <div class="encuesta">
+      <div class="item">
+        <span class="n">1</span><span class="campo">noul, desnudo</span>
+        <span class="pregunta">«¿Esta pregunta favorece al gobierno?», sin criterios. El modelo
+        decide por su cuenta qué cuenta como favorecer.</span>
+        <span class="opciones">devuelve una sola probabilidad · 0.5 = <strong>no se decide</strong>, no «a medias»</span>
+      </div>
+      <div class="item">
+        <span class="n">2</span><span class="campo">noul, con criterios</span>
+        <span class="pregunta">El mismo noul, ahora con <code>yes</code> y <code>no</code>
+        escritos. <strong>Comparen este número contra el del paso 1.</strong></span>
+        <span class="opciones">si casi no se mueve, tus criterios no agregan nada</span>
+      </div>
+      <div class="item ternario">
+        <span class="n">3–5</span><span class="campo">choice y score</span>
+        <span class="pregunta">Hacia dónde carga, y qué tan confrontativa es. Más
+        <code>jev_probabilities()</code>, que da el reparto completo y no solo la ganadora.</span>
+        <span class="opciones">al final, las tres juntas en una sola llamada</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">El paralelo que hay que ver</span>
+      <p>
+        Los campos <code>yes</code> y <code>no</code> de un <code>noul</code>
+        <strong>son la rúbrica de su ronda 2</strong>, escrita en otro lugar. El paso 1 contra
+        el paso 2 de ese script es <em>exactamente</em> su ronda 1 contra su ronda 2: qué tanto
+        se mueve el juicio cuando alguien escribe el criterio en vez de improvisarlo.
+      </p>
+    </div>
+
+    <h3>Y ahora sobre los cinco fragmentos</h3>
+    <p>
+      Peguen esto al final del script. Es la comparación que importa: no si Jev acierta la
+      etiqueta de la pregunta entera —eso lo acierta cualquiera— sino
+      <strong>si se parte donde ustedes se partieron</strong>.
+    </p>
+
+    <pre class="codigo">fragmentos &lt;- <span class="k">c</span>(
+  S1 = <span class="s">"a 2 días de terminar mayo, el promedio de homicidios diarios continúa la ..."</span>,
+  S2 = <span class="s">"La tendencia a la baja es ya una constante y significa un avance muy ..."</span>,
+  S3 = <span class="s">"Después de años de violencia por la guerra emprendida por Felipe Calderón"</span>,
+  S4 = <span class="s">"¿podemos pensar ya que estamos entrando en una nueva etapa donde pronto ...?"</span>,
+  S5 = <span class="s">"heredada por los gobiernos del PRIAN"</span>
+)
+
+<span class="c"># `questions` es el objeto del PASO 5 del script: afin + postura + dureza.</span>
+salida &lt;- <span class="k">tibble</span>(id = <span class="k">names</span>(fragmentos), texto = fragmentos) |&gt;
+  <span class="k">mutate</span>(res = <span class="k">map</span>(texto, \(t) <span class="k">jev_tidy</span>(<span class="k">jev</span>(t, questions)))) |&gt;
+  <span class="k">unnest</span>(res)
+
+<span class="c"># La proporción de humanos que dijo "afin" contra la p(sí) de Jev.</span>
+<span class="c"># Los dos son números en [0,1] que NO son etiquetas: se comparan directo.</span>
+humanos &lt;- <span class="k">c</span>(S1 = 0/5, S2 = 5/5, S3 = 4/5, S4 = 5/5, S5 = 5/5)  <span class="c"># ronda 2</span>
+salida |&gt; <span class="k">mutate</span>(humanos_p_afin = humanos[id], brecha = afin - humanos_p_afin)</pre>
+
+    <div class="aviso">
+      <span class="titulo">Apuesten antes de correrlo</span>
+      <p>
+        Cada quien escribe, sin enseñarlo: <strong>¿en cuál de los cinco fragmentos va a
+        discrepar más Jev del equipo?</strong> Y: ¿en S1, el dato solo, va a salir cerca de
+        0.5 o va a comprarse el encuadre?
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 08 — LAS DOS LECTURAS ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span class="rot">Las dos lecturas</span></div>
+    <h2>Qué hacer con<br>lo que salga</h2>
+    <p class="sumario">
+      Hay dos maneras de leer la comparación, y contestan preguntas distintas. El error caro
+      es usar una cuando hacía falta la otra.
+    </p>
+
+    <div class="contraste">
+      <div class="claro">
+        <span class="marbete">Jev como sexto anotador</span>
+        <h3>«¿Coincide con nosotros?»</h3>
+        <p>
+          Se queda su <code>postura</code>, se tira la confianza, y entra al alpha como uno
+          más: <strong>m = 6</strong>, n = 30, los mismos siete pasos.
+        </p>
+        <p>
+          <strong>Lo que cuesta:</strong> «afín con confianza 0.51» entra tratada igual que
+          «afín con confianza 0.99». El alpha nominal no lee probabilidades, solo etiquetas.
+          Es una decisión de diseño, no un detalle técnico.
+        </p>
+        <p>
+          <strong>Y lo que nunca prueba:</strong> si el alpha sube, Jev se <em>parece</em> al
+          equipo. No que tenga razón. Si el equipo comparte un sesgo, Jev se lo confirma y
+          ustedes creen que validaron algo.
+        </p>
+      </div>
+      <div class="oscuro">
+        <span class="marbete">La lectura perspectivista</span>
+        <h3>«¿De qué se puede discrepar?»</h3>
+        <p>
+          No colapsar nada. El 4–1 de S3 no es ruido que limpiar: <strong>es el dato</strong>.
+          La unidad deja de ser «la etiqueta de S3» y pasa a ser <strong>la distribución de
+          S3</strong>.
+        </p>
+        <p>
+          <strong>El puente:</strong> la proporción de humanos que dijo «afín» y la
+          <code>p(sí)</code> de un <code>noul</code> son la misma clase de objeto — un número
+          en [0,1] que no es una etiqueta. Se comparan sin que nadie se colapse.
+        </p>
+        <p>
+          <strong>La prueba interesante</strong> no es la correlación: es el caso simétrico.
+          Donde los humanos se partieron, un modelo que entendió la ambigüedad debería salir
+          cerca de <strong>0.5</strong>. Si sale en 0.95, coincide con la mayoría pero
+          <strong>no vio la duda</strong>.
+        </p>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Dónde cae Jev exactamente</span>
+      <p>
+        Jev entrega probabilidades, así que <em>parece</em> del lado perspectivista. Pero una
+        probabilidad calibrada y un panel dividido 4–1 <strong>no significan lo mismo</strong>:
+        la primera es la incertidumbre de un juez sobre un juicio; la segunda es el desacuerdo
+        real entre cinco personas. Un modelo puede estar <strong>seguro y equivocado</strong>
+        de una manera en que un panel dividido no puede estarlo.
+      </p>
+      <p>
+        Jev es <em>una</em> perspectiva —o, peor para este propósito, un promedio de
+        perspectivas horneado durante su entrenamiento—, no cinco. Sirve como
+        <strong>un sexto anotador barato, rápido y reproducible</strong>, que no es poco.
+        No sirve como <strong>sustituto del panel</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 09 — ENTREGABLE ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span class="rot">Entregable</span></div>
+    <h2>Qué entrega<br>cada equipo</h2>
+    <p class="sumario">
+      Una página y media. Los cinco nombres arriba.
+    </p>
+
+    <div class="encuesta">
+      <div class="item">
+        <span class="n">1</span><span class="campo">el paso 0</span>
+        <span class="pregunta">Las cinco etiquetas de la pregunta entera y
+        <strong>las cinco frases subrayadas</strong>. Coincidieron en la etiqueta: ¿coincidieron
+        en la razón?</span>
+        <span class="opciones">esa diferencia es medio ejercicio</span>
+      </div>
+      <div class="item">
+        <span class="n">2</span><span class="campo">las dos matrices</span>
+        <span class="pregunta">Las 5×5 de la ronda 1 y de la ronda 2, sin corregir ninguna.</span>
+        <span class="opciones">las etiquetas «malas» de la ronda 1 son el dato</span>
+      </div>
+      <div class="item">
+        <span class="n">3</span><span class="campo">el cálculo a mano</span>
+        <span class="pregunta">Los siete pasos de la ronda 1 con los números intermedios a la
+        vista: los cinco desacuerdos, D<sub>o</sub>, los marginales, D<sub>e</sub>, α.</span>
+        <span class="opciones">foto del papel sirve · el resultado solo, no</span>
+      </div>
+      <div class="item">
+        <span class="n">4</span><span class="campo">el diagnóstico</span>
+        <span class="pregunta">La matriz de coincidencias y <strong>una frase</strong>: qué par
+        de categorías concentra su desacuerdo.</span>
+        <span class="opciones">«el 67% de nuestro desacuerdo es afín↔neutral» · así de concreto</span>
+      </div>
+      <div class="item">
+        <span class="n">5</span><span class="campo">la rúbrica</span>
+        <span class="pregunta">Dos o tres frases. Tiene que poder aplicarla alguien que no
+        estuvo en la discusión.</span>
+        <span class="opciones">es lo que más peso tiene en la calificación</span>
+      </div>
+      <div class="item ternario">
+        <span class="n">6</span><span class="campo">Jev</span>
+        <span class="pregunta">La salida sobre los cinco fragmentos y <strong>medio párrafo</strong>
+        sobre el de mayor brecha: qué ve cada uno que el otro no.</span>
+        <span class="opciones">más los papelitos de la apuesta de la lámina 07</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Cómo se califica</span>
+      <p>
+        <strong>El alpha no se califica.</strong> Con cinco unidades el número es demasiado
+        frágil para calificarlo. Un equipo con 0.10 que diagnosticó bien de dónde venía y
+        escribió una rúbrica que lo arregla vale más que uno con 0.85 que no sabe por qué le
+        salió así.
+      </p>
+      <p>
+        Lo que sí se califica: que el cálculo a mano cuadre, que la rúbrica sea aplicable por
+        un extraño, y que el medio párrafo sobre Jev diga algo más específico que «el modelo se
+        equivocó».
+      </p>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Para verificar su cálculo</span>
+        <p><code>scripts/ejercicio_alpha_equipos.py</code> recalcula estas cifras por dos
+        caminos distintos y verifica que coincidan. Si su número no cuadra con el del papel,
+        <strong>el error casi siempre está en el paso 4</strong>: marginales que no suman n.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">El siguiente paso</span>
+        <p>La versión larga del ejercicio: <strong>diez preguntas completas</strong>, dos
+        rondas y Jev sobre las diez, con
+        <code>03_machine_learning/prueba_jev/ejercicio_alpha.R</code>. Ahí el alpha ya empieza
+        a significar algo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 10 — FUENTES ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">10</span><span class="rot">Fuentes</span></div>
+    <h2>Fuentes</h2>
+
+    <div class="biblio">
+      <div class="grupo">
+        <h3>El coeficiente</h3>
+        <ol>
+          <li>
+            Krippendorff, K. (2004). <span class="obra">Reliability in Content Analysis: Some
+            Common Misconceptions and Recommendations.</span> Human Communication Research,
+            30(3), 411–433.
+            <span class="nota">De aquí salen los cortes 0.667 y 0.800, y la advertencia de que
+            son convenciones sobre cuánto riesgo se acepta, no teoremas.</span>
+          </li>
+          <li>
+            Krippendorff, K. <span class="obra">Content Analysis: An Introduction to Its
+            Methodology.</span> SAGE.
+            <span class="nota">El capítulo de fiabilidad trae la fórmula general y la discusión
+            de la unitización: cómo se decide qué cuenta como unidad antes de etiquetar nada.
+            Es el problema de la lámina 04.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>La otra lectura</h3>
+        <ol>
+          <li>
+            Aroyo, L. y Welty, C. (2015). <span class="obra">Truth Is a Lie: Crowd Truth and
+            the Seven Myths of Human Annotation.</span> AI Magazine, 36(1), 15–24.
+          </li>
+          <li>
+            Plank, B. (2022). <span class="obra">The «Problem» of Human Label Variation: On
+            Ground Truth in Data, Modeling and Evaluation.</span> EMNLP 2022.
+          </li>
+          <li>
+            Basile, V. et al. <span class="obra">Perspectivist Data Manifesto.</span>
+            <a href="https://pdai.info/">pdai.info</a>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Jev y los archivos de esta clase</h3>
+        <ol>
+          <li>
+            <span class="obra">TypeSafe — documentación de System One y de las primitivas.</span>
+            <a href="https://docs.typesafe.ai/">docs.typesafe.ai</a>
+            <span class="nota">Jev devuelve juicios tipados y probabilidades en vez de texto
+            generado. Ahí están las páginas de <code>noul</code>, <code>choice</code>,
+            <code>score</code> y confianza.</span>
+          </li>
+          <li>
+            <span class="obra">JevR — el envoltorio de R.</span>
+            <a href="https://github.com/mountainMath/JevR">github.com/mountainMath/JevR</a>
+            <span class="nota"><code>remotes::install_github("mountainMath/JevR")</code>, y la
+            llave va en <code>.Renviron</code> (<code>usethis::edit_r_environ()</code>).</span>
+          </li>
+          <li>
+            <span class="obra">Los archivos del ejercicio.</span>
+            <span class="nota"><code>script_prueba.R</code> recorre las primitivas sobre esta
+            misma pregunta, paso por paso; <code>ejercicio_alpha.R</code> es la versión larga
+            del ejercicio, con diez preguntas;
+            <code>scripts/ejercicio_alpha_equipos.py</code> recalcula y verifica todas las
+            cifras de estas láminas.</span>
+          </li>
+          <li>
+            <span class="obra">Presentaciones anteriores.</span>
+            <span class="nota">«El alpha de Krippendorff» trae el corpus del D-Lab y la lámina
+            08, de donde sale la descomposición en movimientos de la lámina 04.
+            «El alpha de tu equipo» es la versión de diez preguntas de este ejercicio.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="__LOGO__" alt="Tecnológico de Monterrey">
+    <span class="texto">
+      <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+    </span>
+  </footer>
+
+</main>
