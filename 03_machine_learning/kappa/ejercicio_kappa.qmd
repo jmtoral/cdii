@@ -1,0 +1,470 @@
+---
+title: "Kappa de Cohen, y un modelo que etiqueta"
+subtitle: "Ciencia de Datos para la Toma de Decisiones II · Gpo 651"
+author: "Manuel Toral"
+lang: es
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    df-print: tibble
+execute:
+  warning: false
+  message: false
+---
+
+Este notebook tiene dos mitades. En la primera rehaces con código lo que hiciste a
+mano en la hoja: la kappa de tu pareja, la de todo el grupo, y qué etiqueta se queda
+cuando no hay acuerdo. En la segunda entrenas un modelo que etiqueta preguntas de la
+mañanera, y lo pones a competir contra ti con la misma kappa.
+
+Solo se usan **tidyverse** y **tidymodels**. Si te falta alguno:
+`install.packages(c("tidyverse", "tidymodels"))`.
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+```
+
+# 1. Las etiquetas del grupo
+
+La hoja de Google es la fuente. Se lee la pestaña `etiquetas` como CSV: una fila por
+juicio, con `anotador`, `pregunta` y `etiqueta`. Ese es el **formato largo**, y todo lo
+que sigue trabaja sobre él.
+
+```{r}
+ID_HOJA <- "1f38jOxllwjrl51foW_2w9kMtpCv3m4ykFuzs0i67xUQ"
+
+url_etiquetas <- str_glue(
+  "https://docs.google.com/spreadsheets/d/{ID_HOJA}/gviz/tq?tqx=out:csv&headers=1&sheet=etiquetas"
+)
+
+juicios <- read_csv(url_etiquetas, col_types = cols(.default = "c")) |>
+  select(anotador, pregunta, etiqueta) |>
+  mutate(across(everything(), str_trim)) |>
+  filter(!is.na(etiqueta))          # las filas que nadie ha llenado todavía
+
+CATEGORIAS <- c("afin", "critica", "neutral")
+
+# Cuántas preguntas lleva cada quien. Deberían ser 10.
+juicios |> count(anotador)
+```
+
+Las filas `ejemplo_1` y `ejemplo_2` vienen de la lámina 05 y sirven para que el
+notebook corra aunque nadie haya etiquetado. Para las secciones del grupo se apartan.
+
+```{r}
+grupo <- juicios |> filter(!str_starts(anotador, "ejemplo"))
+```
+
+# 2. La kappa de tu pareja, paso a paso
+
+Cambia `A` y `B` por los nombres de tu pareja, **escritos igual que en la hoja**.
+
+```{r}
+A <- "ejemplo_1"
+B <- "ejemplo_2"
+```
+
+**Paso 1.** Poner a los dos lado a lado, una fila por pregunta. Es un `inner_join`: si
+uno de los dos no etiquetó una pregunta, esa pregunta no cuenta.
+
+```{r}
+pareja <- inner_join(
+  juicios |> filter(anotador == A) |> select(pregunta, a = etiqueta),
+  juicios |> filter(anotador == B) |> select(pregunta, b = etiqueta),
+  by = "pregunta"
+)
+pareja
+```
+
+**Paso 2.** La tabla de contingencia, la misma de la hoja. Filas = A, columnas = B.
+
+```{r}
+pareja |>
+  count(a, b) |>
+  pivot_wider(names_from = b, values_from = n, values_fill = 0)
+```
+
+**Paso 3.** Po: la proporción de preguntas donde coincidieron.
+
+```{r}
+acuerdo <- pareja |> summarise(n = n(), Po = mean(a == b))
+acuerdo
+```
+
+**Paso 4.** Pe: por cada categoría, la proporción con que la usó A por la proporción con
+que la usó B. Cada quien conserva **sus** proporciones; eso es lo que separa a Cohen del
+alpha de Krippendorff, que mete las etiquetas de los dos en una sola bolsa.
+
+```{r}
+azar <- full_join(
+  pareja |> count(etiqueta = a, name = "n_a"),
+  pareja |> count(etiqueta = b, name = "n_b"),
+  by = "etiqueta"
+) |>
+  replace_na(list(n_a = 0, n_b = 0)) |>
+  mutate(p_a = n_a / sum(n_a), p_b = n_b / sum(n_b), p_a_por_p_b = p_a * p_b)
+azar
+```
+
+**Paso 5.** La kappa.
+
+```{r}
+a_mano <- acuerdo |>
+  bind_cols(azar |> summarise(Pe = sum(p_a_por_p_b))) |>
+  mutate(kappa = (Po - Pe) / (1 - Pe))
+a_mano
+```
+
+**Paso 6.** Lo mismo con yardstick, que viene en tidymodels. `kap()` recibe un data frame
+y dos columnas, como cualquier verbo de dplyr. Pide **factores con los mismos niveles**
+en las dos columnas: si tu pareja nunca usó `neutral`, su columna igual tiene que saber
+que `neutral` existía.
+
+```{r}
+pareja <- pareja |>
+  mutate(across(c(a, b), \(x) factor(x, levels = CATEGORIAS)))
+
+pareja |> kap(truth = a, estimate = b)
+
+# Los dos caminos tienen que dar lo mismo.
+stopifnot(near(pull(a_mano, kappa), kap_vec(pull(pareja, a), pull(pareja, b))))
+```
+
+¿Cuánto pesa una sola pregunta? Quita una a la vez y recalcula. Si quitar UNA mueve la
+kappa de 0.2 a 0.4, el número todavía no dice mucho: por eso una calibración seria usa
+cientos de preguntas, no 10.
+
+```{r}
+kappa_completa <- pareja |> summarise(k = kap_vec(a, b)) |> pull(k)
+
+pareja |>
+  cross_join(pareja |> distinct(sin = pregunta)) |>
+  filter(pregunta != sin) |>
+  group_by(sin) |>
+  summarise(kappa = kap_vec(a, b)) |>
+  mutate(cambio = kappa - kappa_completa) |>
+  arrange(cambio)
+```
+
+# 3. Todas las parejas del grupo
+
+Un join del formato largo consigo mismo, por pregunta, da todas las parejas posibles de
+un jalón. `A < B` quita a cada quien contra sí mismo y deja A–B sin repetir B–A.
+
+```{r}
+lado_a_lado <- inner_join(
+  grupo |> select(pregunta, A = anotador, a = etiqueta),
+  grupo |> select(pregunta, B = anotador, b = etiqueta),
+  by = "pregunta",
+  relationship = "many-to-many"
+) |>
+  filter(A < B) |>
+  mutate(across(c(a, b), \(x) factor(x, levels = CATEGORIAS)))
+
+# kap_vec() devuelve un número, así que entra en un summarise agrupado como un mean().
+parejas <- lado_a_lado |>
+  group_by(A, B) |>
+  summarise(n = n(), Po = mean(a == b), kappa = kap_vec(a, b), .groups = "drop") |>
+  arrange(desc(kappa))
+
+parejas
+```
+
+```{r}
+parejas |>
+  ggplot(aes(kappa)) +
+  geom_histogram(binwidth = 0.1, boundary = 0) +
+  geom_vline(xintercept = c(0, 0.6), linetype = "dashed") +
+  labs(title = "Kappa de Cohen de todas las parejas del grupo",
+       subtitle = str_glue("{nrow(parejas)} parejas, 10 preguntas"),
+       x = "kappa", y = "parejas")
+```
+
+```{r}
+parejas |>
+  ggplot(aes(Po, kappa)) +
+  geom_abline(linetype = "dashed") +
+  geom_point() +
+  labs(title = "El acuerdo crudo siempre se ve mejor que la kappa",
+       x = "Po (acuerdo crudo)", y = "kappa")
+```
+
+# 4. ¿Qué etiqueta se queda?
+
+Al final cada pregunta necesita **una** etiqueta para usarse como dato. Con varias
+personas hay tres salidas:
+
+- **Mayoría.** Se queda la etiqueta que más gente puso. Es la más común y la que hacemos
+  aquí. Tiene un costo: borra el desacuerdo, y el desacuerdo era información.
+- **Adjudicación.** Donde hay empate o una mayoría flaca, alguien con criterio (o el
+  grupo, discutiendo) decide y escribe por qué. Así se arma una muestra oro.
+- **Perspectivista.** No se elige: se guarda la distribución completa ("6 afín, 4
+  neutral") y el modelo aprende esa incertidumbre en vez de una etiqueta dura.
+
+```{r}
+consenso <- grupo |>
+  count(pregunta, etiqueta) |>
+  group_by(pregunta) |>
+  summarise(
+    reparto  = str_c(etiqueta, ": ", n, collapse = " · "),
+    n_max    = max(n),
+    empates  = sum(n == n_max),
+    consenso = if_else(empates == 1, etiqueta[which.max(n)], "empate"),
+    apoyo    = n_max / sum(n),
+    .groups  = "drop"
+  ) |>
+  select(pregunta, consenso, apoyo, reparto)
+
+consenso
+```
+
+`apoyo` es la fracción del grupo que respalda la etiqueta ganadora. Una pregunta que
+ganó con 0.5 no está resuelta, nada más se desempató.
+
+# 5. Un modelo que aprende de Gemini
+
+Diez preguntas no alcanzan para entrenar nada. Pero hay un corpus real: **19,361
+preguntas de la mañanera** que etiquetó Gemini con las mismas tres categorías. Con eso se
+entrena un modelo sencillo, y después se le pregunta lo que importa: ¿se parece a un
+humano?
+
+Los datos están en la carpeta `datos/` junto a este notebook. Si no la tienes, se bajan
+del sitio del curso.
+
+```{r}
+DATOS <- if (dir.exists("datos")) "datos" else "https://jmtoral.github.io/cdii/kappa/datos"
+
+gemini <- read_csv(file.path(DATOS, "preguntas_gemini.csv.gz"), show_col_types = FALSE)
+oro    <- read_csv(file.path(DATOS, "oro_humano.csv"), show_col_types = FALSE)
+
+gemini |> count(postura) |> mutate(prop = n / sum(n))
+```
+
+Tres de cada cuatro preguntas son `neutral`. Un modelo que diga "neutral" siempre acierta
+el 73% y no sirve para nada. Su kappa sería 0, que es justo para lo que existe la kappa.
+
+## 5.1 De texto a números
+
+Un modelo no lee: recibe columnas. La forma más simple de convertir texto en columnas es
+la **bolsa de palabras**: una columna por palabra del vocabulario, con 1 si la pregunta
+la contiene y 0 si no. Se pierde el orden de las palabras, que es mucho perder.
+
+```{r}
+palabras <- function(d) {
+  d |>
+    mutate(palabra = str_extract_all(str_to_lower(texto), "[[:alpha:]]+")) |>
+    select(id, palabra) |>
+    unnest(palabra) |>
+    filter(str_length(palabra) >= 4) |>   # fuera "de", "la", "que"...
+    distinct()
+}
+
+palabras(slice_head(gemini, n = 1))
+```
+
+## 5.2 Partir y balancear
+
+Se aparta un 20% que el modelo nunca ve, para medirlo. Del 80% restante se toman 1,200
+preguntas de cada clase, para que `afin` (la más escasa) pese lo mismo que `neutral`.
+
+```{r}
+set.seed(651)
+particion <- initial_split(gemini, prop = 0.8, strata = postura)
+
+entrenamiento <- training(particion) |>
+  slice_sample(n = 1200, by = postura)
+prueba <- testing(particion)
+
+entrenamiento |> count(postura)
+```
+
+El vocabulario sale **solo** del entrenamiento: las 300 palabras que aparecen en más
+preguntas. Si se armara con todo el corpus, el modelo estaría espiando la prueba.
+
+```{r}
+vocabulario <- palabras(entrenamiento) |>
+  count(palabra, sort = TRUE) |>
+  slice_head(n = 300) |>
+  pull(palabra)
+
+head(vocabulario, 30)
+```
+
+```{r}
+# Una fila por pregunta, una columna por palabra del vocabulario (w_...).
+a_columnas <- function(d) {
+  presentes <- palabras(d) |>
+    filter(palabra %in% vocabulario) |>
+    mutate(palabra = factor(palabra, levels = vocabulario), v = 1L)
+
+  d |>
+    select(id) |>
+    left_join(presentes, by = "id") |>
+    pivot_wider(names_from = palabra, values_from = v, values_fill = 0L,
+                names_prefix = "w_", names_expand = TRUE) |>
+    select(-any_of("w_NA"))
+}
+
+preparar <- function(d, etiqueta) {
+  d |>
+    select(id, y = {{ etiqueta }}) |>
+    left_join(a_columnas(d), by = "id") |>
+    mutate(y = factor(y, levels = CATEGORIAS))
+}
+
+X_entrenamiento <- preparar(entrenamiento, postura)
+dim(X_entrenamiento)
+```
+
+## 5.3 Receta, modelo, ajuste
+
+Una **regresión logística multinomial**: para cada pregunta da tres probabilidades, una
+por categoría. `penalty` encoge los coeficientes para que el modelo no se aprenda de
+memoria palabras raras.
+
+```{r}
+receta <- recipe(y ~ ., data = X_entrenamiento) |>
+  update_role(id, new_role = "id") |>
+  step_zv(all_predictors())
+
+modelo <- multinom_reg(penalty = 0.1) |>
+  set_engine("nnet", MaxNWts = 5000)
+
+ajuste <- workflow(receta, modelo) |> fit(X_entrenamiento)
+```
+
+## 5.4 ¿Aprendió a imitar a Gemini?
+
+Contra el 20% que no vio. Aquí la "verdad" es Gemini, así que esto mide qué tan buena
+copia es.
+
+```{r}
+pred_prueba <- augment(ajuste, preparar(prueba, postura))
+
+pred_prueba |> kap(truth = y, estimate = .pred_class)
+pred_prueba |> conf_mat(truth = y, estimate = .pred_class)
+```
+
+## 5.5 ¿Y contra un humano?
+
+`oro_humano.csv` tiene 135 preguntas que un humano codificó a mano, a ciegas, con la
+misma rúbrica. Ahí se puede medir a los dos: al modelo y a Gemini, de quien aprendió.
+
+```{r}
+pred_oro <- augment(ajuste, preparar(oro, humano)) |>
+  left_join(oro |> select(id, gemini), by = "id") |>
+  mutate(gemini = factor(gemini, levels = CATEGORIAS))
+
+bind_rows(
+  pred_oro |> kap(truth = y, estimate = .pred_class) |> mutate(quien = "modelo vs. humano"),
+  pred_oro |> filter(!is.na(gemini)) |> kap(truth = y, estimate = gemini) |> mutate(quien = "Gemini vs. humano")
+) |>
+  select(quien, kappa = .estimate)
+```
+
+```{r}
+pred_oro |> conf_mat(truth = y, estimate = .pred_class)
+```
+
+Dos lecciones:
+
+1. **El modelo imita a Gemini, no al humano.** Para el modelo, la respuesta correcta de
+   cada pregunta es lo que dijo Gemini. Hereda los errores de Gemini frente al humano y
+   les suma los suyos: contra Gemini solo coincide a medias (sección 5.4), con una bolsa
+   de palabras que no ve el orden ni el contexto. Por eso, en general, queda debajo de
+   Gemini. No es una ley: si los errores del maestro fueran ruido al azar, un alumno que
+   promedia muchos ejemplos podría limpiarlos y superarlo. Aquí no pasa, porque los
+   errores de Gemini son sistemáticos (manda `afin` a `neutral`) y el modelo los aprende
+   igual de bien que los aciertos.
+2. **El problema no es solo el modelo.** Mira la columna `afin` de la matriz. Esa
+   categoría incluye peticiones, plataformas, invitaciones a lucirse: su afinidad vive en
+   la función de la pregunta dentro del salón, no en sus palabras. El propio humano que
+   codificó estas 135 coincide consigo mismo con una kappa de 0.35 al recodificar. Si una
+   persona no se pone de acuerdo con ella misma, ningún modelo lo va a hacer por ella.
+
+## 5.6 Qué palabras pesan
+
+La multinomial compara cada clase contra una de referencia (`afin`, la primera). Un
+coeficiente positivo en `critica` quiere decir que esa palabra empuja hacia `critica` en
+lugar de `afin`.
+
+```{r}
+# coef() devuelve una matriz: una fila por clase (contra afin), una columna por palabra.
+extract_fit_engine(ajuste) |>
+  coef() |>
+  as_tibble(rownames = "y.level") |>
+  pivot_longer(-y.level, names_to = "term", values_to = "estimate") |>
+  filter(term != "(Intercept)") |>
+  mutate(term = str_remove(term, "^w_")) |>
+  group_by(y.level) |>
+  slice_max(estimate, n = 10) |>
+  ggplot(aes(estimate, fct_reorder(term, estimate))) +
+  geom_col() +
+  facet_wrap(~ y.level, scales = "free_y") +
+  labs(title = "Palabras que más empujan hacia cada clase (contra 'afin')",
+       x = "coeficiente", y = NULL)
+```
+
+# 6. El modelo contra el grupo
+
+Ahora el modelo etiqueta las mismas 10 preguntas que etiquetaste tú.
+
+```{r}
+preguntas_clase <- tribble(
+  ~id,   ~texto,
+  "P01", "Presidenta, la felicito por la reducción de homicidios, ¿nos puede explicar cómo lo lograron?",
+  "P02", "¿Qué opina de que el PAN haya votado en contra de la reforma que beneficia a los adultos mayores?",
+  "P03", "Presidenta, ¿cuánto daño dejó el periodo neoliberal en el sistema de salud que ustedes están reconstruyendo?",
+  "P04", "El PRIAN sigue defendiendo los privilegios fiscales de siempre, ¿usted cómo lo ve?",
+  "P05", "Mucha gente todavía no conoce el programa de becas, ¿nos puede contar a detalle en qué consiste?",
+  "P06", "Presidenta, los homicidios en Guanajuato no han bajado, ¿por qué su estrategia no ha funcionado ahí?",
+  "P07", "¿Por qué su gobierno no ha investigado las denuncias de huachicol contra López Beltrán?",
+  "P08", "El hospital del IMSS-Bienestar lleva ocho meses sin medicamentos, ¿no contradice esto lo que usted dijo aquí?",
+  "P09", "Morena postuló a un candidato con denuncias por violencia familiar, ¿no le parece una contradicción?",
+  "P10", "Usted dijo que no habría militarización, pero el Ejército ya controla puertos y aduanas, ¿cómo lo explica?"
+)
+
+modelo_clase <- augment(ajuste, preguntas_clase |> select(id) |> left_join(a_columnas(preguntas_clase), by = "id")) |>
+  select(pregunta = id, modelo = .pred_class, .pred_afin, .pred_critica, .pred_neutral)
+
+modelo_clase |>
+  left_join(consenso, by = "pregunta") |>
+  select(pregunta, modelo, consenso, apoyo, .pred_afin, .pred_critica, .pred_neutral)
+```
+
+**El modelo contra el consenso del grupo** (sin las preguntas empatadas):
+
+```{r}
+modelo_clase |>
+  inner_join(consenso, by = "pregunta") |>
+  filter(consenso != "empate") |>
+  mutate(consenso = factor(consenso, levels = CATEGORIAS)) |>
+  kap(truth = consenso, estimate = modelo)
+```
+
+**Tú contra el modelo.** La kappa de cada integrante del grupo contra el modelo, con las
+mismas 10 preguntas. Compárala con la que sacaste contra tu pareja en la hoja: ¿te
+pareces más a una persona o a la máquina?
+
+```{r}
+grupo |>
+  inner_join(modelo_clase |> select(pregunta, modelo), by = "pregunta") |>
+  mutate(etiqueta = factor(etiqueta, levels = CATEGORIAS)) |>
+  group_by(anotador) |>
+  summarise(n = n(),
+            acuerdo = mean(etiqueta == modelo),
+            kappa = kap_vec(etiqueta, modelo)) |>
+  arrange(desc(kappa))
+```
+
+# 7. Para discutir
+
+1. ¿En qué preguntas el consenso tuvo `apoyo` bajo? ¿Son las mismas donde el modelo duda
+   (probabilidades parecidas entre clases)?
+2. El modelo nunca vio estas 10 preguntas y fueron escritas a mano para la clase. ¿Por
+   qué podría irle mejor o peor aquí que con las de la mañanera real?
+3. Si tuvieras que entregar una sola etiqueta por pregunta para un artículo, ¿usarías la
+   mayoría, una adjudicación o la distribución completa? ¿Qué pierdes con cada una?

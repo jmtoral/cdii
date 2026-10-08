@@ -59,3 +59,7 @@ presentaciones/.artifact/
 .Rproj.user
 .RData
 .Rhistory
+
+# Salidas de renderizar el notebook de kappa en local
+03_machine_learning/kappa/ejercicio_kappa.html
+03_machine_learning/kappa/ejercicio_kappa_files/

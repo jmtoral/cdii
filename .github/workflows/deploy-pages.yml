@@ -80,6 +80,20 @@ jobs:
           cp presentaciones/*.html site/presentaciones/
           ls -la site/presentaciones/
 
+      # El ejercicio de kappa: instructivo, notebook de Quarto y datos tal cual, más
+      # un zip para bajarlo todo de una vez. El notebook pide los datos a
+      # kappa/datos/ cuando el alumno no tiene la carpeta local, así que esa ruta
+      # no se puede mover. El logo va junto porque el instructivo lo pide relativo.
+      - name: Copy kappa exercise
+        run: |
+          set -euo pipefail
+          mkdir -p site/kappa
+          cp 03_machine_learning/kappa/index.html 03_machine_learning/kappa/ejercicio_kappa.qmd site/kappa/
+          cp -r 03_machine_learning/kappa/datos site/kappa/
+          cp logo.jpg site/kappa/
+          (cd 03_machine_learning/kappa && zip -r ../../site/kappa/ejercicio_kappa.zip ejercicio_kappa.qmd datos)
+          ls -la site/kappa site/kappa/datos
+
       - name: Create index page
         run: |
           cat > site/index.html << 'INDEXEOF'
@@ -124,6 +138,7 @@ jobs:
                   <a class="card" href="presentaciones/04_alpha_krippendorff.html"><span class="badge badge-metodo">MÉTODO</span><h3>El alpha de Krippendorff</h3><p>Cómo se mide si las etiquetas son confiables, y por qué el porcentaje de acuerdo miente</p></a>
                   <a class="card" href="presentaciones/08_kappa_contra_jev.html"><span class="badge badge-metodo">MÉTODO</span><h3>Tú contra otro, y tú contra Jev</h3><p>La kappa calculada dos veces: humano contra humano y humano contra modelo, con el script en R</p></a>
                   <a class="card" href="presentaciones/07_kappa_cohen.html"><span class="badge badge-metodo">MÉTODO</span><h3>La kappa de Cohen</h3><p>El coeficiente paso a paso, sus tres muros, en qué se separa del alpha y por qué al final casi da lo mismo</p></a>
+                  <a class="card" href="kappa/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Tú, tu pareja y un modelo</h3><p>La kappa de Cohen en parejas, en la hoja y en R, y un modelo de tidymodels que compite contra ti</p></a>
                   <a class="card" href="presentaciones/06_ejercicio_una_pregunta.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Una pregunta, cinco pedazos</h3><p>Versión corta: por qué una sola unidad no da alpha, segmentar la pregunta y medir el desacuerdo que la unanimidad escondía</p></a>
                   <a class="card" href="presentaciones/05_ejercicio_alpha_jev.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>El alpha de tu equipo, y Jev</h3><p>Versión larga: diez preguntas, dos rondas, el alpha a mano y la comparación contra Jev</p></a>
                   <a class="card" href="ejercicio_01/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Ejercicio 01 — SQL</h3><p>7 preguntas para practicar SQL</p></a>

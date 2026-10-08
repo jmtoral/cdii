@@ -1,0 +1,466 @@
+id,texto,humano,gemini
+P-004,"En el tema económico, hoy se presenta en la Cámara de Diputados el presupuesto, bueno, para su análisis.
+
+Y en la parte económica le está yendo muy bien a la economía mexicana: 35 millones de dólares en este trimestre, también con una percepción al alza de un 9 por ciento, el peso se mantiene por cinco jornadas; y nos ubicamos como el primer país que produce y está en la parte de la formación automotriz, también ahí tenemos un primer lugar, superando incluso a Canadá.
+
+¿Cuál es su opinión en este momento, dado que los ojos, pareciera, de los críticos de siempre esperando que haya un resbalón cuando las cifras están indicando lo contrario y hay una decisión de lo que va a ser el presupuesto para el año que entra?",afin,afin
+P-010,"Perdón. Uno de los videos, Presidenta —para reforzar esta parte, y voy con mi última pregunta— es que una de las… varias personas, su aspecto no era, digamos, común cuando se presenta este grupo que yo había comentado, el llamado “bloque negro”, pero había uno de ellos con ese tipo de tatuajes, de… No que los tatuajes en sí sean para criminalizar.",neutral,neutral
+P-014,"Copatrocinada también con Larry Rubin de invitado, lo hicieron el año pasado…",afin,afin
+P-017,Pero ¿no considera que es insuficiente?,afin,critica
+P-020,"Buenos días, Presidenta. Muchas gracias. Meme Yamel, de The Mexico News.
+
+Presidenta, desde el 2020, hemos estado documentado una serie de abusos e irregularidades que están ocurriendo particularmente en el estado de Yucatán, tiene que ver con la Procuraduría de Defensa del Menor y la Familia.
+
+Me tardaría mucho en enlistarle cada uno de los casos, tiene sus particularidades, pero lo que comparten estos casos es que la Procuraduría separa las familias, sobre todo, si son de escasos recursos, y empieza un proceso de adopción ilegal que en la Ley General de Niñas, Niños y Adolescentes es considerado un delito de trata.
+
+Eso ha ido evolucionando. Insisto, cada caso tiene su particularidad, pero en este momento tenemos el caso de Sharon Cima, ella es una madre soltera de 29 años a la que el 1o .de julio le quitaron, 1o. de junio, perdón, le quitaron a sus dos hijas como un acto de represalia, porque no quiso ceder ante un policía de Kanasín, que quiso abusar de ella, ¿no?, que le dijo que quisiera tener relaciones sexuales; ella se niega.
+
+Y ha vivido estos seis meses amenazas, acoso, hostigamiento, la han golpeado. Y los policías de Kanasín han entrado a su casa, le han robado, y las autoridades en el municipio de Kanasín ni siquiera le permitieron denunciar.
+
+Ella apenas está presentando todas estas denuncias ya en la Fiscalía, porque en la Procuraduría de Kanasín no se lo permitieron y, al contrario, le dijeron que ella no hiciera escándalo porque, si no, iba a seguir sufriendo las represalias.
+
+Este caso, ella ya está en una calidad de víctima, reconocida como calidad de víctima; y el gobernador dispuso ciertas condiciones para que la pudieran trasladar a un refugio junto con sus dos hijas, pero la procuradora María Jesús Ocaña Dorantes, no quiere regresarle a las niñas.
+
+Ella en estos seis meses no ha visto a sus hijas, solo vio a la mayor el pasado 27, cuando ya se las iban a regresar, y por alguna razón que hasta este momento desconocemos no le han regresado a sus hijas.
+
+Independientemente de que me gustaría poder compartirle a través de Comunicación los casos que tenemos, no sé si pudieran apoyar en particular con este.
+
+La secretaria de las Mujeres, Citlalli, me contactó ayer para tener contacto con, directamente la abogada y Sharon, ya le pasé los contactos. Aún no se han comunicado,
+
+Pero sí es bastante preocupante que incluso la procuradora ni siquiera esté haciendo lo que se está ya instruyendo como parte de una actividad de recuperarle los derechos que durante meses, pues le han estado violando. La policía municipal de Kanasín ha sido denunciada varias veces, pero pues prácticamente, no pasa absolutamente nada.
+
+Entonces, queríamos ver ¿si podíamos apoyar desde esa manera?, ¿si podría haber algún tipo de seguimiento desde Presidencia?",critica,critica
+P-024,"Ok. Muchas gracias.
+
+Presidenta, en otro tema, permítame, en otro tema: aquí en Veracruz, la gobernadora Rocío Nahle ha informado avances en la rehabilitación de carreteras y recientemente el arranque de la entrega de más de 10 millones de medicamentos para fortalecer el abasto en Centros de Salud y hospitales.
+
+Preguntarle: ¿cómo evalúa usted esta coordinación con el gobierno de Veracruz?
+
+¿Y qué otros apoyos o acciones desde el Gobierno de México se estarán impulsando para seguir mejorando la movilidad, la atención en la salud y el bienestar de las y los veracruzanos?",neutral,afin
+P-027,Para todo el mundo.,afin,no clasificable
+P-029,¿Leyó la carta del alcalde de Guachochi?,afin,neutral
+P-033,"¿En la zona, por ejemplo, de Tabasco?",neutral,neutral
+P-036,"Gracias, Presidenta.
+
+Ahora que menciona que ya tiene la carta para el Partido Morena, donde va a usted dejar las reglas claras sobre actos…",afin,no clasificable
+P-038,"Presidenta, finalmente, si me permite: ayer usted comentaba, también hoy surge esta información, ayer usted comentó que “el gobierno de los Estados Unidos temporalmente dio protección a este grupo delictivo, al cártel de Sinaloa”.
+
+¿Nos podría comentar a qué se refiere?",critica,neutral
+P-040,¿Hay un diálogo con Uber o alguna sanción?,neutral,neutral
+P-052,¿Usted está a favor de la libertad de expresión?,neutral,neutral
+P-055,"Por último, y algo muy corto, ahorita con el secretario de Educación: la educación en empatía hacia los animales es una estrategia preventiva eficaz contra el bullying escolar, fomentando valores como el respeto y la tolerancia.
+
+Fomentar la conexión emocional con los animales ayuda a desarrollar habilidades sociales y reduce la violencia interpersonal, creando un ambiente escolar más seguro y empático.
+
+¿Podría entregarle, secretario, un proyecto del Movimiento Conciencia en ese sentido para el programa “El ABC de las emociones”?",afin,neutral
+P-057,"Presidenta, pero al menos… tener esa duda ¿es necesario ya desalojarlos, no?",afin,critica
+P-058,"Claro. Esperemos el informe, entonces, que nos va a presentar.
+
+Y finalmente, también relacionado con este tema de Insabi: hay adeudos con la industria farmacéutica, por parte de Insabi durante 2020, ’21, ’22 y ’23.
+
+Preguntarle porque, de acuerdo con la industria farmacéutica, ascenderían a cerca de 30 mil millones de pesos; y de acuerdo con el Consejo Coordinador Empresarial, serían 40 mil.
+
+Preguntarle…",neutral,neutral
+P-085,¿En los libros de texto se va a tomar…?,neutral,neutral
+P-086,"Este es el mensaje, Presidenta. Y en ese sentido, preguntarle si ¿continuará usted apoyando con esas obras emblemáticas a Tamaulipas?
+
+Y, también, si ¿usted considera que, con esta obra, Tamaulipas se posiciona como la frontera marítima de nuestro país?",afin,neutral
+P-087,"Y, Presidenta, nada más en ese tema, también aprovechando que están las representantes de las plataformas y la secretaria Citlalli, ¿en el tema de Inteligencia Artificial también se podría pensar en…? ¿o se están haciendo cosas para que haya una equidad también?, porque la Inteligencia Artificial también tendría que tener esto muy claro.",neutral,neutral
+P-094,"Muchas gracias. En un tercer tema, Presidenta: ayer se informó sobre los cambios directivos en el CIDE.
+
+¿Podría compartirnos qué le ha reportado la Secretaría de Ciencia, respecto al nombramiento de la directora interina?
+
+¿En qué contexto se da este cambio en la institución académica dedicada, mayoritariamente, al diseño de políticas públicas?
+
+¿Qué mensaje le enviaría a la comunidad académica y estudiantil?
+
+Y también preguntarle: ¿qué espera su gobierno del CIDE en esta nueva etapa?",neutral,neutral
+P-103,"La siguiente pregunta, Presidenta. Preguntarle respecto a estos refugios que ya se han anunciado en esta “Mañanera”, el cómo se está operando, bueno, que no son nuevos, pero que se están reforzando por parte de la secretaria de Bienestar.
+
+Hace unos días la gobernadora de Chihuahua, María Eugenia Campos se refirió a los migrantes mexicanos que, en un tema de deportación entrada al estado que ella gobierna, sería: ella no quiere refugios, ella quiere que… incluso dice: “Los vamos a mandar luego, luego a su lugar de origen”. Hablando de México, hablando de… Porque decía: “A sus estados”, refiriéndose a nuestro país.
+
+La pregunta sería si, ¿han hablado para que ella comprenda esta situación de emergencia, bueno, eventual emergencia o de atención y más con la situación, como bien ha dicho usted del clima, de todo lo que… la intemperie, no tener dinero, etcétera?
+
+Si, ¿ya ha mejorado la forma de pensar de esta gobernadora para poder implementar a propósito de esta visita que hará —bueno, seguro será permanente por parte de la Secretaría, de la secretaria —perdón— a Chihuahua que es uno de los lugares, me parece, claves de atención en esta situación?
+
+Si, ¿han platicado con ella, ha mejorado esta condición de forma de pensar de esta gobernadora?
+
+Y ahorita, una pregunta última.",afin,critica
+P-104,"Ok. Para finalizar, Presidenta, un par de preguntas finales:
+
+Primero, sobre el marco del 8M, del Día Internacional de la Mujer, me gustaría preguntarle, sobre todo, como politólogos, conocer su opinión acerca de si ¿el feminismo es compatible con la ideología y el pensamiento de derecha, con el conservadurismo?
+
+Esto se lo menciono más que nada, ya que muchas personas mujeres el día de ayer denunciaban una politización, por parte de partidos políticos, pero también de figuras ligadas al conservadurismo, muchos de ellas, muchas de ellas también ligadas a personajes que han promovido de manera sistemática la violencia, la misoginia, el machismo, los insultos incluso hacia la figura Presidencial que usted representa.
+
+¿Es el feminismo compatible con la derecha, Presidenta?",afin,neutral
+P-108,"Muchas gracias, Presidenta.
+
+Sobre las mejores prácticas en auditorías, sabemos que este tema se ha analizado en recientes reuniones con empresarios, como la del 3 de noviembre, en la que participó el empresario Carlos Slim y Francisco Cervantes.
+
+¿Es importante que los empresarios, Presidenta, sepan que se les está escuchando para que cumplan en tiempo y forma con el pago de sus contribuciones?",neutral,neutral
+P-118,¿Se mantienen en 11?,neutral,neutral
+P-125,"¿Y no resulta un inconveniente precisamente que se haya entregado al piloto, cuando podría haber servido como una pieza clave para que México supiera qué ocurrió o cómo ocurrió?",critica,critica
+P-132,"Gracias, Presidenta.
+
+Y en un segundo tema: ayer tuve la oportunidad de entrevistar en el radio a Margarita Tarragona, ella es directora del Centro de Estudios del Bienestar del ITAM.
+
+Ellos presentaron ayer este World Happiness, y me explicaba la técnica que utilizaron: a la gente, a mil personas le preguntaban en 140 países que imaginaran una escalera en donde la base es el cero y el último escalón es el 10, y que ellos se situaran en esa escalera imaginaria en qué nivel estaban de la felicidad.
+
+De estos países, cabe destacar que México, de 10, de 140 países, de estos 10 primeros, ocupa el lugar número 10, y subió alrededor de unos 25 lugares, más o menos; y Costa Rica ocupa el lugar número 6.
+
+Hay un grupo, a la par, de estudiantes de psicología y algunos ya egresados de la Facultad de Psicología de la Universidad Nacional Autónoma de México, liderados por Sandy Alman, en donde ellos están analizando —seguramente cuando termine su administración harán esta presentación— cómo ha evolucionado la felicidad de los adultos mayores con los programas sociales.
+
+Entonces, ellos pensaban que solamente el tema económico era un factor predeterminante para decidir la felicidad o no. Han encontrado hallazgos interesantes, pero el sentirse arropados por el gobierno, a través de un programa social visibilizados, este sentido de la pertenencia les ha dado esta felicidad.
+
+¿Qué opinaría al respecto, Presidenta? Y si cuando ellos tengan el estudio completo si ¿sería prudente, viable, recomendable, que se lo presenten?
+
+Gracias.",neutral,afin
+P-134,¿(inaudible)va a ser la reunión con el canciller del Vaticano?,neutral,neutral
+P-139,Van a hacer el Día de Muertos.,neutral,neutral
+P-001,¿Se ratificaron los cónsules?,neutral,neutral
+P-002,"Muchas gracias, Presidenta.
+
+En el tema de las radios comunitarias específicamente yo tenía un asunto que presentar el día de hoy con motivo del Día Internacional de las Lenguas Indígenas, de la Lengua Materna, más bien, que es lo correcto.
+
+No solo las radios del INPI, que son muy valiosas y que las admiramos mucho y trabajamos con ellas, trabajan con lenguas maternas, con lenguas indígenas, sino también las radios comunitarias que no pertenecen al gobierno: las radios indígenas, las radios afrodescendientes, que ya existen también.
+
+Y precisamente, en este marco del cambio de la Ley de Telecomunicaciones y Radiodifusión, estamos pidiendo desde las radios comunitarias —y aprovechando que está un funcionario del SAT— que no solo se modifique la Ley de Radio y Televisión, la Ley de Telecomunicaciones, sino que haya un apartado en la ley fiscal, en la ley hacendaria, en donde nos pudieran incluir.
+
+Las radios comunitarias no tenemos fines de lucro. Sin embargo, tampoco nacimos con la intención de tener fines de pérdida y: nos cobran impuestos como si fuéramos empresas, nos exigen registrarnos como Pymes; nos cobran en la Ley del IVA y en la Ley del ISR, como si estuviéramos comercializando; cuando no tenemos derecho a comercializar. Bueno, necesitamos muchas reformas en la ley.",critica,critica
+P-003,"Preguntar también sobre este desarrollo de estas investigaciones. Y como usted lo dice, es progresivo, va avanzando y se van encontrando más cosas como las que estamos viendo.
+
+¿Hay consideración de mayor capacitación, mayor…? Hemos visto que… la modificación de la operación de la propia Secretaría que usted tiene, la tecnología, para poder detectar también el tema de las tomas clandestinas.
+
+¿Qué hay con la coordinación con Pemex, me refiero concretamente también al que detecte o no? ¿Se da? ¿Cómo se está coordinando esto, secretario?",neutral,neutral
+P-005,"Y bueno, en el caso de las extorsiones, ¿han ustedes tenido información por parte del Gabinete de Seguridad en torno a lo que ha sucedido en esta zona y en este sector?",neutral,neutral
+P-006,"Pero los funcionarios, 170 mil pesos, ¿a usted le parece justo? Vean los empleos que tienen, “técnico de no sé qué de no sé qué”, “asistente del asistente del asistente”.",critica,critica
+P-007,"Gracias, Presidenta. ¿Podría preguntarle al secretario de Educación Pública, Mario Delgado si nos podría comentar qué opina respecto a las críticas que ha habido por un viaje que realizó recientemente a Portugal?",neutral,neutral
+P-008,(inaudible) por ciento de las preguntas que se hacen en esta conferencia son de…,critica,critica
+P-009,¿Tienen esta orden de aprehensión con fines de extradición ellos?,neutral,neutral
+P-011,"Sí, el caso de la exreina de belleza que fue asesinada en Polanco, presuntamente por su suegra, y que fue detenida en Venezuela.",neutral,neutral
+P-012,"Presidenta, sobre el director de Aduanas.",afin,neutral
+P-016,Sobre la reapertura de la frontera.,afin,neutral
+P-018,¿Cuándo tiene programada su visita a la entidad?,neutral,neutral
+P-021,"En el caso de Álamo Temapache, bueno, este municipio que resultó muy afectado, ayer con la jefa de Gobierno, Clara Brugada ―le vamos a robar un poquito el tema aquí a José Manuel― se enviaban 46 equipos, entre ellos, hidroneumáticos.
+
+¿Cómo va a estar la coordinación?",neutral,neutral
+P-022,"Muy buenos días, Presidenta. Santiago de Llano, de Ecos Media MX y El Horizonte.
+
+Mi primera pregunta, Presidenta es, con base a la llegada de médicos cubanos que ha aumentado significativamente, las cirugías y consultas en Chiapas, ¿qué planes tiene su gobierno para garantizar que esta colaboración internacional se extienda a otras regiones con necesidades similares?, ¿y cómo asegura que no se descuide la formación y contratación de médicos mexicanos?",afin,afin
+P-023,"Por último, Presidenta, ¿qué le diría hoy, con esta nueva integración de la Corte, que usted ha mencionado que es una nueva era…?",critica,neutral
+P-025,¿Para qué temas?,neutral,neutral
+P-026,"Doctora, ya hay un elegido para suceder en el cargo a Justin Trudeau, el primer ministro de Canadá, es Mark Carney. ¿Qué opina de él? ¿Y cómo esperaría, además, que fuera la relación o la colaboración, sobre todo —la colaboración en la región—, sobre todo, en estos momentos?",neutral,neutral
+P-028,"Hola, Presidenta. Buenos días. César Huerta, de la revista Polemón.
+
+Presidenta, preguntarle en un día tan especial como hoy, de la expropiación petrolera: ¿qué representa para usted este día tan importante?, porque en el pasado con el PRIANismo quisieron sepultar este día, quisieron sepultar y privatizar el petróleo.
+
+Y para usted, que defendió la causa y defendió a Pemex para que no se privatizara.
+
+Como jefa de “las Adelitas”, ¿qué representa justo este día?, ¿y por qué es tan importante cuidar la soberanía energética del país?",afin,afin
+P-030,"Doctora, por otro lado, quisiera preguntarle sobre Cuba: usted mencionaba que “van a enviar ayuda humanitaria”. Ayer le preguntaban. No sé si hoy ya tendrá usted más o menos contemplado: ¿qué es lo que se va a enviar como ayuda humanitaria y cuándo se enviaría?",neutral,neutral
+P-031,"¿Se ha considerado también, digo, la estación principal en la zona norponiente, por donde está el libramiento norponiente, hacia Celaya cuota? No sé si han considerado esa opción.",neutral,neutral
+P-032,¿Cree que con esto cambie la opinión o la percepción pública en Estados Unidos?,neutral,neutral
+P-034,"Perdón si no me presenté. Laura Arana, de El Sol de México.
+
+Presidenta, por último de mi parte: el abogado de uno de los integrantes o exintegrantes del cártel de Los Zetas, Juan Pedro Saldívar Farías, está solicitando a las autoridades diplomáticas y consulares que busquen una posibilidad de repatriación, asegurando que “la ilegalidad de la entrega”, forma parte de los delincuentes que de alguna manera fueron extraditados por parte de su gobierno.
+
+Preguntarle si ¿le comentó algo el canciller y cuál sería ahí la respuesta?",neutral,neutral
+P-035,"Muchas gracias.
+
+Finalmente, Presidenta, en el tema de Relaciones Exteriores, me gustaría preguntarle al secretario si ¿estas acciones legales que presentan el día de hoy pueden ser también validadas para casos anteriores de fallecimientos de connacionales a manos o en redadas del ICE, para que las familias de las y los mexicanos puedan acercarse a las autoridades y poder tener el acercamiento y el asesoramiento legal para la exigencia de justicia?",neutral,neutral
+P-037,"Equidad y democracia, eso va a ayudar mucho.",critica,neutral
+P-039,Pero ¿no es que función de si aceptan o no cambiar sus horarios?,neutral,neutral
+P-041,"Presidenta, ¿va a haber descuento para Inapam?",neutral,neutral
+P-042,"Presidenta, finalmente, ¿cómo se logró esta llamada telefónica desde el viernes pasado en medio de este escenario un poco incierto a nivel internacional?
+
+¿Y cuál fue justamente el pulso que usted notó en el presidente Donald Trump? ¿Cómo fue, cordial, amable, bromista incluso, no sé, el sentido, digamos, de la comunicación persona a persona, líder a líder?",neutral,neutral
+P-043,¿Y esta exposición tendremos oportunidad de verla en México?,afin,neutral
+P-044,"Sí, en Nuevo León.
+
+El presidente municipal ordenó sacarla esposada.",neutral,afin
+P-045,"Y para terminar, Presidenta, se ha venido hablando de los Polos de Desarrollo para el Bienestar. Sabemos que Sonora fue considerado con uno, el caso particular de Hermosillo.
+
+Se ha venido hablando de: por ejemplo, el vecino estado de Baja California no tiene Polo de Desarrollo para el Bienestar, por lo menos no ha anunciado.
+
+Y no hace mucho vi yo aquí al alcalde de Cajeme, no aquí en Palacio, sino con el secretario de Economía, Marcelo Ebrard, haciendo las gestiones para alcanzar este proyecto que ya se ha planteado de crear otro Polo de Desarrollo, justamente en Ciudad Obregón, en Cajeme, a partir de las ventajas competitivas que tiene esta región del sur de Sonora. No sé si tiene usted avances al respecto de cómo se genera.",afin,neutral
+P-046,"Ajá, porque al final, esa señora ni siquiera pudo recibir su apoyo, entonces que tal vez por esta falla del sistema es que están pendientes las 356 viviendas.",neutral,critica
+P-047,(Inaudible) en el Senado a Juan Ramón de la Fuente.,afin,neutral
+P-048,"Y también, ¿usted a qué atribuye que la mayoría de los que ganaron —Bátiz, Lenia, Esquivel, Hugo—, nada más me refiero a los de la Corte, sean cercanos a Morena o al expresidente Andrés Manuel López Obrador?",critica,critica
+P-049,"En este caso los ganaderos han pedido una especie de regionalización, es decir, que no se mueva ganado hacia el norte del país. ¿Esto podría ser posible o cómo lo ve, Presidenta?",neutral,neutral
+P-050,"Muy bien.
+
+Cambiando de tema, Presidenta, sobre los bloqueos que sucedieron el día de ayer, muchas congestiones, algunos tráficos de 20 horas, muchos adultos mayores iban en esas concentraciones, en esas kilométricas filas de tráfico.
+
+Saber si ¿tiene algún informe de alguien que haya necesitado ayuda durante esos colapsos viales?",afin,neutral
+P-051,"Se mantiene, ¿a partir del 2 de abril también?",neutral,neutral
+P-053,"Entonces, ¿para su gobierno Cabeza de Vaca es un prófugo de la justicia?",neutral,neutral
+P-056,"Y, para terminar, Presidenta, quisiera abordar dos temas que se quedaron en la administración pasada con el expresidente Andrés Manuel López Obrador:
+
+Es un tema sobre los pobladores de San Gabriel, Zempoala, en el estado de Hidalgo, siguen pidiendo justicia porque, obviamente, les destruyeron su cementerio, que tenía 2 siglos ahí, y el atrio de la capilla de San Gabriel Arcángel.
+
+El entonces Presidente de la República le encargó al director Diego Prieto que solucionara el tema. Hasta este momento, no ha pasado nada, lo único…",neutral,critica
+P-059,"Buenos días, Presidenta. Dalila Escobar, de Proceso.
+
+Primero, bueno, quisiera preguntarle al General Trevilla sobre el asunto de si ¿se estaría, en efecto, buscando renovar flota de aeronaves, sobre todo, para la vigilancia aérea, si pudiera aclarar ese caso?",neutral,neutral
+P-060,"Presidenta, por último, ¿cómo ve que la revista Forbes la nombra “La mujer”, “La quinta mujer más poderosa”?, junto a Ursula von der Leyen; y a la ministra de Japón; a Meloni, de Italia, en fin.",afin,afin
+P-062,"Este robo de combustible, la pregunta directa era: ¿inició en 2021, como dice la Fiscalía General de la República, o viene de atrás? No sabíamos de otro caso semejante de combustible de estas magnitudes y utilizando las aduanas.
+
+La pregunta era esa, pero si usted me dice que hay instrucción de que no se entregue esa información, lo entenderé también.",afin,neutral
+P-063,¿Nos podría ampliar esa información?,neutral,neutral
+P-064,"Sí, y que él dice que son calumnias.",afin,critica
+P-065,"Y ya, por último, Presidenta, ayer un tal Willy Ochoa, que fue el exgobernador interino priista de Chiapas y que duró en el cargo solo 7 días, le envió una carta al presidente Donald Trump en la que acusó al exgobernador de Chiapas, Rutilio Escandón, que hoy es cónsul de México en Miami, de “ser un peligro para la seguridad de Estados Unidos”.
+
+Esto lo dijo el priista porque durante, supuestamente, su gestión de 7 días en el cargo encontró que Rutilio Escandón tenía supuestos nexos con grupos criminales.
+
+¿Qué piensa al respecto, Presidenta?",critica,neutral
+P-066,"Gracias, Presidenta.
+
+Presidenta, preguntarle ¿cómo cierra usted este año con la aprobación internacional?, como antes nos lo mencionaba en “La mañanera”, estaba casi en segundo lugar del presidente Modi, de la India.",afin,neutral
+P-067,¿Con esta inversión se podría decir que se mantendrían los precios de los fármacos como están?,neutral,neutral
+P-068,"¿Y el avance concreto de este plan, a 2 meses, lo tiene o está en stand by, o qué pasa?",neutral,critica
+P-069,"Presidenta, dado que cuando usted asumía la Secretaría de Medio Ambiente, la bióloga Alicia Bárcena era la jefe de Gabinete de Kofi Annan.
+
+Su antecesor, de acuerdo con una crónica del periódico New York Times, dijo: “¿Y quién tiene una solución para el problema del medio ambiente en la Ciudad de México?” Y usted dijo: “Los segundos pisos”, si es que esa crónica es adecuada.
+
+¿Cree usted que la bióloga Alicia Bárcena sea la candidata más apropiada, dado que solamente hay dos finalistas para la Secretaría General de Naciones Unidas, Michelle Bachelet y la bióloga? ¿Cómo percibe usted esa analogía en el tiempo que usted asumió la secretaria de…?",afin,neutral
+P-070,"Sobre “México Canta”, hoy tocaba (inaudible) “México Canta”. No sé si nos puede comentar ¿cómo van las etapas?, ¿cómo van?",neutral,neutral
+P-071,"¿Tiene reunión con los jitomateros, Presidenta?",neutral,neutral
+P-072,"Muchas gracias.
+
+La otra es: en el criterio de pasar ―y se reconoce programas de asistencia social―, y pasar a una economía robusta, el estado de Guerrero recientemente, bueno, hace un par de años, el gobierno del estado creó la 8ª Región Económica, o sea, que estamos hablando de 18 municipios de la Sierra Madre del Sur donde abarcan cerca de 800 comunidades.
+
+Ahí en el macizo de la Sierra, hay un gran potencial para la producción. Reconocemos que hay el narcotráfico, reconocemos que hay el bombardeo y el desplazamiento de algunas comunidades donde se han identificado zonas mineras o para la extracción minera, pero también reconocemos que la mayoría de los que viven en la Sierra son gente honesta, gente trabajadora, donde hay un gran potencial para la producción.
+
+Consideramos y consideran los compañeros de la Sierra, y compañeras, que se podría hacer un programa interesante, creo que hay un programa incluso, “Lázaro Cárdenas”, junto con el programa “Sembrando Vida”, más aunado los programas del gobierno del estado, hacer un solo frente para en el marco del origen y atender las causas, se dé un viraje a la situación que se está viviendo en la Sierra.",afin,neutral
+P-073,"Presidenta, en este contexto ha habido algunas molestias por gente que viene aquí al Centro y también los usuarios del Metro, que aseguran que “parece que están arreglando el Metro con miras al turismo y no con los usuarios que lo utilizan al día a día”.
+
+¿Qué mensaje les podría mandar por estos inconvenientes que ha habido por las obras y por las vallas que hay aquí en el Centro?",neutral,critica
+P-074,"Por otra parte, Presidenta, conocer ¿su opinión sobre esta reducción en la perspectiva de crecimiento económico que hizo ayer el Banco de México?",neutral,neutral
+P-075,"Pero en el caso de los lugares públicos, muchas veces por el tráfico, por la dificultad de accesos, una reacción inmediata podría salvar vidas, doctor.",afin,neutral
+P-076,"Jefa de Gobierno, si Tenochtitlán fue un modelo de ciudad organizada, sustentable y colectiva, ¿cómo se inspira su proyecto de ciudad en esa visión ancestral para imaginar la Ciudad de México del futuro con justicia territorial, cultura y bienestar?",afin,neutral
+P-077,"Bien, Presidenta. También sobre otro tema, relacionado con el asunto de la visita del Alto Comisionado de Naciones Unidas para los Derechos Humanos en Estados Unidos hace unos días, quisiera preguntarle: ¿cuáles serán las vías de colaboración que usted mencionaba que tendrá su gobierno?
+
+Y se lo pregunto específicamente, porque él decía que “una de las grandes peticiones que tienen las víctimas es que no haya impunidad”, y que “buscan la forma de apoyar a su gobierno”.
+
+¿Cómo podría ser esta ayuda?",neutral,neutral
+P-078,"Ok, perfecto, Presidenta, porque habría que revisar. No es la primera denuncia, ya anteriormente con el Presidente Andrés Manuel López Obrador también denunciamos estos “moches” que les piden.
+
+Ahora, también otra cosa muy delicada, Presidenta, es que muchas veces estos trabajadores legales con la visa H-2A se tienen que venir en caravanas porque les van pidiendo en los retenes muchas veces también “moche” o incluso hasta los asaltan.
+
+Entonces, déjeme informarle también que hay algunos contratistas allá de Estados Unidos que han tenido que contratar vuelos chárter para evitar estos abusos al regreso de estos trabajadores.
+
+Entonces, son cuestiones que han que revisar y que tienen años, ¿no? Entonces, algunas caravanas especiales, algunas fechas especiales, no sé, ustedes son los que…",neutral,critica
+P-079,"Gracias.
+
+Una pregunta sobre el legado cultural de México. México trabaja activamente en la devolución de sus bienes culturales. Uno de sus símbolos es el Penacho de Moctezuma, que está en el museo austriaco, y los descendientes de Moctezuma incluso reclaman su regreso, pero sin éxito. Este proceso ya lleva también años.
+
+¿Planea su gobierno acciones concretas o ya se desarrollan algunas gestiones en un plano no público en este sentido?",neutral,neutral
+P-080,"Muchas gracias, a usted, Presidenta. Muchas gracias al profe Víctor. Muchas gracias al alcalde Christian también por ello. Y gracias porque México se lo agradece y los bajacalifornianos también.",afin,no clasificable
+P-082,"En este tema de seguridad, continuamente se ha visto que las estafas y las extorsiones han aumentado en los últimos meses.
+
+Los extorsionadores y los estafadores siempre cambian de modalidad, ahora hay un tipo de estafa, que llaman con teléfonos de Reino Unido. Y me gustaría saber ¿qué consejos pueden dar a la población para evitar ser estafados?, porque en este tipo de llamadas cuelgan y para que el usuario responda y llame a unas líneas Premium; pero también ofrecen trabajo a través de estas líneas.
+
+Me gustaría saber si ¿tienen alguna manera de reportar estos números o cómo se podría poner fin a estas estafas?",afin,neutral
+P-083,"En otro tema, para terminar: hace algunos días se explicó lo que sería el operativo de seguridad para las sedes de Copa del Mundo. Aquí estamos muy cerca de una sede, que es Guadalajara.
+
+Pero ya, para no hablar de ese tema. Más bien, ¿de qué manera su gobierno va a impulsar que estados vecinos a estas sedes, como el caso de Colima con Guadalajara, aprovechen o se vean beneficiadas con más turismo, visitas, etcétera?, ¿de qué manera se va a hacer por parte del Gobierno de México?",neutral,neutral
+P-084,"Bueno, mi pregunta es: ¿cuál es el valor que quiere transmitir de ahora en adelante con sus canciones?",afin,neutral
+P-088,"Gracias por esta respuesta.
+
+Presidenta, por otra parte, quisiera llamar su atención sobre: el estado de Querétaro, que es la décima economía más importante del país, incluso tiene una aportación magnífica en segundo lugar del Producto Interno Bruto. El Plan México pone mucha atención en este sistema de inversión internacional y por todo lo que va a despertar y a desarrollar.
+
+Esta población es de clase media, muy emprendedora, muchos mexicanos ya han emigrado para allá; le digo, citadinos y también de otros lugares. Pero tenemos hoy un fenómeno que se está, hoy se está visibilizando más, Presidenta, porque hay presión para compra de terrenos, hay invasión de terrenos y también hay fraudes en estos fraudes inmobiliarios.
+
+Yo tengo la fortuna de haber contactado —porque ellos me buscaron a través de Voces del Periodista— a cerca de ocho grupos que son académicos, que son ejidatarios, son amas de casa y muchos de ellos tienen que ver con que viven en Querétaro y quieren seguir en Querétaro.
+
+Pero tenemos —voy a ser muy breve— el caso, por ejemplo, de la ciudadana Isabel Serrato Correa, quien es propietaria de 9 hectáreas dedicadas a la agricultura en la parte norte del libramiento norponiente, a un costado de la carretera llamado “El Tlacote”.
+
+Bueno, de un día para otro después de tantos años que está labrando la tierra, resulta que ya tiene nuevo dueño, y que hay un juez que está avalando esas escrituras junto con los notarios.
+
+Ese es un caso.
+
+Pero el otro, incluso esto ya está aquí en una denuncia presentada ante la Dirección de Participación Ciudadana ya está, desde hace como un mes y medio.
+
+Y otra denuncia, que se vinieron las familias, les abrieron la puerta en la Cámara de Diputados y también vinieron a dejar aquí la denuncia, y acaban de ofrecer una conferencia allá en Querétaro, que es un megafraude inmobiliario de cuatro grandes fraccionamientos en Querétaro, específicamente Tierra Noble en Juriquilla, El Roble en Colón, El Encino, Quercus en Huimilpan.
+
+Según estimaciones de las familias queretanas avecindadas en la Ciudad de México, el megafraude podría ascender a 30 mil propiedades sin entregar lotes y viviendas por un valor hasta de 15 mil millones de pesos.
+
+Tenemos toda la documentación, aquí traigo una parte nada más pero tenemos ya las denuncias que se han presentado aquí. Y están pidiendo, sí, diálogo con el gobernador, que sabemos que es muy eficiente para los negocios y para atender cosas de alto impacto también ambientales, pero me dicen que no los recibe el gobernador; entonces, están pidiendo una cita directa con la Secretaría de Gobernación para que interceda en un diálogo, en una mesa y atienda a todas estas, así se hacen llamar, “somos personas de un frente defraudadas” y ya vinieron a dar la cara y tienen elementos y tienen todo el historial.
+
+Y entre ellas están Red Ciudadana de Ecorrestauración, integrantes de la Comisión Coordinadora Promejoras del municipio de Felipe Carrillo Puerto, por la Defensa del Patrimonio Histórico del Centro de Querétaro. Bueno, hay una versión de que quieren hacer una Mítikah en el centro histórico de Querétaro, habría que revisar eso. Y también participan maestros, ingenieros ambientales, especialistas en gestión y proyectos culturales.
+
+No son gente de la oposición que digamos que estén buscando un beneficio propio, sino son gente que quiere participar, que se quiere sumar al desarrollo, pero quiere tener un espacio de diálogo, Presidenta.",afin,critica
+P-090,"Y ya por último, si me permite, quedó pendiente una información en materia de seguridad, sobre cuántos servidores públicos han pedido protección, quedaron en mandarla y no me la han proporcionado. Por favor.",neutral,critica
+P-093,"Ah, y ese es otro punto. Eso, “presenta tu denuncia”, eso es una salida muy fácil, Presidenta.",critica,critica
+P-095,Se sangraron.,afin,no clasificable
+P-097,"Sí. Y el INE, arropándose en su supuesta “autonomía”, no hay esa relación, ese vínculo, no se ha podido hacer con el Gobierno Federal, y es importante hacerlo, tal vez una comisión especial, porque estamos hablando de más de 12 millones de mexicanos en Estados Unidos que podrían ya, votar para el 2027, Presidenta.
+
+Bueno, gracias, Presidenta.
+
+También en otro tema, Presidenta, el asunto de Luz y Fuerza del Centro, de los trabajadores, ya ve que hubo aproximadamente más de 20 mil trabajadores que sí aceptaron la liquidación.
+
+Ahora, con el Presidente Andrés Manuel López Obrador, que les hemos dado seguimiento a todo el proceso, incluso estuve ahí en el Monumento a la Revolución cuando fueron los más de 10 mil jubilados que sí recibieron ya todo el apoyo, por parte de la 4T, o sea, les respondió.
+
+Pero hay algunos de estos que recibieron esas liquidaciones, que presentaron demandas laborales. ¿Y qué cree, Presidenta? Ya salieron a su favor, ahora con la nueva… pues esta laboral, de la reforma laboral.
+
+Entonces, también están pidiendo que se les apoye para darle respuesta, porque ya recibieron laudos favorables, Presidenta.
+
+Y esto, el Presidente Andrés Manuel López Obrador dio instrucciones para que lo llevara precisamente el Instituto para Regresarle al Pueblo lo Robado, con la licenciada Mónica Fernández Balboa.
+
+Entonces, si ¿habría que revisar ya esos laudos a su favor?",afin,critica
+P-098,"Sí, el caso se dio en la colonia Lindavista, en la Gustavo A. Madero. Pero ayer ya la familia cerró avenidas principales para buscar justicia, pero bueno…",neutral,critica
+P-099,"Igual, siguiendo con el tema de la Corte. Presidenta, hace unos días publicamos: desde que inició en funciones, en septiembre, el año pasado, la nueva Corte suma al menos seis fallos a favor de reformas y decretos promovidos por el expresidente Andrés Manuel López Obrador en su sexenio.
+
+Asimismo, ha ratificado reformas impulsadas por Morena en la Cámara de Diputados, como la que otorga facultades a la presidenta del INE para realizar nombramientos sin consultar al Consejo General.
+
+El Pleno de los nueve ministros lleva más de 4 meses en funciones, en las que ha resuelto casi 3 mil asuntos entre el Pleno, ponencias y acuerdos de la presidencia, pero no ha habido ningún fallo en contra de reformas o decretos de López Obrador o de legisladores de Morena.
+
+¿Ve alguna inclinación para el movimiento?, ¿por qué pues…?",critica,critica
+P-100,¿Debería de haber sanciones a eso (inaudible)?,neutral,neutral
+P-101,"Claro.
+
+Por otro lado, Doctora, los maestros de la Coordinadora Nacional de Trabajadores de la Educación tienen planeado ir hoy a protestar otra vez al Estadio Azteca, en el marco ahora del partido entre Colombia y Uzbekistán en el Estadio Azteca.
+
+¿Qué piensa usted de eso, Doctora?",critica,neutral
+P-102,"Y, bueno, esos mil 400 millones. Pero hay investigaciones periodísticas que hablan de que podrían haber salido 3 mil millones.
+
+Solicité a las Aduanas de México que me dieran la información y me dicen que “no tienen nada”, que “no tienen ningún…”",critica,critica
+P-105,"Muchas gracias, Presidenta.
+
+En las gráficas que nos presentaba, muy interesantes, me llamó la atención que en la gráfica de impago hay un pico muy alto entre marzo y abril de este año. ¿A qué se debió ese pico? Digo, después viene el…",neutral,neutral
+P-107,"Y ya por último, quisiera preguntarle sobre: No sé, hoy que van a estar los diputados y el secretario de Salud con los refresqueros, que se le pudiera pedir a los refresqueros que ya no usen… que puedan usar otra vez azúcar de caña, no alta fructuosa. Según los médicos, es más…",neutral,neutral
+P-109,"Muy buenos días, Presidenta. Buenos días a todas y a todos.
+
+Bueno, por ahí ya una compañera comentaba, justamente, este operativo que hizo el gobernador de Chiapas, Eduardo Ramírez Aguilar, el fin de semana, donde detuvieron a 92 policías relacionados con algunos grupos delictivos.
+
+En este sentido, Presidenta, preguntarle si ¿ya se sentó de manera oficial a platicar con el gobernador, que tomó protesta justamente el fin de semana, usted o el secretario de Seguridad, para implementar o enriquecer la estrategia que él va a aplicar para el estado?",afin,neutral
+P-110,"Y la batalla campal, Presidenta, en caso de que generará ahí, porque una de las reglas o la retórica del Fondo Monetario Internacional, del Banco Mundial y otras instituciones crediticias en el mundo, obviamente, no ven bien, con buenos ojos a México de que se haya implementado una economía pues social como la que implementó, Andrés Manuel López Obrador a su llegada al poder hace 6 años, y que ahora usted ha llevado una continuidad.
+
+Y que sí tienen razón porque, si se les inyecta los apoyos financieros que se le da a las personas de escasos recursos, pues que finalmente los ricos son también los que se benefician, porque van y compran en sus negocios, van y compran motos, van y compran televisores, van y compran ropa, zapatos o medicamentos.
+
+¿Cómo implementar esa economía social, Presidenta, además de los apoyos financieros que ya se están llevando a cabo?",afin,afin
+P-111,"Públicas, perdón, empresas públicas, ¿qué va a pasar con Gas Bienestar?, ¿está en el plan expandirlo, mantenerlo como está o cuál sería el plan para esta empresa? Sería mi primera pregunta.",neutral,neutral
+P-112,"Sobre los casos de presunta violación de derechos humanos, Presidenta.",afin,critica
+P-113,"Gracias, Presidenta.
+
+Y ya, por último, este sábado se va a llevar a cabo el Tercer Informe del gobernador de Tamaulipas, Américo Villarreal. ¿Cuál sería su evaluación del trabajo del…?",afin,neutral
+P-114,"Ajá. Dijo que “no se iban a restituir”, porque supuestamente Nacional Financiera decía que hay amparos vigentes, como si la Constitución estuviera por debajo de estos amparos; y también recordando que estos amparos, muchos de ellos fueron promovidos por los propios jueces y magistrados.
+
+Entonces, preguntarle ¿si Nafin le ha…?",afin,critica
+P-115,Para desvincular o aclarar…,neutral,neutral
+P-116,"Había, tenía… ¿Hasta dónde estaba enquistado el trabajo de esta persona al interior de la Fiscalía, sus prácticas ilícitas?",neutral,critica
+P-117,Sobre el acero y el aluminio.,neutral,neutral
+P-119,"Presidenta, buenos días. Israel Aldave, de Grupo Fórmula.
+
+Para precisar, si me permite, no me queda muy claro, como creo que a la mayoría: ¿cuáles son estas “numerosas barreras comerciales arancelarias” que dice el presidente…",neutral,neutral
+P-120,"Y ya, por último, Presidenta, dos cosas para ver si pudiera aclarar:
+
+En redes sociales estuvo rondando un video cuando usted fue a hacer su voto junto con su esposo, y donde usted aparentemente le dice a alguno de los camarógrafos que no lo grabara.",critica,neutral
+P-121,"Entonces, ¿se contemplarían una especie de contratos mixtos como los que ya nos han expuesto, o algún posible esquema de asociación o concesión con empresas?",neutral,neutral
+P-122,"¿Sí se podría plantear —reitero la pregunta del compañero— la posibilidad de otras medidas sanitarias, el cubrebocas o incluso…?",neutral,neutral
+P-123,"Buenos días, doctora.
+
+Carlos Domínguez, de Nación 14.
+
+Preguntarle sobre Tamaulipas. Hay asignaturas pendientes que dejó el presidente López Obrador, la que más nos importa a los que somos de Nuevo Laredo: por ejemplo, la Dirección General de Aduanas, si ya hay fecha para la conclusión e inauguración de la misma. ¿Y qué otros proyectos le esperan a mi gran estado?",critica,neutral
+P-126,"Muchas gracias, Presidenta.
+
+Presidenta, Veracruz es uno de los principales productores de energía eléctrica del país, especialmente por la operación de plantas termoeléctricas y proyectos eólicos en la zona costera; sin embargo, muchas comunidades cercanas a estas instalaciones siguen sin acceso confiable a energía o presentan altos costos en sus tarifas.
+
+Presidenta, mi pregunta es: ¿prevé su gobierno una revisión del modelo de generación y distribución eléctrica en Veracruz para garantizar que los beneficios de la producción energética se reflejen directamente en tarifas más bajas y mayor cobertura para las comunidades locales?
+
+Y de ser así, ¿qué ajustes regulatorios o convenios con la CFE se contemplan para lograrlo?",afin,neutral
+P-128,"Y otro tema, del rubro financiero, Presidenta, hace unos días el Fondo Monetario Internacional otorgó un crédito blando por 35 mil millones de dólares o pesos, no recuerdo exactamente, en caso de una emergencia que pudiera vivir la economía mexicana.
+
+Quisiera que nos explicara o le explicara a la gente que la ve, la escucha, cómo va a tratarse ese tema, ese financiamiento que, bueno, se otorga, pero no se toca. Pero, sin embargo, los especialistas dicen, ya dicen que ya nos estamos endeudando, que estamos adquiriendo nuevas deudas, y eso es mentira, si simplemente es un crédito blando que está ahí, pero que no se toca.",neutral,neutral
+P-129,"Gracias. Buenos días. Luis Piña, de Los Reporteros Mx.
+
+Presidenta, un par de dudas:
+
+La primera, desde la semana pasada, desde que llegó la CNTE, se han estado radicalizando sus actividades. En este sentido, hay llamado a que probablemente boicoteen la elección del Poder Judicial que se tiene para este fin de semana.
+
+Y en ese sentido, preguntarle si, ¿ya tiene estimado algún operativo de seguridad para prevenir que ocurra este ámbito, que se viole directamente el derecho de los ciudadanos al voto?",afin,neutral
+P-130,"Gracias.
+
+Presidenta, aprovechando también de Comunicaciones, Transportes e Infraestructura, hay una parte, y creo que aquí se había comentado, sin embargo, lo quiero exponer en el marco de precisamente lo que viene el próximo año del Mundial: el tema de las carreteras, de los caminos en los puntos concretamente, porque también muchos visitantes probablemente también busquen, aprovechen para conocer un poco más nuestro país, dependiendo también sus tiempos y otras cosas.
+
+Hay una forma de conectar el Valle de México, en la parte oriente, con el AIFA, que es el Circuito Exterior Mexiquense.
+
+Y luego conecta con una parte que —estaba checando— que se conecta, que se denomina ya “Periférico”, el “Periférico Oriente”, y que es donde está tremendamente… ya tiene muchos años con, no baches, está realmente terrible el espacio y cada vez se deteriora más, por las lluvias, por todo eso.
+
+Conectar este aeropuerto, el AIFA, en vehículo hacia el Valle de México zona oriente es muy complicado de ese lado, cuando lo manda uno el GPS.
+
+Preguntar, ¿ahí se tiene ya contemplado?, porque… Bueno, entiendo que también el Estado de México, porque está entre el Estado de México y la Ciudad de México ese tramo, es lo que yo entiendo. ¿Ahí habría algún tipo de coinversión del Gobierno Federal? ¿Se contempla algo ahí, Presidenta?",neutral,critica
+P-131,"Muy buenos días, Presidenta y a todos los funcionarios públicos. Julio Omar Gómez, de Medios Digitales del Pacífico, Sin puntos ni comas y julioomargs.com.
+
+Presidenta, en “La mañanera”, pasadas, “Mañanera” se mencionó el problema que es histórico en Los Cabos, que es precisamente la privatización de las playas y también de los accesos.
+
+Ayer tuve la oportunidad de platicar con el gobernador del estado, el profesor Víctor Castro. Comentó que ya se está trabajando; sin embargo, ya es un problema histórico que se ha venido ganando terreno por empresarios y grupos de poder de la localidad, que han pedido los ciudadanos que se les devuelva esos accesos y el beneficio de disfrutar las playas.
+
+En este problema hemos visto, históricamente, que siempre en el municipio hay una encargada, de que son zonas federales municipales, zonas federales estatales y zonas federales de la Federación.
+
+Piden los ciudadanos que en ese sentido —aunque el maestro Castro se ha pronunciado que está a favor de, obviamente, regresarle al pueblo lo que es debido—, precisamente es el caso de que si pudieran hacer un trabajo —así como lo está haciendo en el Sistema de Seguridad coordinadamente la Federación, el estado y municipio; y también, en el tema de los programas, el Plan Hídrico—, trabajar en conjunto con el municipio en el tema de devolverles las playas y los accesos también y desprivatización de este sentido.
+
+Creo sería un trabajo muy importante porque es muy marcado ese tema y, precisamente, si pudieran trabajar los tres niveles en conjunto para que puedan salir adelante con desprivatizar este tema, vaya.",afin,neutral
+P-133,"Gracias, Presidenta. Mara Rivera, de Enfoque.
+
+Yo quiera preguntarle si ¿de verdad este sábado quedarán prácticamente canceladas, se dice que alrededor de unos 8 millones de líneas telefónicas que no hayan hecho su registro? Porque de acuerdo a algunas encuestas que han hecho empresas, tiene que ver que muchas personas están: o desinformadas, desmotivadas o tienen desconfianza.
+
+Quizá no han medido la magnitud de perder el contacto con las operaciones bancarias, con incluso la conectividad, pues.
+
+Y están apostando muchos también, la mayoría, a que va a haber otra prórroga, porque si ya hubo una, pues ¿por qué dos no, ¿verdad?
+
+Entonces, ¿tienen medido esto?
+
+No se ha escuchado tanto en las campañas de que “es obligatorio”, “se pretende acabar con la extorsión”, también lo ponen en duda algunos.
+
+Pero el tema es que, pues sí, se avecina una incertidumbre fuerte, ¿no?
+
+¿Tienen medido todo esto?",critica,critica
+P-135,¿No hay fecha para la reapertura?,neutral,neutral
+P-136,"Continúo. En el tema, ciertamente, Presidenta, de Casa por Casa hemos sido testigos, precisamente, de personas que han visitado, que están contentas, que sí, ciertamente, confirmamos esto que usted nos ha compartido: se quedan los facilitadores de la salud platicando con ellos, conversando con ellos.
+
+Les piden realmente una mínima información: tener la CURP a la mano, tener tal vez la identificación oficial. Y les han ayudado ciertamente, sí, a conseguir estas citas que tal vez se habían postergado y hay un seguimiento.
+
+Y le comparto que la gente también de repente tiene miedo a que los servidores o la gente que está visitando casa por casa, si bien, es cierto que se identifican, bueno, solamente hacer mucho hincapié en que la gente conozca que van a visitarlos, cómo se identifican o cómo identificarlos para que tengan la confianza y puedan brindar también la ciudadanía las facilidades y que puedan ingresar. Bien por ellos.
+
+Y aprovechando, ahora que están precisamente el tema o el sector de salud, usted tal vez conozca este caso de Poza Rica, Veracruz, el caso de “Memito”, que lo atendió muy activamente en su momento el Presidente Andrés Manuel López Obrador, el 16 de febrero del 2024.
+
+Aquí se denunció que a “Memito” ya lo habían desahuciado, ciertamente, de instituciones del Instituto Mexicano del Seguro Social, que era un bebé que no tenía forma de seguir adelante porque sus medicamentos eran muy costosos, dos de ellos. Uno sí se le brindó, que fue el ridisplam.
+
+Él continúa siendo atendido, desde el 2024; hoy tiene ya 2 años 6 meses. Y aún le falta uno de los medicamentos.
+
+Importante compartirle cómo que, a partir de este caso, el medicamento risdisplam ya se les brinda a más niños, ya se les está brindando la atención.
+
+Pero si hay posibilidad de poder seguir dando seguimiento a este caso, se lo van a agradecer. Y manda, por supuesto, agradecidos los papás, los abuelos que aquí estuvieron a las 5:00 de la mañana, y que se atendió y que fue visible y que sigue siendo este caso levantando la voz y agradeciendo siempre al Gobierno Federal, y específicamente al director general del Instituto Mexicano del Seguro Social.
+
+Y compartirle un caso más, Presidenta: familias de “Múlege”, en Baja California Sur, están denunciando…",afin,afin
+P-137,¿Esto es un mensaje para quienes pronosticaban “incertidumbre económica” o “pérdida de competitividad por tensiones con Washington”? ¿Qué usted opina?,afin,neutral
+P-138,"Presidenta, ¿hoy va a visitar algún estado?",neutral,neutral
+P-140,¿Sabe cuántas faltarían? ¿Cuántos accesos faltarían por cerrar?,neutral,neutral
+P-141,"En otro tema, Presidenta, temas ya locales, de la capital, preguntarle sobre este proyecto que usted como jefa de gobierno implementó en las escuelas, en las casas, del agua pluvial; ahora la jefa de gobierno también lo va a hacer en 20 mercados.
+
+Preguntarle si ¿hay una estrategia también ―para enfatizar en ello― a nivel nacional para ampliar este proyecto que usted hizo como mandataria capitalina?",afin,neutral
+P-144,¿Ofrecieron alguna solución?,neutral,neutral
+P-145,"Buenos días, Presidenta. José Manuel Fuentes, de Capital 21. No me paro, por el tema de las cámaras, una disculpa.
+
+Preguntarle: en estos días, la jefa de Gobierno, Clara Brugada, ha continuado con una estrategia, que usted fue promoviendo como jefa de Gobierno, que es la salud mental; que esto es muy importante, atender a las y a los jóvenes en secundarias y también en medio superior.
+
+Preguntarle: ¿qué se va a hacer, por parte de usted y de su gobierno, para apoyar esta iniciativa de la jefa de Gobierno de continuar con este programa que ha prevenido en la Ciudad 75 suicidios, casos de suicidios entre los jóvenes, y también se han atendido a más de 500 mil en las escuelas?
+
+También, preguntarle sobre su estrategia a nivel federal que usted va a lanzar de Salud Mental y también de una estrategia que va ligada con la de la seguridad de Atender las Causas, esta campaña también en contra de las metanfetaminas.
+
+Preguntarle: ¿cuándo vamos a conocer todo este plan integral?",afin,afin
+P-146,"Presidenta, si me permite: ¿qué estatus tiene la demanda que había presentado el mes pasado la Consejería Jurídica en contra del abogado Ovidio Guzmán?",neutral,neutral
+P-147,"Exactamente, ellos mismos lo provocaron. Pero esto, finalmente, también tiene algunas consecuencias o repercusiones en México.
+
+Entonces, en pocas palabras, Presidenta, ¿tiene ya así preparado un plan como lo hizo en el caso de los aranceles, ahora con este deseo, cada vez se ve así a cuentagotas, pero inminente de una renegociación del T-MEC?, ¿México está preparándose para un escenario así?",afin,neutral
+P-148,"Gracias, Presidenta. Buenos días, buenos días a todos y todas. Gerardo Segoviano, de DIME Noticias.
+
+Sobre el tema: quiero, primero, compartir un pequeño antecedente de lo que igual platicaron esta semana: que, en obesidad infantil, México ya salió de los primeros lugares; lo cual resulta un logro, y es parte también de la estrategia en favor de la salud.
+
+Ahora, me queda claro que comienza en las escuelas o comienzan con este mensaje, que luego permea a la vida adulta, en este caso a los papás, a los abuelitos.
+
+¿Algo así —la pregunta es— sucedería con este programa de salud mental? Es decir, comenzar a trabajar en las escuelas, pero de manera implícita el mensaje también es dirigido a los adultos, y también a los adultos mayores, que parece que muchas veces como que no se voltean a ver, pero también están involucrados.",afin,afin
+P-149,¿Aspiracionistas?,afin,no clasificable
+P-150,"Y en este caso, ¿moralmente, Presidenta? Porque al final del día —como bien lo dice— cada estado se maneja de manera independiente, pero estuvo el ejemplo de este ejercicio de revocación de mandato, que los oaxaqueños salieron a manifestar justamente su inconformidad, por este tipo de acciones.",afin,neutral

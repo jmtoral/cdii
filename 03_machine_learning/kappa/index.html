@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Manuel Toral">
+<title>Kappa en parejas — Instructivo</title>
+<style>
+  /*
+    Mismo neobrutalismo azul y blanco del Tec que las láminas del curso: bordes
+    negros gruesos, sombras duras, bloques de color plano, tipografía pesada.
+  */
+  :root {
+    --papel:   #ffffff;
+    --hueso:   #eef2ff;
+    --azul:    #0432a1;
+    --azul-2:  #4a7ae8;
+    --negro:   #0b0b0b;
+    --gris:    #565b6b;
+
+    --borde: 3px solid var(--negro);
+    --sombra: 8px 8px 0 var(--negro);
+    --sombra-chica: 5px 5px 0 var(--negro);
+
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+    --paso: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+  /* Se queda en claro: el neobrutalismo depende del negro sobre blanco. En
+     preferencia oscura solo se baja el brillo del papel. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --papel: #e8ecf7; --hueso: #dde4f6; }
+  }
+  :root[data-theme="dark"] { --papel: #e8ecf7; --hueso: #dde4f6; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--papel); color: var(--negro);
+    font-family: var(--display); font-size: clamp(15px, 0.85rem + 0.35vw, 18px); line-height: 1.55;
+  }
+  .hoja { max-width: 1080px; margin: 0 auto; padding: 0 var(--paso) 4rem; }
+  .seccion { padding: clamp(2.2rem, 4.5vw, 4rem) 0; display: grid; gap: clamp(1.1rem, 2.2vw, 1.6rem); }
+
+  .cinta { display: flex; align-items: stretch; }
+  .cinta .num {
+    background: var(--azul); color: #fff; border: var(--borde); border-right: 0;
+    font-family: var(--mono); font-weight: 700; padding: 0.35rem 0.8rem;
+  }
+  .cinta .rot {
+    background: var(--papel); border: var(--borde); box-shadow: var(--sombra-chica);
+    font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase; padding: 0.35rem 1rem;
+    display: flex; align-items: center;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.03em; }
+  h1 { font-size: clamp(2.6rem, 1rem + 6vw, 5.2rem); line-height: 0.95; }
+  h1 em { font-style: normal; color: var(--azul); }
+  h2 { font-size: clamp(1.7rem, 1rem + 3vw, 3rem); line-height: 1.05; }
+  h3 { font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.3rem); letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 66ch; }
+  .sumario { font-size: 1.1em; max-width: 58ch; }
+  strong { color: var(--azul); }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--hueso); padding: 0.1em 0.3em; border: 1px solid var(--negro); }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 78vh; align-content: center; }
+  .marca-caja { border: var(--borde); background: #fff; box-shadow: var(--sombra); padding: 0.9rem 1.2rem; width: fit-content; }
+  .marca-caja img { display: block; width: clamp(170px, 24vw, 240px); height: auto; }
+  .kicker {
+    background: var(--negro); color: #fff; width: fit-content;
+    font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; padding: 0.3rem 0.7rem;
+  }
+  .firma {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra-chica);
+    padding: 1rem 1.2rem; width: fit-content; max-width: 100%; font-family: var(--mono); font-size: 0.86rem; display: grid; gap: 0.1rem;
+  }
+  .kicker, .cinta .rot { max-width: 100%; }
+
+  /* ---------- Botones de descarga ---------- */
+  .botones { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .boton {
+    display: inline-grid; gap: 0.15rem; text-decoration: none; color: var(--negro);
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 0.8rem 1.1rem; min-width: 210px;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .boton:hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--negro); }
+  .boton:active { transform: translate(5px, 5px); box-shadow: none; }
+  .boton .que { font-weight: 800; font-size: 1.05em; }
+  .boton .det { font-family: var(--mono); font-size: 0.74rem; color: var(--gris); }
+  .boton.principal { background: var(--azul); color: #fff; }
+  .boton.principal .det { color: #d6e0ff; }
+
+  /* ---------- Bloques ---------- */
+  .bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.4rem; }
+  .bloque {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; display: grid; gap: 0.5rem; align-content: start;
+  }
+  .bloque .clave {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; background: var(--azul); color: #fff; width: fit-content; padding: 0.2em 0.5em;
+  }
+  .bloque.relleno { background: var(--hueso); }
+  .bloque.invertido { background: var(--negro); color: #fff; }
+  .bloque.invertido .clave { background: #fff; color: var(--negro); }
+  .bloque.invertido strong { color: var(--azul-2); }
+
+  /* ---------- Pasos ---------- */
+  .pasos { display: grid; gap: 1.2rem; }
+  .paso {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.1rem 1.2rem; display: grid; grid-template-columns: 3rem 1fr; gap: 0.5rem 1.1rem;
+  }
+  .paso > .n {
+    background: var(--azul); color: #fff; border: var(--borde);
+    font-family: var(--mono); font-weight: 800; font-size: 1.1rem; text-align: center;
+    padding: 0.3rem 0; align-self: start;
+  }
+  .paso .cuerpo { display: grid; gap: 0.5rem; }
+  .paso.final { background: var(--hueso); }
+
+  /* ---------- Las tres etiquetas ---------- */
+  .escala { display: grid; border: var(--borde); box-shadow: var(--sombra); }
+  .banda {
+    display: grid; grid-template-columns: 7.5rem 1fr; gap: 0.2rem 1.2rem;
+    padding: 0.95rem 1.2rem; border-bottom: var(--borde); align-items: baseline;
+  }
+  .banda:last-child { border-bottom: 0; }
+  .banda .rango { font-family: var(--mono); font-weight: 800; font-size: 1.15rem; }
+  .banda .detalle { grid-column: 2; font-size: 0.94em; }
+  .banda.afin { background: var(--azul); color: #fff; }
+  .banda.critica { background: var(--negro); color: #fff; }
+  .banda.critica .detalle { color: #c9cede; }
+  .banda.neutral { background: var(--hueso); }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: var(--borde); box-shadow: var(--sombra); background: var(--papel); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 0.95em; }
+  th, td { text-align: left; padding: 0.65rem 1rem; border-bottom: 2px solid var(--negro); }
+  th { background: var(--negro); color: #fff; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  td.n { font-family: var(--mono); font-weight: 800; color: var(--azul); width: 4rem; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: var(--borde); background: var(--negro); color: #fff; box-shadow: var(--sombra);
+    padding: 1.2rem 1.4rem; display: grid; gap: 0.5rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--azul-2);
+  }
+  .aviso strong { color: var(--azul-2); }
+  .aviso code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+  .aviso ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+
+  pre.codigo {
+    margin: 0; border: var(--borde); background: var(--negro); color: #e8ecf7; box-shadow: var(--sombra-chica);
+    padding: 1rem 1.2rem; overflow-x: auto; font-family: var(--mono); font-size: 0.82rem; line-height: 1.55;
+  }
+  pre.codigo .c { color: #949cb4; }
+  pre.codigo .s { color: #ffd479; }
+
+  ol.preguntas { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.7rem; max-width: 72ch; }
+
+  .pie {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra); margin-top: 2rem;
+    padding: 1.1rem 1.4rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem;
+    justify-content: space-between; font-family: var(--mono); font-size: 0.8rem;
+  }
+  .pie img { width: 130px; height: auto; display: block; }
+
+  a { color: var(--azul); font-weight: 600; text-underline-offset: 0.2em; }
+  a:focus-visible, .boton:focus-visible { outline: 3px solid var(--azul-2); outline-offset: 3px; }
+
+  @media (max-width: 560px) {
+    .banda { grid-template-columns: 1fr; }
+    .banda .detalle { grid-column: 1; }
+    .paso { grid-template-columns: 2.4rem 1fr; }
+    .boton { min-width: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="hoja">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="seccion portada">
+    <div class="marca-caja"><img src="logo.jpg" alt="Tecnológico de Monterrey"></div>
+    <span class="kicker">Ejercicio · acuerdo entre anotadores</span>
+    <h1>Tú, tu pareja<br>y un <em>modelo</em></h1>
+    <p class="sumario">
+      Vas a etiquetar diez preguntas de la mañanera, medir con la kappa de Cohen cuánto
+      coincides con tu pareja, y después entrenar un modelo que etiqueta las mismas
+      preguntas para ver <strong>si te pareces más a una persona o a la máquina</strong>.
+    </p>
+    <div class="botones">
+      <a class="boton principal" href="https://docs.google.com/spreadsheets/d/1f38jOxllwjrl51foW_2w9kMtpCv3m4ykFuzs0i67xUQ/edit" target="_blank" rel="noopener">
+        <span class="que">Abrir la hoja ↗</span><span class="det">Google Sheets · Gpo 651</span>
+      </a>
+      <a class="boton" href="ejercicio_kappa.zip" download>
+        <span class="que">Descargar el notebook</span><span class="det">.zip · notebook + datos</span>
+      </a>
+    </div>
+    <div class="firma">
+      <b>Manuel Toral</b>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Escuela de Ingeniería y Ciencias</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">01</span><span class="rot">El ejercicio en una mirada</span></div>
+    <h2>Tres partes, una sola medida</h2>
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Solo · 10 min</span>
+        <h3>Etiquetas</h3>
+        <p>Lees diez preguntas y a cada una le pones <code>afin</code>, <code>critica</code> o <code>neutral</code>. Primero en papel, sin ver a nadie.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">En pareja · 15 min</span>
+        <h3>Kappa a mano</h3>
+        <p>Pasas tus etiquetas a la hoja. Con la tabla de contingencia calculas Po, Pe y κ, y comparas con lo que dio la hoja.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">En R · el resto</span>
+        <h3>Kappa contra un modelo</h3>
+        <p>En el notebook reproduces tu número, ves el de todo el grupo y entrenas un modelo que compite contra ti con <strong>la misma kappa</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">02</span><span class="rot">Antes de clase</span></div>
+    <h2>Deja R listo</h2>
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <div class="cuerpo">
+          <h3>Instala los dos paquetes</h3>
+          <p>El notebook usa solo <strong>tidyverse</strong> y <strong>tidymodels</strong>. En la consola de R:</p>
+          <pre class="codigo">install.packages(c(<span class="s">"tidyverse"</span>, <span class="s">"tidymodels"</span>))</pre>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">2</span>
+        <div class="cuerpo">
+          <h3>Descarga y descomprime el notebook</h3>
+          <p>
+            El <a href="ejercicio_kappa.zip" download>.zip</a> trae <code>ejercicio_kappa.qmd</code> y la carpeta
+            <code>datos/</code>. Ábrelo como proyecto o pon el directorio de trabajo en esa carpeta.
+            Si solo bajas el <a href="ejercicio_kappa.qmd" download>.qmd</a>, los datos se descargan solos del sitio.
+          </p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">3</span>
+        <div class="cuerpo">
+          <h3>Comprueba que corre</h3>
+          <p>
+            Dale <strong>Render</strong> en RStudio (o <code>quarto render ejercicio_kappa.qmd</code>). Antes de clase
+            corre con dos anotadores de ejemplo, así que debe salir completo aunque nadie haya etiquetado.
+            Entrenar el modelo tarda unos segundos.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">03</span><span class="rot">Las etiquetas</span></div>
+    <h2>Tres valores, una regla</h2>
+    <div class="escala">
+      <div class="banda afin">
+        <span class="rango">afin</span><span class="que"><b>Le sirve al gobierno</b></span>
+        <span class="detalle">Lo halaga, da por buena su versión, le ofrece plataforma, o le pega a un rival suyo.</span>
+      </div>
+      <div class="banda critica">
+        <span class="rango">critica</span><span class="que"><b>Lo pone en aprieto</b></span>
+        <span class="detalle">Señala contradicción, fracaso, omisión u opacidad del gobierno federal.</span>
+      </div>
+      <div class="banda neutral">
+        <span class="rango">neutral</span><span class="que"><b>Pide sin cargar</b></span>
+        <span class="detalle">Pide un dato o una explicación sin dar nada por sentado.</span>
+      </div>
+    </div>
+    <p>
+      <strong>La carga está en la premisa, no en el tema.</strong> Antes de decidir, lee lo que la
+      pregunta da por sentado. Dos preguntas sobre homicidios pueden ser una afín y otra crítica.
+    </p>
+  </section>
+
+  <!-- ═══════════ 04 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">04</span><span class="rot">En clase · la hoja</span></div>
+    <h2>Paso a paso</h2>
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <div class="cuerpo">
+          <h3>Etiqueta en papel</h3>
+          <p>Pestaña <code>preguntas</code>. Anota tus diez etiquetas <strong>solo</strong>, sin ver la hoja ni a tu pareja. Si ves lo que puso otro antes de decidir, la kappa ya no mide tu criterio.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">2</span>
+        <div class="cuerpo">
+          <h3>Pásalas a la hoja</h3>
+          <p>Pestaña <code>etiquetas</code>. Busca las diez filas con tu nombre y llena <strong>solo la columna amarilla</strong> con la lista desplegable.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">3</span>
+        <div class="cuerpo">
+          <h3>Baja a tu bloque</h3>
+          <p>Pestaña <code>kappa</code>. El primer bloque es un ejemplo (κ = 0.265); después vienen las parejas 1 a 8. La kappa sale sola cuando los dos terminaron.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">4</span>
+        <div class="cuerpo">
+          <h3>Calcula a mano antes de mirar</h3>
+          <p>Con la tabla de contingencia: Po es la diagonal entre 10; Pe es la suma de p<sub>A</sub> × p<sub>B</sub> por categoría; κ = (Po − Pe) / (1 − Pe). Luego compara con la hoja.</p>
+        </div>
+      </div>
+      <div class="paso final">
+        <span class="n">5</span>
+        <div class="cuerpo">
+          <h3>Pasa al notebook</h3>
+          <p>Escribe tu nombre y el de tu pareja en <code>A</code> y <code>B</code> (sección 2) y vuelve a renderizar.</p>
+        </div>
+      </div>
+    </div>
+    <div class="aviso">
+      <span class="titulo">Para no romper la hoja</span>
+      <ul>
+        <li><strong>No ordenes ni filtres</strong> la pestaña <code>etiquetas</code>: los bloques de la pestaña <code>kappa</code> apuntan a filas fijas.</li>
+        <li>No escribas en filas de otra persona.</li>
+        <li>En el notebook, tu nombre va <strong>escrito igual que en la hoja</strong>, con acentos.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════ 05 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">05</span><span class="rot">Las parejas</span></div>
+    <h2>Con quién te toca</h2>
+    <div class="tabla-envoltura">
+      <table>
+        <thead><tr><th>Pareja</th><th>Anotador A</th><th>Anotador B</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td>Karen Cervantes Fernández</td><td>Victoria Daniel Moedano</td></tr>
+          <tr><td class="n">2</td><td>Alejandro Flores Hernández</td><td>José Francisco Garcés Camacho</td></tr>
+          <tr><td class="n">3</td><td>María José Gómez González</td><td>Gerardo Alberto Gómez Salazar</td></tr>
+          <tr><td class="n">4</td><td>Salvador Gutiérrez Solorio</td><td>Danae Jiménez Ramírez</td></tr>
+          <tr><td class="n">5</td><td>Emilio López Juárez</td><td>Luis Ramón Mercado Toledo</td></tr>
+          <tr><td class="n">6</td><td>Santiago Pérez Reyes</td><td>Ilse Irais Ramírez Arroyo</td></tr>
+          <tr><td class="n">7</td><td>Paula Reinah Aponte</td><td>Mauricio Sepúlveda Soto</td></tr>
+          <tr><td class="n">8</td><td>Rubén Arturo Valerio García</td><td>Oscar Verdugo Carranza</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════ 06 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">06</span><span class="rot">El notebook</span></div>
+    <h2>Qué hace cada sección</h2>
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">1 – 2</span>
+        <h3>Tu kappa, dos veces</h3>
+        <p>Lee la hoja, arma la tabla de contingencia con <code>count()</code> y calcula κ a mano y con <code>kap()</code> de yardstick. Tienen que coincidir.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">3 – 4</span>
+        <h3>El grupo y el consenso</h3>
+        <p>La kappa de todas las parejas, y qué etiqueta se queda en cada pregunta: mayoría, con los empates marcados.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">5</span>
+        <h3>Un modelo que aprende de Gemini</h3>
+        <p>Bolsa de palabras y regresión multinomial sobre 19,361 preguntas que etiquetó Gemini. Se mide contra 135 codificadas a mano.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">6</span>
+        <h3>Tú contra el modelo</h3>
+        <p>El modelo etiqueta tus mismas diez preguntas. <strong>Tu kappa contra él</strong>, al lado de tu kappa contra tu pareja.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">07</span><span class="rot">Para discutir</span></div>
+    <h2>Lo que vamos a hablar al final</h2>
+    <ol class="preguntas">
+      <li>¿Tu kappa con tu pareja fue más alta o más baja que con el modelo? ¿Por qué podría pasar cualquiera de las dos?</li>
+      <li>¿En qué preguntas el consenso del grupo tuvo apoyo bajo? ¿Son las mismas donde el modelo duda?</li>
+      <li>El modelo aprendió de Gemini y queda por debajo de Gemini contra el humano. ¿Qué tendría que pasar para que lo superara?</li>
+      <li>Si tuvieras que entregar una sola etiqueta por pregunta, ¿mayoría, adjudicación o la distribución completa? ¿Qué pierdes con cada una?</li>
+    </ol>
+  </section>
+
+  <footer class="pie">
+    <img src="logo.jpg" alt="Tecnológico de Monterrey">
+    <span>CDII · Gpo 651 · <a href="../index.html">Volver al curso</a></span>
+  </footer>
+
+</main>
+</body>
+</html>
