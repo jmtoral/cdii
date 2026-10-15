@@ -1,0 +1,169 @@
+---
+title: "Rest-Mex 2025 · comparar modelos"
+subtitle: "¿Cuál modelo, con qué variables? Se decide aquí, con validación cruzada"
+lang: es
+format:
+  html:
+    toc: true
+    embed-resources: true
+    df-print: tibble
+execute:
+  warning: false
+  message: false
+---
+
+La pregunta: **¿la reseña viene de alguien satisfecho (4 o 5) o no (1 a 3)?** El
+EDA (`01_eda.qmd`) dejó tres pistas: el tipo de lugar, la longitud y, sobre todo,
+las palabras.
+
+Aquí se comparan **tres modelos × dos juegos de variables** sin tocar la prueba.
+El ganador lo entrena después `scripts/03_modelo.R` y lo lee el reporte.
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(here)
+source(here("R", "funciones.R"))
+```
+
+# 1. Los datos y la partición
+
+40 mil reseñas bastan para comparar y entrenan en segundos. La partición es lo
+**primero** que se hace: el 20% de prueba queda guardado bajo llave hasta el final.
+
+```{r}
+set.seed(2025)
+datos <- read_rds(here("data", "processed", "resenas.rds")) |>
+  slice_sample(n = 40000) |>
+  select(id, satisfecho, tipo, n_palabras, resena)
+
+particion     <- initial_split(datos, prop = 0.8, strata = satisfecho)
+entrenamiento <- training(particion)
+prueba        <- testing(particion)
+
+entrenamiento |> count(satisfecho) |> mutate(proporcion = n / sum(n))
+```
+
+# 2. Las palabras, escogidas solo con entrenamiento
+
+`elegir_vocabulario()` y `con_palabras()` viven en `R/funciones.R` porque las usan
+este notebook y el script del modelo final.
+
+```{r}
+vocabulario <- elegir_vocabulario(entrenamiento)
+vocabulario
+
+X_entrenamiento <- con_palabras(entrenamiento, vocabulario)
+dim(X_entrenamiento)
+```
+
+# 3. Dos recetas
+
+La **básica** solo ve tipo de lugar y longitud. La de **palabras** además ve las 60
+columnas `w_*`. Comparar las dos responde: ¿cuánto aportan las palabras?
+
+```{r}
+receta_palabras <- recipe(satisfecho ~ ., data = X_entrenamiento) |>
+  update_role(id, new_role = "id") |>
+  step_log(n_palabras, offset = 1) |>
+  step_dummy(tipo) |>
+  step_zv(all_predictors())
+
+receta_basica <- receta_palabras |>
+  step_rm(starts_with("w_"))
+```
+
+# 4. Tres modelos
+
+- **Nulo**: siempre dice la clase más común. No aprende nada; es la vara mínima.
+- **Regresión logística**: suma pesos de cada variable. Fácil de leer.
+- **Árbol de decisión**: reglas de sí/no en cascada. Capta interacciones solo.
+
+```{r}
+modelos <- list(
+  nulo      = null_model() |> set_engine("parsnip") |> set_mode("classification"),
+  logistica = logistic_reg(),
+  arbol     = decision_tree(tree_depth = 6) |> set_mode("classification")
+)
+```
+
+# 5. Validación cruzada: 6 combinaciones × 5 pliegues
+
+`workflow_set()` cruza cada receta con cada modelo. Cada combinación se entrena 5
+veces, cada vez dejando fuera un quinto del entrenamiento para calificarse.
+
+```{r}
+set.seed(2025)
+pliegues <- vfold_cv(X_entrenamiento, v = 5, strata = satisfecho)
+
+metricas <- metric_set(roc_auc, kap, accuracy, sens)
+
+comparacion <- workflow_set(
+  preproc = list(basica = receta_basica, palabras = receta_palabras),
+  models  = modelos
+) |>
+  workflow_map("fit_resamples", resamples = pliegues, metrics = metricas, seed = 2025)
+```
+
+```{r}
+#| fig-height: 4.5
+autoplot(comparacion, metric = c("roc_auc", "kap")) +
+  theme_minimal()
+```
+
+```{r}
+comparacion |>
+  collect_metrics() |>
+  select(wflow_id, .metric, mean) |>
+  pivot_wider(names_from = .metric, values_from = mean) |>
+  arrange(desc(roc_auc))
+```
+
+**Cómo leerlo:**
+
+- El **nulo** tiene AUC de 0.5 y kappa 0, pero *accuracy* de 87%. Por eso la
+  exactitud sola no sirve aquí.
+- Con la receta **básica** ningún modelo despega: el tipo y la longitud dicen
+  poco.
+- Las **palabras** son las que hacen el trabajo. Con ellas, la logística le gana
+  al árbol en AUC.
+- El árbol apenas se ramifica: con solo 13% de quejas, casi ningún corte mejora lo
+  suficiente para pagar su costo (`cost_complexity`). Ajustar ese parámetro con
+  `tune_grid()` es el siguiente paso si se quiere darle otra oportunidad.
+
+> La sensibilidad (`sens`) es la fracción de quejas que se detectan. Con el corte
+> por defecto (50%) todos se quedan cortos, porque las quejas son solo el 13%.
+
+# 6. El ganador, contra la prueba
+
+Solo ahora se abre la prueba, **una vez**. `last_fit()` entrena con todo el
+entrenamiento y califica en la prueba.
+
+```{r}
+mejor <- comparacion |>
+  rank_results(rank_metric = "roc_auc", select_best = TRUE) |>
+  slice(1) |>
+  pull(wflow_id)
+mejor
+
+# La prueba pasa por el mismo vocabulario, el que salió del entrenamiento
+X_prueba <- con_palabras(prueba, vocabulario)
+
+final <- comparacion |>
+  extract_workflow(mejor) |>
+  last_fit(make_splits(X_entrenamiento, X_prueba), metrics = metricas)
+
+collect_metrics(final)
+```
+
+Si la prueba sale parecida a la validación cruzada, el modelo no se sobreajustó a
+los pliegues. Ese es el número que va al reporte.
+
+# Lo que me llevo
+
+- Gana **`r mejor`**. Lo entrena `scripts/03_modelo.R` y lo lee el reporte.
+- El vocabulario se escogió con todo el entrenamiento antes de partir en pliegues,
+  así que la validación cruzada sale un poco optimista. La prueba no tiene ese
+  problema: nunca la vio.
+- Siguiente intento: bajar el umbral para detectar más quejas, o usar todas las
+  palabras con `textrecipes`.

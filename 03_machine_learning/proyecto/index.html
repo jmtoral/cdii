@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Manuel Toral">
+<title>Arma tu proyecto — Instructivo</title>
+<style>
+  /*
+    Mismo neobrutalismo azul y blanco del Tec que las láminas del curso: bordes
+    negros gruesos, sombras duras, bloques de color plano, tipografía pesada.
+  */
+  :root {
+    --papel:   #ffffff;
+    --hueso:   #eef2ff;
+    --azul:    #0432a1;
+    --azul-2:  #4a7ae8;
+    --negro:   #0b0b0b;
+    --gris:    #565b6b;
+
+    --borde: 3px solid var(--negro);
+    --sombra: 8px 8px 0 var(--negro);
+    --sombra-chica: 5px 5px 0 var(--negro);
+
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+    --paso: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+  /* Se queda en claro: el neobrutalismo depende del negro sobre blanco. En
+     preferencia oscura solo se baja el brillo del papel. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --papel: #e8ecf7; --hueso: #dde4f6; }
+  }
+  :root[data-theme="dark"] { --papel: #e8ecf7; --hueso: #dde4f6; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--papel); color: var(--negro);
+    font-family: var(--display); font-size: clamp(15px, 0.85rem + 0.35vw, 18px); line-height: 1.55;
+  }
+  .hoja { max-width: 1080px; margin: 0 auto; padding: 0 var(--paso) 4rem; }
+  .seccion { padding: clamp(2.2rem, 4.5vw, 4rem) 0; display: grid; gap: clamp(1.1rem, 2.2vw, 1.6rem); }
+
+  .cinta { display: flex; align-items: stretch; }
+  .cinta .num {
+    background: var(--azul); color: #fff; border: var(--borde); border-right: 0;
+    font-family: var(--mono); font-weight: 700; padding: 0.35rem 0.8rem;
+  }
+  .cinta .rot {
+    background: var(--papel); border: var(--borde); box-shadow: var(--sombra-chica);
+    font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase; padding: 0.35rem 1rem;
+    display: flex; align-items: center;
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.03em; }
+  h1 { font-size: clamp(2.6rem, 1rem + 6vw, 5.2rem); line-height: 0.95; }
+  h1 em { font-style: normal; color: var(--azul); }
+  h2 { font-size: clamp(1.7rem, 1rem + 3vw, 3rem); line-height: 1.05; }
+  h3 { font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.3rem); letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 66ch; }
+  .sumario { font-size: 1.1em; max-width: 58ch; }
+  strong { color: var(--azul); }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--hueso); padding: 0.1em 0.3em; border: 1px solid var(--negro); }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 78vh; align-content: center; }
+  .marca-caja { border: var(--borde); background: #fff; box-shadow: var(--sombra); padding: 0.9rem 1.2rem; width: fit-content; }
+  .marca-caja img { display: block; width: clamp(170px, 24vw, 240px); height: auto; }
+  .kicker {
+    background: var(--negro); color: #fff; width: fit-content;
+    font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; padding: 0.3rem 0.7rem;
+  }
+  .firma {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra-chica);
+    padding: 1rem 1.2rem; width: fit-content; max-width: 100%; font-family: var(--mono); font-size: 0.86rem; display: grid; gap: 0.1rem;
+  }
+  .kicker, .cinta .rot { max-width: 100%; }
+
+  /* ---------- Botones de descarga ---------- */
+  .botones { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .boton {
+    display: inline-grid; gap: 0.15rem; text-decoration: none; color: var(--negro);
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 0.8rem 1.1rem; min-width: 210px;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .boton:hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--negro); }
+  .boton:active { transform: translate(5px, 5px); box-shadow: none; }
+  .boton .que { font-weight: 800; font-size: 1.05em; }
+  .boton .det { font-family: var(--mono); font-size: 0.74rem; color: var(--gris); }
+  .boton.principal { background: var(--azul); color: #fff; }
+  .boton.principal .det { color: #d6e0ff; }
+
+  /* ---------- Bloques ---------- */
+  .bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.4rem; }
+  .bloque {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; display: grid; gap: 0.5rem; align-content: start;
+  }
+  .bloque .clave {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; background: var(--azul); color: #fff; width: fit-content; padding: 0.2em 0.5em;
+  }
+  .bloque.relleno { background: var(--hueso); }
+  .bloque.invertido { background: var(--negro); color: #fff; }
+  .bloque.invertido .clave { background: #fff; color: var(--negro); }
+  .bloque.invertido strong { color: var(--azul-2); }
+
+  /* ---------- Pasos ---------- */
+  .pasos { display: grid; gap: 1.2rem; }
+  .paso {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.1rem 1.2rem; display: grid; grid-template-columns: 3rem 1fr; gap: 0.5rem 1.1rem;
+  }
+  .paso > .n {
+    background: var(--azul); color: #fff; border: var(--borde);
+    font-family: var(--mono); font-weight: 800; font-size: 1.1rem; text-align: center;
+    padding: 0.3rem 0; align-self: start;
+  }
+  .paso .cuerpo { display: grid; gap: 0.5rem; }
+  .paso.final { background: var(--hueso); }
+
+  /* ---------- Las tres etiquetas ---------- */
+  .escala { display: grid; border: var(--borde); box-shadow: var(--sombra); }
+  .banda {
+    display: grid; grid-template-columns: 7.5rem 1fr; gap: 0.2rem 1.2rem;
+    padding: 0.95rem 1.2rem; border-bottom: var(--borde); align-items: baseline;
+  }
+  .banda:last-child { border-bottom: 0; }
+  .banda .rango { font-family: var(--mono); font-weight: 800; font-size: 1.15rem; }
+  .banda .detalle { grid-column: 2; font-size: 0.94em; }
+  .banda.afin { background: var(--azul); color: #fff; }
+  .banda.critica { background: var(--negro); color: #fff; }
+  .banda.critica .detalle { color: #c9cede; }
+  .banda.neutral { background: var(--hueso); }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: var(--borde); box-shadow: var(--sombra); background: var(--papel); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 0.95em; }
+  th, td { text-align: left; padding: 0.65rem 1rem; border-bottom: 2px solid var(--negro); }
+  th { background: var(--negro); color: #fff; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  td.n { font-family: var(--mono); font-weight: 800; color: var(--azul); width: 4rem; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: var(--borde); background: var(--negro); color: #fff; box-shadow: var(--sombra);
+    padding: 1.2rem 1.4rem; display: grid; gap: 0.5rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--azul-2);
+  }
+  .aviso strong { color: var(--azul-2); }
+  .aviso code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+  .aviso ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+
+  pre.codigo {
+    margin: 0; border: var(--borde); background: var(--negro); color: #e8ecf7; box-shadow: var(--sombra-chica);
+    padding: 1rem 1.2rem; overflow-x: auto; font-family: var(--mono); font-size: 0.82rem; line-height: 1.55;
+  }
+  pre.codigo .c { color: #949cb4; }
+  pre.codigo .s { color: #ffd479; }
+
+  ol.preguntas { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.7rem; max-width: 72ch; }
+
+  .pie {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra); margin-top: 2rem;
+    padding: 1.1rem 1.4rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem;
+    justify-content: space-between; font-family: var(--mono); font-size: 0.8rem;
+  }
+  .pie img { width: 130px; height: auto; display: block; }
+
+  a { color: var(--azul); font-weight: 600; text-underline-offset: 0.2em; }
+  a:focus-visible, .boton:focus-visible { outline: 3px solid var(--azul-2); outline-offset: 3px; }
+
+  @media (max-width: 560px) {
+    .banda { grid-template-columns: 1fr; }
+    .banda .detalle { grid-column: 1; }
+    .paso { grid-template-columns: 2.4rem 1fr; }
+    .boton { min-width: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  pre.arbol {
+    margin: 0; border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 1rem 1.2rem; overflow-x: auto; font-family: var(--mono); font-size: 0.82rem; line-height: 1.65;
+  }
+  pre.arbol .d { font-weight: 800; color: var(--azul); }
+  pre.arbol .c { color: var(--gris); }
+  pre.codigo .k { color: #7fb8ff; font-weight: 700; }
+  .archivo {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+    background: var(--azul); color: #fff; width: fit-content; max-width: 100%; padding: 0.25em 0.7em;
+    overflow-wrap: anywhere;
+  }
+  .ruta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
+  .paso .cuerpo { min-width: 0; }
+</style>
+</head>
+<body>
+<main class="hoja">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="seccion portada">
+    <div class="marca-caja"><img src="logo.jpg" alt="Tecnológico de Monterrey"></div>
+    <span class="kicker">Ejercicio · arquitectura de un proyecto</span>
+    <h1>Arma tu primer<br>proyecto <em>de datos</em></h1>
+    <p class="sumario">
+      Vas a montar un proyecto de ciencia de datos con la estructura de carpetas de verdad:
+      bajar <strong>208 mil reseñas de Pueblos Mágicos</strong>, limpiarlas, explorarlas,
+      comparar tres modelos con tidymodels y entregar un reporte en Quarto. Todo en R.
+    </p>
+    <div class="botones">
+      <a class="boton principal" href="restmex.zip" download>
+        <span class="que">Descargar el proyecto</span><span class="det">restmex.zip · la carpeta completa, sin datos</span>
+      </a>
+      <a class="boton" href="../presentaciones/09_arquitectura_proyecto.html">
+        <span class="que">Las láminas</span><span class="det">dónde vive cada cosa</span>
+      </a>
+    </div>
+    <div class="botones">
+      <a class="boton" href="vistas/01_eda.html">
+        <span class="que">Ver el EDA</span><span class="det">01_eda.qmd, ya renderizado</span>
+      </a>
+      <a class="boton" href="vistas/02_modelo.html">
+        <span class="que">Ver los modelos</span><span class="det">02_modelo.qmd, ya renderizado</span>
+      </a>
+      <a class="boton" href="vistas/reporte.html">
+        <span class="que">Ver el reporte</span><span class="det">reporte.qmd, ya renderizado</span>
+      </a>
+    </div>
+    <div class="firma">
+      <b>Manuel Toral</b>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Escuela de Ingeniería y Ciencias</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">01</span><span class="rot">El ejercicio en una mirada</span></div>
+    <h2>Cuatro piezas,<br>una sola carpeta</h2>
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">La carpeta</span>
+        <h3>Dónde vive cada cosa</h3>
+        <p>Siete carpetas, un <code>.Rproj</code> y un <code>correr_todo.R</code> que reproduce
+        todo desde cero.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">01_eda.qmd</span>
+        <h3>Mirar los datos</h3>
+        <p>Polaridad, tipo de lugar, longitud y las palabras que separan una queja de un
+        elogio.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">02_modelo.qmd</span>
+        <h3>Comparar modelos</h3>
+        <p>Nulo, regresión logística y árbol, con y sin palabras, en validación cruzada con
+        <code>workflow_set()</code>.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">reporte.qmd</span>
+        <h3>Contarlo</h3>
+        <p>Para quien decide: sin código, y <strong>sin ninguna cifra escrita a
+        mano</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">02</span><span class="rot">Antes de clase</span></div>
+    <h2>Deja R listo</h2>
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <div class="cuerpo">
+          <h3>Instala los tres paquetes</h3>
+<pre class="codigo">install.packages(c(<span class="s">"tidyverse"</span>, <span class="s">"tidymodels"</span>, <span class="s">"here"</span>))</pre>
+          <p>Quarto ya viene con RStudio. Si usas otro editor, bájalo de
+          <a href="https://quarto.org/docs/get-started/" target="_blank" rel="noopener">quarto.org</a>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">2</span>
+        <div class="cuerpo">
+          <h3>Ten internet a la mano</h3>
+          <p>Los datos (30 MB) no vienen en el .zip: los baja <code>scripts/01_descargar.R</code>
+          la primera vez. Esa es justo una de las ideas del ejercicio.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">03</span><span class="rot">Primero · explora la carpeta</span></div>
+    <h2>Abre el .zip<br>antes de correr nada</h2>
+    <p class="sumario">
+      El proyecto viene <strong>completo pero vacío</strong>: todo el código está, pero
+      <code>data/</code> y <code>outputs/</code> solo tienen un <code>.gitkeep</code>. Es
+      exactamente lo que habría en un repositorio de git.
+    </p>
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <div class="cuerpo">
+          <h3>Descomprime y mira el árbol</h3>
+          <p>Antes de abrir nada, recorre las carpetas y responde: ¿por qué
+          <code>data/raw/</code> está vacía? ¿Qué archivo la va a llenar? ¿Cuál lee el reporte?</p>
+<pre class="arbol">restmex/
+├── restmex.Rproj       <span class="c">ábrelo siempre por aquí</span>
+├── README.md
+├── correr_todo.R
+├── <span class="d">data/raw/</span>           <span class="c">vacía · la llena 01_descargar.R</span>
+├── <span class="d">data/processed/</span>     <span class="c">vacía · la llena 02_limpiar.R</span>
+├── <span class="d">R/</span>funciones.R
+├── <span class="d">scripts/</span>            <span class="c">01_descargar.R  02_limpiar.R  03_modelo.R</span>
+├── <span class="d">notebooks/</span>          <span class="c">01_eda.qmd  02_modelo.qmd</span>
+├── <span class="d">outputs/</span>            <span class="c">vacía · la llena 03_modelo.R</span>
+└── <span class="d">reports/</span>reporte.qmd</pre>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">2</span>
+        <div class="cuerpo">
+          <h3>Abre <code>restmex.Rproj</code> y lee el README</h3>
+          <p>Doble clic en el <code>.Rproj</code>. RStudio se abre con la raíz del proyecto como
+          directorio de trabajo, y <code>here()</code> la va a encontrar sola.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">3</span>
+        <div class="cuerpo">
+          <h3>Abre <code>correr_todo.R</code> y dale Source</h3>
+          <p>Baja los datos, los limpia y entrena el modelo, en poco más de un minuto. Mira la
+          consola: <code>02_limpiar.R</code> te dice cuántas reseñas venían con acentos rotos y
+          cuántas estaban duplicadas.</p>
+          <p>Después vuelve a mirar <code>data/</code> y <code>outputs/</code>: ya no están vacías.</p>
+        </div>
+      </div>
+      <div class="paso final">
+        <span class="n">4</span>
+        <div class="cuerpo">
+          <h3>Renderiza los notebooks y el reporte</h3>
+          <p>Abre <code>notebooks/01_eda.qmd</code>, <code>notebooks/02_modelo.qmd</code> y
+          <code>reports/reporte.qmd</code>, y dale <b>Render</b> a cada uno. El de modelos tarda un
+          par de minutos: entrena 30 veces.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 04 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">04</span><span class="rot">Después · ármalo tú desde cero</span></div>
+    <h2>La misma carpeta,<br>con tus manos</h2>
+    <p class="sumario">
+      Ahora en un proyecto nuevo y vacío. Copia el código de cada archivo del .zip,
+      <strong>pero en este orden</strong> y corriendo cada paso antes de pasar al siguiente.
+    </p>
+    <div class="pasos">
+      <div class="paso">
+        <span class="n">1</span>
+        <div class="cuerpo">
+          <h3>Proyecto nuevo</h3>
+          <p>En RStudio: <b>File › New Project › New Directory › New Project</b>. Llámalo
+          <code>mi_restmex</code>.</p>
+          <p>Luego <b>Tools › Project Options › General</b>: <i>Restore .RData</i> en
+          <b>No</b> y <i>Save workspace</i> en <b>Never</b>. Cada sesión empieza en blanco.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">2</span>
+        <div class="cuerpo">
+          <h3>Las carpetas, con código</h3>
+          <p>En la consola:</p>
+<pre class="codigo">library(tidyverse)
+
+carpetas &lt;- c(<span class="s">"data/raw"</span>, <span class="s">"data/processed"</span>, <span class="s">"R"</span>, <span class="s">"scripts"</span>,
+              <span class="s">"notebooks"</span>, <span class="s">"outputs"</span>, <span class="s">"reports"</span>)
+walk(carpetas, \(d) dir.create(d, recursive = TRUE))
+
+<span class="c"># git no guarda carpetas vacías: un .gitkeep las mantiene</span>
+walk(c(<span class="s">"data/raw"</span>, <span class="s">"data/processed"</span>, <span class="s">"outputs"</span>),
+     \(d) file.create(file.path(d, <span class="s">".gitkeep"</span>)))</pre>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">3</span>
+        <div class="cuerpo">
+          <h3><code>.gitignore</code> y <code>README.md</code></h3>
+          <p>Cópialos del .zip. El <code>.gitignore</code> deja fuera <code>data/</code>,
+          <code>outputs/</code> y los <code>.html</code>: se regeneran. Si tu RStudio no muestra
+          archivos que empiezan con punto, en el panel Files: <b>More › Show Hidden Files</b>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">4</span>
+        <div class="cuerpo">
+          <h3><code>R/funciones.R</code></h3>
+          <p><code>arreglar_mojibake()</code>, <code>tokenizar()</code>,
+          <code>elegir_vocabulario()</code> y <code>con_palabras()</code>. Al final trae un
+          <code>stopifnot()</code>: si alguien rompe una función, cargar el archivo falla.</p>
+<pre class="codigo">source(here::here(<span class="s">"R"</span>, <span class="s">"funciones.R"</span>))   <span class="c"># si no truena, pasó la prueba</span></pre>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">5</span>
+        <div class="cuerpo">
+          <h3><code>scripts/01_descargar.R</code> → córrelo</h3>
+          <p>Baja el .zip de Drive a <code>data/raw/</code> y lo descomprime. Si ya está, no
+          vuelve a bajarlo.</p>
+<pre class="codigo">url &lt;- str_glue(<span class="s">"https://drive.usercontent.google.com/download?id={ID_DRIVE}&amp;export=download&amp;confirm=t"</span>)
+download.file(url, zip, mode = <span class="s">"wb"</span>)
+unzip(zip, exdir = here(<span class="s">"data"</span>, <span class="s">"raw"</span>))</pre>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">6</span>
+        <div class="cuerpo">
+          <h3><code>scripts/02_limpiar.R</code> → córrelo</h3>
+          <p>Nombres en español, polaridad como entero, acentos arreglados, duplicados fuera, y
+          la variable respuesta <code>satisfecho</code> definida <strong>una sola vez</strong>.
+          Escribe <code>data/processed/resenas.rds</code>.</p>
+<pre class="codigo">satisfecho = factor(if_else(polaridad &gt;= 4, <span class="s">"si"</span>, <span class="s">"no"</span>), levels = c(<span class="s">"no"</span>, <span class="s">"si"</span>))</pre>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">7</span>
+        <div class="cuerpo">
+          <h3><code>notebooks/01_eda.qmd</code> → Render</h3>
+          <p>Seis preguntas: ¿qué tan completos?, ¿cómo se reparte la polaridad?, ¿cambia por
+          tipo?, ¿las quejas son más largas?, ¿qué pueblos?, ¿qué palabras separan una queja de
+          un elogio? Termina con <b>lo que me llevo al modelo</b>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">8</span>
+        <div class="cuerpo">
+          <h3><code>notebooks/02_modelo.qmd</code> → Render</h3>
+          <p>Parte los datos, escoge el vocabulario <strong>solo con entrenamiento</strong> y
+          compara 3 modelos × 2 recetas con validación cruzada. El corazón:</p>
+<pre class="codigo">modelos &lt;- list(
+  nulo      = null_model() |&gt; set_engine(<span class="s">"parsnip"</span>) |&gt; set_mode(<span class="s">"classification"</span>),
+  logistica = logistic_reg(),
+  arbol     = decision_tree(tree_depth = 6) |&gt; set_mode(<span class="s">"classification"</span>)
+)
+
+comparacion &lt;- workflow_set(
+  preproc = list(basica = receta_basica, palabras = receta_palabras),
+  models  = modelos
+) |&gt;
+  workflow_map(<span class="s">"fit_resamples"</span>, resamples = pliegues, metrics = metricas, seed = 2025)</pre>
+          <p>Al final abre la prueba <strong>una vez</strong> con <code>last_fit()</code>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">9</span>
+        <div class="cuerpo">
+          <h3><code>scripts/03_modelo.R</code> → córrelo</h3>
+          <p>Entrena al ganador y guarda en <code>outputs/</code> el modelo, las predicciones de
+          prueba y los coeficientes. <strong>El notebook decide, el script ejecuta</strong>: el
+          reporte nunca depende de un notebook.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <span class="n">10</span>
+        <div class="cuerpo">
+          <h3><code>reports/reporte.qmd</code> → Render</h3>
+          <p><code>echo: false</code>. Solo lee de <code>data/processed/</code> y
+          <code>outputs/</code>. Las cifras del texto van con <code>`r …`</code>, nunca
+          escritas a mano.</p>
+        </div>
+      </div>
+      <div class="paso final">
+        <span class="n">11</span>
+        <div class="cuerpo">
+          <h3><code>correr_todo.R</code> y la prueba de fuego</h3>
+          <p>Escríbelo, borra todo lo que hay en <code>data/</code> y <code>outputs/</code>
+          (menos los <code>.gitkeep</code>), reinicia R (<b>Session › Restart R</b>) y córrelo. Si
+          al renderizar el reporte sale idéntico, tu proyecto es reproducible.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Las dos reglas que más se rompen</span>
+      <ul>
+        <li><strong>Nada de <code>setwd()</code></strong> ni rutas con <code>C:/</code>. Todo con
+        <code>here("data", "processed", "resenas.rds")</code>.</li>
+        <li><strong>Nada de <code>$</code></strong>: <code>pull()</code>, <code>select()</code> y
+        <code>mutate()</code> hacen todo lo que necesitas.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════ 05 ═══════════ -->
+  <section class="seccion">
+    <div class="cinta"><span class="num">05</span><span class="rot">Para entregar</span></div>
+    <h2>Tres cambios,<br>y di qué archivos tocaste</h2>
+    <p class="sumario">
+      La pregunta de cada reto no es solo «¿qué sale?», sino <strong>«¿en qué archivo va el
+      cambio?»</strong>. Si tuviste que tocar más de uno para la misma idea, algo está
+      repetido.
+    </p>
+    <ol class="preguntas">
+      <li><strong>Cambia el corte.</strong> Que «satisfecho» sea solo polaridad 5. ¿Cuántos
+      archivos tuviste que editar? ¿Qué pasa con la kappa y con la sensibilidad?</li>
+      <li><strong>Un modelo más.</strong> Agrega al <code>workflow_set()</code> un árbol con
+      <code>tree_depth = 15</code> y <code>cost_complexity = 0.0001</code>. ¿Le gana a la
+      logística? Si sí, ¿qué más tienes que cambiar para que el reporte lo use?</li>
+      <li><strong>Una tabla para el reporte.</strong> Los 10 pueblos con mayor proporción de
+      quejas (con al menos 500 reseñas). Debe salir en el reporte <strong>sin tocar ningún
+      script</strong>. ¿Por qué se puede?</li>
+    </ol>
+    <div class="aviso">
+      <span class="titulo">Qué se entrega</span>
+      <p>La carpeta del proyecto en .zip <strong>sin <code>data/</code> ni
+      <code>outputs/</code> llenas</strong>, y el <code>reporte.html</code> renderizado. Si
+      quien califica no puede correr <code>correr_todo.R</code> y obtener tu mismo reporte,
+      el proyecto no está terminado.</p>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="logo.jpg" alt="Tecnológico de Monterrey">
+    <span>CDII · Rest-Mex 2025, uso académico · <a href="../index.html">Volver al curso</a></span>
+  </footer>
+
+</main>
+</body>
+</html>

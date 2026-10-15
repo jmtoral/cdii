@@ -1,0 +1,152 @@
+---
+title: "Rest-Mex 2025 · primer EDA"
+subtitle: "Exploración: aquí se vale ensuciarse"
+lang: es
+format:
+  html:
+    toc: true
+    embed-resources: true
+    df-print: tibble
+execute:
+  warning: false
+  message: false
+---
+
+Este notebook es para **mirar** los datos, no para entregarlos. Lo que valga la
+pena se pasa después al reporte (`reports/reporte.qmd`) en limpio.
+
+Lee el archivo procesado, nunca el CSV crudo: si falta, corre antes
+`scripts/01_descargar.R` y `scripts/02_limpiar.R`.
+
+```{r}
+library(tidyverse)
+library(here)
+source(here("R", "funciones.R"))
+
+resenas <- read_rds(here("data", "processed", "resenas.rds"))
+glimpse(resenas)
+```
+
+`here()` arma la ruta desde la raíz del proyecto (donde está `restmex.Rproj`), así
+que funciona igual si el notebook vive en `notebooks/` o si lo corres desde la
+consola.
+
+# 1. ¿Qué tan completos están?
+
+```{r}
+resenas |>
+  summarise(across(everything(), \(x) sum(is.na(x)))) |>
+  pivot_longer(everything(), names_to = "columna", values_to = "faltantes")
+```
+
+```{r}
+resenas |>
+  summarise(resenas = n(), pueblos = n_distinct(pueblo), estados = n_distinct(estado))
+```
+
+# 2. La variable que importa: la polaridad
+
+```{r}
+resenas |>
+  count(polaridad) |>
+  mutate(proporcion = n / sum(n))
+```
+
+```{r}
+resenas |>
+  count(polaridad) |>
+  ggplot(aes(factor(polaridad), n)) +
+  geom_col(fill = "#0432a1") +
+  scale_y_continuous(labels = scales::label_comma()) +
+  labs(x = "polaridad (1 = muy malo, 5 = muy bueno)", y = "reseñas") +
+  theme_minimal()
+```
+
+**Lo primero que salta:** dos de cada tres reseñas son un 5. Un modelo que diga
+"5" siempre acierta el 66% sin leer nada. Hay que tenerlo presente antes de
+celebrar cualquier *accuracy*.
+
+# 3. ¿Cambia por tipo de lugar?
+
+```{r}
+resenas |>
+  count(tipo, polaridad) |>
+  group_by(tipo) |>
+  mutate(proporcion = n / sum(n)) |>
+  ggplot(aes(tipo, proporcion, fill = factor(polaridad))) +
+  geom_col() +
+  scale_fill_brewer(palette = "RdBu", name = "polaridad") +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal()
+```
+
+Los hoteles se quejan más que los atractivos.
+
+# 4. ¿Las quejas son más largas?
+
+```{r}
+resenas |>
+  ggplot(aes(factor(polaridad), n_palabras)) +
+  geom_boxplot(outlier.alpha = 0.05) +
+  scale_y_log10() +
+  labs(x = "polaridad", y = "palabras en la reseña (escala log)") +
+  theme_minimal()
+```
+
+```{r}
+resenas |>
+  group_by(polaridad) |>
+  summarise(mediana_palabras = median(n_palabras))
+```
+
+# 5. Los pueblos
+
+```{r}
+resenas |>
+  group_by(pueblo) |>
+  summarise(resenas = n(), polaridad_media = mean(polaridad)) |>
+  arrange(desc(resenas))
+```
+
+# 6. ¿Qué palabras separan una queja de un elogio?
+
+Se toma una muestra de 20 mil reseñas (con todas tarda y no cambia la historia),
+se parte en palabras con `tokenizar()` y se compara qué tan seguido aparece cada
+una en las reseñas de 1 a 3 contra las de 4 y 5.
+
+```{r}
+set.seed(2025)
+
+palabras <- resenas |>
+  slice_sample(n = 20000) |>
+  select(id, satisfecho, resena) |>
+  tokenizar() |>
+  distinct(id, satisfecho, palabra) |>          # cuenta reseñas, no repeticiones
+  count(satisfecho, palabra) |>
+  pivot_wider(names_from = satisfecho, values_from = n, values_fill = 0) |>
+  filter(si + no >= 100) |>
+  mutate(log_razon = log((no + 1) / sum(no)) - log((si + 1) / sum(si)))
+
+palabras |>
+  slice_max(abs(log_razon), n = 30) |>
+  ggplot(aes(log_razon, fct_reorder(palabra, log_razon), fill = log_razon > 0)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_manual(values = c("#0432a1", "#0b0b0b")) +
+  labs(x = "← más en satisfechos      más en insatisfechos →", y = NULL) +
+  theme_minimal()
+```
+
+Las palabras "vacías" (*de*, *la*, *que*) salen solas: aparecen igual en los dos
+grupos, así que su razón es cercana a cero y nunca llegan al top. No hizo falta
+una lista de *stopwords*.
+
+# Lo que me llevo al modelo
+
+- Hay que **definir la variable respuesta**: cinco clases muy desbalanceadas. Para un
+  primer modelo, satisfecho (4–5) contra no satisfecho (1–3): 87% contra 13%.
+  La decisión quedó escrita **una vez**, en `scripts/02_limpiar.R`: es la columna
+  `satisfecho` que ya usaron las secciones de arriba.
+- La **longitud** y el **tipo de lugar** dicen algo.
+- Las **palabras** dicen mucho más. Pero el vocabulario se escoge con los datos de
+  entrenamiento, no con todos, o el modelo hace trampa.

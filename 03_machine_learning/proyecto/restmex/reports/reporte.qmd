@@ -1,0 +1,139 @@
+---
+title: "¿Qué tan contentos se van los turistas de los Pueblos Mágicos?"
+subtitle: "Reporte · Rest-Mex 2025"
+author: "Tu nombre"
+lang: es
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+# El reporte NO limpia ni entrena: solo lee lo que dejaron los scripts.
+# Si algo falta, corre correr_todo.R desde la raíz del proyecto.
+library(tidyverse)
+library(tidymodels)
+library(here)
+
+resenas      <- read_rds(here("data", "processed", "resenas.rds"))
+predicciones <- read_rds(here("outputs", "predicciones_prueba.rds"))
+coeficientes <- read_csv(here("outputs", "coeficientes.csv"))
+
+pct <- scales::label_percent(accuracy = 0.1)
+num <- scales::label_comma()
+
+satisfechos <- resenas |> summarise(p = mean(satisfecho == "si")) |> pull(p)
+metricas <- predicciones |>
+  metric_set(accuracy, kap, roc_auc, sens)(truth = satisfecho, estimate = .pred_class, .pred_no)
+m <- metricas |> select(.metric, .estimate) |> deframe()
+base <- predicciones |> summarise(p = mean(satisfecho == "si")) |> pull(p)
+```
+
+## En una línea
+
+De `r num(nrow(resenas))` reseñas de `r n_distinct(resenas |> pull(pueblo))`
+Pueblos Mágicos, **`r pct(satisfechos)` vienen de turistas satisfechos**
+(4 o 5 de 5). Las quejas se concentran en hoteles y son más largas. Un modelo
+simple de palabras clave las distingue (AUC `r round(m[["roc_auc"]], 2)`), pero
+**solo detecta `r pct(m[["sens"]])` de las quejas** con el umbral por defecto.
+
+## Los datos
+
+Reseñas en línea del corpus Rest-Mex 2025 (conjunto de entrenamiento), con
+la calificación que puso el propio turista: 1 = muy malo a 5 = muy bueno.
+
+```{r}
+#| fig-height: 3.2
+resenas |>
+  count(polaridad) |>
+  mutate(p = n / sum(n)) |>
+  ggplot(aes(factor(polaridad), p)) +
+  geom_col(fill = "#0432a1") +
+  geom_text(aes(label = pct(p)), vjust = -0.4, size = 3.5) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion(c(0, 0.1))) +
+  labs(x = "calificación", y = NULL) +
+  theme_minimal()
+```
+
+## Hallazgo 1 · Los hoteles reciben más quejas
+
+```{r}
+#| fig-height: 2.8
+resenas |>
+  group_by(tipo) |>
+  summarise(no_satisfechos = mean(satisfecho == "no")) |>
+  ggplot(aes(no_satisfechos, fct_reorder(tipo, no_satisfechos))) +
+  geom_col(fill = "#0b0b0b") +
+  geom_text(aes(label = pct(no_satisfechos)), hjust = -0.2, size = 3.5) +
+  scale_x_continuous(labels = scales::label_percent(), expand = expansion(c(0, 0.15))) +
+  labs(x = "reseñas con calificación de 1 a 3", y = NULL) +
+  theme_minimal()
+```
+
+## Hallazgo 2 · Quien se queja escribe más
+
+```{r}
+resenas |>
+  group_by(satisfecho) |>
+  summarise(`mediana de palabras` = median(n_palabras), `reseñas` = n()) |>
+  knitr::kable()
+```
+
+## El modelo
+
+Una regresión logística entrenada con `r num(nrow(predicciones) * 4)` reseñas y
+evaluada en otras `r num(nrow(predicciones))` que nunca vio. Usa el tipo de
+lugar, la longitud y si aparecen 60 palabras escogidas en el entrenamiento.
+
+```{r}
+tibble(
+  medida = c("Exactitud (accuracy)", "Exactitud de decir siempre «satisfecho»",
+             "Kappa de Cohen", "AUC", "Quejas detectadas (sensibilidad)"),
+  valor  = c(pct(m[["accuracy"]]), pct(base), sprintf("%.2f", m[["kap"]]),
+             sprintf("%.2f", m[["roc_auc"]]), pct(m[["sens"]]))
+) |>
+  knitr::kable()
+```
+
+**Ojo con la exactitud.** Un modelo que no lee nada y siempre dice «satisfecho»
+ya acierta el `r pct(base)`. Por eso se reporta también la kappa, que descuenta
+ese acierto gratis, y cuántas quejas encuentra de verdad.
+
+```{r}
+predicciones |>
+  conf_mat(truth = satisfecho, estimate = .pred_class) |>
+  autoplot(type = "heatmap") +
+  labs(x = "real", y = "predicho")
+```
+
+### Las palabras que más pesan
+
+```{r}
+#| fig-height: 5
+coeficientes |>
+  filter(str_starts(term, "w_")) |>
+  mutate(palabra = str_remove(term, "^w_")) |>
+  slice_max(abs(estimate), n = 20) |>
+  ggplot(aes(estimate, fct_reorder(palabra, estimate), fill = estimate > 0)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_manual(values = c("#0b0b0b", "#0432a1")) +
+  labs(x = "← empuja a «no satisfecho»      empuja a «satisfecho» →", y = NULL) +
+  theme_minimal()
+```
+
+## Limitaciones
+
+- Cortar en 4 es una decisión: el 3 («neutral») cuenta como no satisfecho.
+- Las reseñas en línea no son una muestra de todos los turistas: escribe quien
+  quiere escribir.
+- El modelo solo ve 60 palabras, una por una, sin orden. «No estuvo mal» le parece una queja.
+
+## Siguiente paso
+
+Bajar el umbral de decisión para detectar más quejas a cambio de más falsas
+alarmas, y probar con todas las palabras (`textrecipes`) en vez de 60.

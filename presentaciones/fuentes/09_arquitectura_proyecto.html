@@ -1,0 +1,913 @@
+<title>Dónde vive cada cosa — Manuel Toral</title>
+
+<style>
+  :root {
+    --papel:   #ffffff;
+    --hueso:   #eef2ff;
+    --azul:    #0432a1;
+    --azul-2:  #4a7ae8;
+    --negro:   #0b0b0b;
+    --gris:    #565b6b;
+
+    --borde: 3px solid var(--negro);
+    --sombra: 8px 8px 0 var(--negro);
+    --sombra-chica: 5px 5px 0 var(--negro);
+
+    --display: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+    --paso: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  /* Se queda en claro en los dos temas: es material para proyectar y el
+     neobrutalismo depende del contraste negro sobre blanco. En preferencia
+     oscura solo bajamos el brillo del papel. */
+  @media (prefers-color-scheme: dark) {
+    :root { --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e; }
+  }
+  :root[data-theme="dark"] {
+    --papel: #e8ecf7; --hueso: #dde4f6; --negro: #0b0b0b; --gris: #4a4f5e;
+  }
+  :root[data-theme="light"] {
+    --papel: #ffffff; --hueso: #eef2ff; --negro: #0b0b0b; --gris: #565b6b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--negro);
+    font-family: var(--display);
+    font-size: clamp(15px, 0.85rem + 0.35vw, 18px);
+    line-height: 1.55;
+  }
+
+  .deck { max-width: 1160px; margin: 0 auto; padding: 0 var(--paso) 4rem; }
+
+  .lamina { padding: clamp(2.5rem, 5vw, 4.5rem) 0; display: grid; gap: clamp(1.1rem, 2.2vw, 1.8rem); }
+
+  /* ---------- Cinta de sección ---------- */
+  .cinta { display: flex; align-items: stretch; gap: 0; }
+  .cinta .num {
+    background: var(--azul); color: #fff; border: var(--borde); border-right: 0;
+    font-family: var(--mono); font-weight: 700; font-size: 1rem;
+    padding: 0.35rem 0.8rem; font-variant-numeric: tabular-nums;
+  }
+  .cinta .rot {
+    background: var(--papel); border: var(--borde);
+    font-family: var(--mono); font-weight: 700; font-size: 0.78rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.35rem 1rem; display: flex; align-items: center;
+    box-shadow: var(--sombra-chica);
+  }
+
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.03em; }
+  h2 { font-size: clamp(1.8rem, 1rem + 3.4vw, 3.4rem); line-height: 1.02; }
+  h3 { font-size: clamp(1.05rem, 0.9rem + 0.6vw, 1.3rem); letter-spacing: -0.01em; }
+  p { margin: 0; max-width: 62ch; }
+  .sumario { font-size: 1.1em; max-width: 56ch; }
+  strong { color: var(--azul); }
+  code { font-family: var(--mono); font-size: 0.94em; background: var(--hueso); padding: 0.1em 0.3em; border: 1px solid var(--negro); }
+
+  /* ---------- Portada ---------- */
+  .portada { min-height: 90vh; align-content: center; }
+  .marca-caja {
+    border: var(--borde); background: #fff; box-shadow: var(--sombra);
+    padding: 0.9rem 1.2rem; width: fit-content;
+  }
+  .marca-caja img { display: block; width: clamp(180px, 24vw, 250px); height: auto; }
+  .portada .kicker {
+    background: var(--negro); color: #fff; width: fit-content;
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 0.4rem 0.9rem;
+  }
+  .portada h1 {
+    font-size: clamp(2.6rem, 1rem + 8vw, 6.5rem);
+    line-height: 0.92; letter-spacing: -0.05em;
+  }
+  .portada h1 em { font-style: normal; color: var(--azul); }
+  .firma {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.1rem 1.3rem; width: fit-content;
+    font-family: var(--mono); font-size: 0.88rem; display: grid; gap: 0.1rem;
+  }
+  .firma b { font-size: 1rem; }
+
+  /* ---------- Bloques ---------- */
+  .bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.4rem; }
+  .bloque {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; display: grid; gap: 0.5rem; align-content: start;
+  }
+  .bloque .clave {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.2em 0.5em;
+  }
+  .bloque p { font-size: 0.95em; }
+  .bloque.relleno { background: var(--hueso); }
+  .bloque.invertido { background: var(--negro); color: #fff; }
+  .bloque.invertido .clave { background: #fff; color: var(--negro); }
+  .bloque.invertido strong { color: var(--azul-2); }
+
+  /* ---------- El golpe: dos cifras enfrentadas ---------- */
+  .duelo { display: grid; grid-template-columns: 1fr; gap: 1.4rem; align-items: stretch; }
+  @media (min-width: 780px) { .duelo { grid-template-columns: 1fr 1fr; } }
+  .duelo > div {
+    border: var(--borde); box-shadow: var(--sombra); padding: 1.5rem;
+    display: grid; gap: 0.4rem; align-content: center;
+  }
+  .duelo .rotulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .duelo .cifra {
+    font-size: clamp(3rem, 1rem + 9vw, 6rem); font-weight: 800;
+    line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+  }
+  .duelo .nota { font-size: 0.95em; }
+  .enganoso { background: var(--papel); }
+  .enganoso .cifra { color: var(--negro); }
+  .real { background: var(--azul); color: #fff; }
+  .real .cifra { color: #fff; }
+
+  /* ---------- Fórmula ---------- */
+  .formula {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.8rem 1.4rem; display: grid; gap: 1rem; justify-items: center; text-align: center;
+  }
+  .formula .expr {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(1.4rem, 0.8rem + 3vw, 2.6rem); letter-spacing: -0.02em;
+  }
+  .formula .expr .op { color: var(--azul); }
+  .formula .glosa { font-size: 0.95em; max-width: 54ch; }
+
+  /* ---------- Escala de umbrales ---------- */
+  .escala { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .banda {
+    display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 1.2rem;
+    padding: 1rem 1.2rem; border-bottom: var(--borde); align-items: baseline;
+  }
+  .banda:last-child { border-bottom: 0; }
+  .banda .rango {
+    font-family: var(--mono); font-weight: 800;
+    font-size: clamp(1rem, 0.8rem + 0.7vw, 1.35rem); font-variant-numeric: tabular-nums;
+  }
+  .banda .que { font-weight: 700; }
+  .banda .detalle { grid-column: 2; font-size: 0.94em; }
+  .banda.fiable { background: var(--azul); color: #fff; }
+  .banda.tentativa { background: var(--hueso); }
+  .banda.descartar { background: var(--negro); color: #fff; }
+  .banda.descartar .detalle { color: #c9cede; }
+
+  /* ---------- Tabla ---------- */
+  .tabla-envoltura { overflow-x: auto; border: var(--borde); box-shadow: var(--sombra); background: var(--papel); }
+  table { border-collapse: collapse; width: 100%; min-width: 540px; font-size: 0.95em; }
+  th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid var(--negro); }
+  th {
+    background: var(--negro); color: #fff; font-family: var(--mono);
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  td { font-family: var(--mono); }
+  td.a { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.si  td.a { color: var(--azul); }
+  tr.no  td { background: var(--negro); color: #fff; }
+  .veredicto { font-family: var(--display); font-weight: 700; font-size: 0.88em; }
+
+  /* ---------- Aviso ---------- */
+  .aviso {
+    border: var(--borde); background: var(--negro); color: #fff;
+    box-shadow: var(--sombra); padding: 1.3rem 1.4rem; display: grid; gap: 0.5rem;
+  }
+  .aviso .titulo {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--azul-2);
+  }
+  .aviso p { max-width: 68ch; }
+  .aviso strong { color: var(--azul-2); }
+  .aviso code { background: #23262f; color: #fff; border-color: #4a4f5e; }
+
+  /* ---------- Figura ---------- */
+  figure { margin: 0; display: grid; gap: 0.8rem; }
+  .lienzo { overflow-x: auto; border: var(--borde); background: var(--papel); box-shadow: var(--sombra); padding: 1.2rem; }
+  figure svg { display: block; max-width: 100%; height: auto; min-width: 620px; margin: 0 auto; }
+  figcaption { font-size: 0.9em; max-width: 62ch; }
+
+
+  /* ---------- Ficha de un comentario y su distribucion de juicios ---------- */
+  .comentario {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    padding: 1.3rem 1.4rem; display: grid; gap: 0.6rem;
+  }
+  .comentario .meta {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--azul);
+  }
+  .comentario blockquote {
+    margin: 0; font-size: clamp(1.05rem, 0.9rem + 0.8vw, 1.5rem);
+    font-weight: 700; line-height: 1.35; border-left: 6px solid var(--azul); padding-left: 1rem;
+  }
+  .comentario .pie-meta { font-family: var(--mono); font-size: 0.82rem; color: var(--gris); }
+
+  /* Variante para citas de varios parrafos: baja el cuerpo para que no grite */
+  .comentario.larga blockquote {
+    font-size: clamp(0.95rem, 0.85rem + 0.35vw, 1.12rem);
+    font-weight: 600; display: grid; gap: 0.65rem;
+  }
+  .comentario.larga blockquote p { margin: 0; max-width: 68ch; }
+
+  .encuesta { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .item {
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem;
+    padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--negro); align-items: start;
+  }
+  .item:last-child { border-bottom: 0; }
+  .item .n {
+    background: var(--negro); color: #fff; font-family: var(--mono); font-weight: 700;
+    font-size: 0.8rem; text-align: center; padding: 0.2em 0; font-variant-numeric: tabular-nums;
+  }
+  .item .campo { font-family: var(--mono); font-weight: 700; color: var(--azul); font-size: 0.88rem; }
+  .item .pregunta { grid-column: 2; font-size: 0.95em; }
+  .item .opciones {
+    grid-column: 2; font-family: var(--mono); font-size: 0.78rem; color: var(--gris);
+    margin-top: 0.2rem;
+  }
+  .item.ternario { background: var(--hueso); }
+
+  .barras { display: grid; gap: 0.45rem; }
+  .barra { display: grid; grid-template-columns: 9rem 1fr 4rem; gap: 0.8rem; align-items: center; }
+  .barra .et { font-family: var(--mono); font-size: 0.8rem; }
+  .barra .riel {
+    display: block; border: 2px solid var(--negro); height: 1.6rem; background: #fff;
+  }
+  .barra .llena { display: block; height: 100%; background: var(--azul); }
+  .barra .llena.tenue { background: var(--azul-2); }
+  .barra .val {
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Bibliografía ---------- */
+  .biblio { display: grid; gap: 1.4rem; }
+  .biblio .grupo {
+    border: var(--borde); background: var(--papel); box-shadow: var(--sombra-chica);
+    padding: 1.1rem 1.3rem; display: grid; gap: 0.7rem;
+  }
+  .biblio h3 {
+    font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--azul);
+  }
+  .biblio ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.8rem; }
+  .biblio li { font-size: 0.94em; line-height: 1.55; max-width: 74ch; }
+  .biblio .obra { font-style: italic; }
+  .biblio .nota { display: block; color: var(--gris); font-size: 0.92em; margin-top: 0.15rem; }
+
+  /* ---------- Pie ---------- */
+  .pie {
+    border: var(--borde); background: var(--hueso); box-shadow: var(--sombra);
+    margin-top: 2rem; padding: 1.2rem 1.4rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .pie img { width: 130px; height: auto; display: block; }
+  .pie .texto { display: grid; gap: 0.1rem; text-align: right; margin-left: auto; }
+
+  a { color: var(--azul); font-weight: 600; text-underline-offset: 0.2em; }
+  a:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  /* ═══════ Añadidos de esta lámina ═══════ */
+
+  /* ---------- Árbol de carpetas ---------- */
+  pre.arbol {
+    margin: 0; border: var(--borde); background: var(--papel); box-shadow: var(--sombra);
+    padding: 1.2rem 1.3rem; overflow-x: auto;
+    font-family: var(--mono); font-size: 0.86rem; line-height: 1.7;
+  }
+  pre.arbol .d { font-weight: 800; color: var(--azul); }
+  pre.arbol .c { color: var(--gris); }
+  pre.arbol .x { color: #b3261e; font-weight: 700; }
+  pre.arbol.oscuro { background: var(--negro); color: #e8ecf7; }
+  pre.arbol.oscuro .c { color: #949cb4; }
+  pre.arbol.oscuro .x { color: #ff8a80; }
+
+  /* ---------- Código ---------- */
+  pre.codigo {
+    margin: 0; border: var(--borde); background: var(--negro); color: #e8ecf7;
+    box-shadow: var(--sombra); padding: 1.1rem 1.2rem; overflow-x: auto;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.55;
+  }
+  pre.codigo .c { color: #949cb4; }
+  pre.codigo .s { color: #ffd479; }
+  pre.codigo .k { color: #7fb8ff; font-weight: 700; }
+  .archivo {
+    font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--azul); color: #fff; width: fit-content; padding: 0.25em 0.7em;
+  }
+
+  /* ---------- Dos lecturas enfrentadas ---------- */
+  .contraste { display: grid; gap: 1.4rem; }
+  @media (min-width: 820px) { .contraste { grid-template-columns: 1fr 1fr; } }
+  .contraste > div { display: grid; gap: 0.7rem; align-content: start; min-width: 0; }
+  .contraste .marbete {
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; width: fit-content;
+    padding: 0.2em 0.6em; border: 2px solid var(--negro);
+  }
+  .contraste .marbete.mal { background: var(--negro); color: #fff; }
+  .contraste .marbete.bien { background: var(--azul); color: #fff; }
+  .contraste p { font-size: 0.96em; max-width: none; }
+
+  /* ---------- Listas ---------- */
+  .lista { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.5rem; }
+  .lista li { max-width: 64ch; }
+  .lista li::marker { font-weight: 800; color: var(--azul); }
+
+  /* ---------- Checklist ---------- */
+  .checklist { display: grid; gap: 0; border: var(--borde); box-shadow: var(--sombra); }
+  .checklist > div {
+    display: grid; grid-template-columns: 2.4rem 1fr; gap: 1rem; align-items: start;
+    padding: 0.9rem 1.1rem; border-bottom: 2px solid var(--negro);
+  }
+  .checklist > div:last-child { border-bottom: 0; }
+  .checklist .caja {
+    width: 1.6rem; height: 1.6rem; border: 3px solid var(--negro); background: #fff;
+    box-shadow: 3px 3px 0 var(--azul);
+  }
+  .checklist p { max-width: 70ch; }
+
+  /* ---------- Diagrama de flujo ---------- */
+  .flujo text { font-family: var(--mono); }
+</style>
+
+<main class="deck">
+
+  <!-- ═══════════ PORTADA ═══════════ -->
+  <section class="lamina portada">
+    <div class="marca-caja"><img src="__LOGO__" alt="Tecnológico de Monterrey"></div>
+    <span class="kicker">Material de apoyo · proyectos de datos</span>
+    <h1>Dónde vive<br>cada <em>cosa</em></h1>
+    <p class="sumario">
+      La arquitectura de un proyecto de ciencia de datos: qué carpetas lleva, qué va en cada
+      una y por qué. Con un proyecto real armado de punta a punta: <strong>208 mil reseñas de
+      Pueblos Mágicos</strong>, un EDA, tres modelos y un reporte en Quarto.
+    </p>
+    <div class="firma">
+      <b>Manuel Toral</b>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+      <span>Escuela de Ingeniería y Ciencias</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ 01 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">01</span><span class="rot">El problema</span></div>
+    <h2>Todos hemos tenido<br>esta carpeta</h2>
+    <p class="sumario">
+      Funciona mientras tú te acuerdes de en qué orden se corre todo. Dos semanas después,
+      <strong>ni tú te acuerdas</strong>.
+    </p>
+
+    <div class="contraste">
+      <div>
+        <span class="marbete mal">Así no</span>
+<pre class="arbol oscuro">Escritorio/proyecto/
+├── datos.csv
+├── datos_limpios.csv
+├── datos_limpios_BUENO.csv     <span class="x">← ¿cuál es?</span>
+├── analisis.R
+├── analisis_v2.R
+├── final_v3_AHORA_SI.R         <span class="x">← ¿y este?</span>
+├── grafica1.png
+├── modelo.rds                  <span class="x">← ¿de qué script?</span>
+└── reporte.docx                <span class="x">← pegado a mano</span></pre>
+        <p>Nadie puede saber qué archivo sale de cuál, ni si el reporte corresponde a los
+        datos de ahora.</p>
+      </div>
+      <div>
+        <span class="marbete bien">Así sí</span>
+<pre class="arbol">restmex/
+├── <span class="d">data/raw/</span>          <span class="c">lo que llegó</span>
+├── <span class="d">data/processed/</span>    <span class="c">lo que sale de limpiar</span>
+├── <span class="d">R/</span>                 <span class="c">funciones</span>
+├── <span class="d">scripts/</span>           <span class="c">01_, 02_, 03_</span>
+├── <span class="d">notebooks/</span>         <span class="c">explorar y decidir</span>
+├── <span class="d">outputs/</span>           <span class="c">modelo, predicciones</span>
+├── <span class="d">reports/</span>           <span class="c">para otra persona</span>
+└── correr_todo.R      <span class="c">un botón</span></pre>
+        <p>El nombre de la carpeta ya te dice qué hay adentro, y el número del script te
+        dice en qué orden va.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 02 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">02</span><span class="rot">Las reglas</span></div>
+    <h2>Tres reglas,<br>y todo lo demás sale solo</h2>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">1 · Lo crudo no se toca</span>
+        <p>Lo que hay en <code>data/raw/</code> se queda <strong>tal como llegó</strong>. Nadie
+        lo abre en Excel para «arreglar una fila». Si algo está mal, se corrige en código, y
+        queda escrito.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">2 · Lo generado se regenera</span>
+        <p>Todo lo que hay en <code>data/processed/</code> y <code>outputs/</code> lo produjo un
+        script. Si lo borras, <strong>no pierdes nada</strong>: vuelves a correr.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">3 · Cada cosa en un lugar</span>
+        <p>Una función se escribe <strong>una vez</strong>, en <code>R/</code>. Una ruta se arma
+        con <code>here()</code>. Un número del reporte sale de un archivo, no se copia a
+        mano.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">La prueba de fuego</span>
+        <p>Borra <code>data/</code> y <code>outputs/</code>. Corre <code>correr_todo.R</code>.
+        Si el reporte sale idéntico, <strong>tu proyecto es reproducible</strong>. Si no, algo
+        vivía solo en tu cabeza.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 03 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">03</span><span class="rot">El árbol completo</span></div>
+    <h2>El proyecto,<br>archivo por archivo</h2>
+    <p class="sumario">
+      Este es el proyecto del ejercicio. No es la única forma correcta, pero es una forma
+      <strong>convencional</strong>: quien haya visto otro proyecto de datos va a saber
+      dónde buscar.
+    </p>
+
+<pre class="arbol">restmex/
+├── restmex.Rproj            <span class="c">fija la raíz del proyecto. Siempre se abre por aquí</span>
+├── README.md                <span class="c">qué es, cómo se corre, qué hay en cada carpeta</span>
+├── .gitignore               <span class="c">lo que NO va a git</span>
+├── correr_todo.R            <span class="c">reproduce todo, de internet a outputs/</span>
+│
+├── <span class="d">data/</span>
+│   ├── <span class="d">raw/</span>                 <span class="c">Rest-Mex_2025_train.csv · intocable</span>
+│   └── <span class="d">processed/</span>           <span class="c">resenas.rds · limpio, listo para usar</span>
+│
+├── <span class="d">R/</span>
+│   └── funciones.R          <span class="c">tokenizar(), con_palabras()… lo que usan varios</span>
+│
+├── <span class="d">scripts/</span>                 <span class="c">pasos que corren solos, en orden</span>
+│   ├── 01_descargar.R       <span class="c">internet → data/raw/</span>
+│   ├── 02_limpiar.R         <span class="c">data/raw/ → data/processed/</span>
+│   └── 03_modelo.R          <span class="c">data/processed/ → outputs/</span>
+│
+├── <span class="d">notebooks/</span>               <span class="c">explorar y decidir, con el código a la vista</span>
+│   ├── 01_eda.qmd
+│   └── 02_modelo.qmd        <span class="c">compara 3 modelos × 2 recetas</span>
+│
+├── <span class="d">outputs/</span>                 <span class="c">modelo.rds, predicciones_prueba.rds, coeficientes.csv</span>
+│
+└── <span class="d">reports/</span>
+    └── reporte.qmd          <span class="c">para quien decide. Lee, no calcula</span></pre>
+  </section>
+
+  <!-- ═══════════ 04 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">04</span><span class="rot">Qué vive dónde</span></div>
+    <h2>Lo que va,<br>y lo que no</h2>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>carpeta</th><th>sí va</th><th>no va</th><th>¿git?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>data/raw/</td><td class="veredicto">el archivo original, como llegó</td><td class="veredicto">una versión «corregida» a mano</td><td>no</td></tr>
+          <tr><td>data/processed/</td><td class="veredicto">lo que escribe 02_limpiar.R</td><td class="veredicto">nada que no salga de un script</td><td>no</td></tr>
+          <tr class="si"><td>R/</td><td class="veredicto">funciones que usan dos o más archivos</td><td class="veredicto">código que se ejecuta al cargarlo (salvo pruebas)</td><td>sí</td></tr>
+          <tr class="si"><td>scripts/</td><td class="veredicto">pasos numerados que corren de principio a fin</td><td class="veredicto">gráficas para ver, pruebas a medias</td><td>sí</td></tr>
+          <tr class="si"><td>notebooks/</td><td class="veredicto">explorar, comparar, decidir</td><td class="veredicto">el paso del que depende el reporte</td><td>sí, el .qmd</td></tr>
+          <tr><td>outputs/</td><td class="veredicto">modelos, predicciones, tablas</td><td class="veredicto">nada editado a mano</td><td>no</td></tr>
+          <tr class="si"><td>reports/</td><td class="veredicto">el .qmd que lee otra persona</td><td class="veredicto">limpiar o entrenar</td><td>sí, el .qmd</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">¿Por qué los datos no van a git?</span>
+      <p>
+        Pesan (este CSV son <strong>89 MB</strong>; GitHub rechaza archivos de más de 100), a
+        veces no se pueden compartir, y sobre todo <strong>no hace falta</strong>:
+        <code>01_descargar.R</code> los baja de la fuente. Lo que se versiona es la receta,
+        no el pastel.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 05 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">05</span><span class="rot">El flujo</span></div>
+    <h2>Las flechas solo<br>van hacia la derecha</h2>
+    <p class="sumario">
+      Cada script lee de su izquierda y escribe a su derecha. <strong>Nunca al revés</strong>:
+      ningún paso sobreescribe lo que leyó, y nada de la derecha alimenta a la izquierda.
+    </p>
+
+    <figure>
+      <div class="lienzo">
+        <svg class="flujo" viewBox="0 0 1000 300" role="img" aria-labelledby="flujo-t">
+          <title id="flujo-t">Flujo del proyecto: data/raw pasa por 02_limpiar.R a data/processed; de ahí lo leen 01_eda.qmd, 02_modelo.qmd y 03_modelo.R; 03_modelo.R escribe outputs, que lee reporte.qmd</title>
+          <defs>
+            <marker id="punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0b0b0b"/>
+            </marker>
+          </defs>
+          <g fill="none" stroke="#0b0b0b" stroke-width="2.5" marker-end="url(#punta)">
+            <line x1="150" y1="150" x2="176" y2="150"/>
+            <line x1="320" y1="150" x2="346" y2="150"/>
+            <path d="M490,150 C510,150 505,45 526,45"/>
+            <line x1="490" y1="150" x2="526" y2="150"/>
+            <path d="M490,150 C510,150 505,255 526,255"/>
+            <line x1="670" y1="255" x2="706" y2="255"/>
+            <path d="M850,255 C870,255 900,230 910,180"/>
+          </g>
+          <line x1="600" y1="175" x2="600" y2="226" stroke="#0432a1" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#punta)"/>
+          <text x="610" y="206" font-size="12" fill="#0432a1" font-weight="700">decide</text>
+
+          <!-- datos: blanco -->
+          <rect x="10" y="125" width="140" height="50" fill="#fff" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="80" y="155" text-anchor="middle" font-size="14" font-weight="800">data/raw/</text>
+          <text x="80" y="198" text-anchor="middle" font-size="11" fill="#565b6b">← 01_descargar.R</text>
+
+          <rect x="350" y="125" width="140" height="50" fill="#fff" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="420" y="155" text-anchor="middle" font-size="13" font-weight="800">data/processed/</text>
+
+          <rect x="710" y="230" width="140" height="50" fill="#fff" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="780" y="260" text-anchor="middle" font-size="14" font-weight="800">outputs/</text>
+
+          <!-- scripts: azul -->
+          <rect x="180" y="125" width="140" height="50" fill="#0432a1" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="250" y="155" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">02_limpiar.R</text>
+
+          <rect x="530" y="230" width="140" height="50" fill="#0432a1" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="600" y="260" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">03_modelo.R</text>
+
+          <!-- notebooks: hueso -->
+          <rect x="530" y="20" width="140" height="50" fill="#eef2ff" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="600" y="50" text-anchor="middle" font-size="13" font-weight="800">01_eda.qmd</text>
+
+          <rect x="530" y="125" width="140" height="50" fill="#eef2ff" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="600" y="155" text-anchor="middle" font-size="13" font-weight="800">02_modelo.qmd</text>
+
+          <!-- reporte: negro -->
+          <rect x="850" y="125" width="140" height="50" fill="#0b0b0b" stroke="#0b0b0b" stroke-width="3"/>
+          <text x="920" y="155" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">reporte.qmd</text>
+        </svg>
+      </div>
+      <figcaption>
+        Blanco: datos. Azul: scripts. Lila: notebooks. Negro: el reporte. La línea punteada no
+        es un archivo: es una <strong>decisión</strong>. El notebook compara modelos y el
+        script entrena al que ganó. El reporte también lee <code>data/processed/</code> para
+        sus gráficas descriptivas.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ═══════════ 06 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">06</span><span class="rot">Rutas</span></div>
+    <h2>Nunca más<br><code>setwd()</code></h2>
+    <p class="sumario">
+      La ruta absoluta funciona en una sola computadora: la tuya, hoy. Y Quarto
+      <strong>corre cada .qmd desde su propia carpeta</strong>, así que una ruta relativa
+      que sirve en la consola se rompe en el reporte.
+    </p>
+
+    <div class="contraste">
+      <div>
+        <span class="marbete mal">Se rompe</span>
+<pre class="codigo">setwd(<span class="s">"C:/Users/Juan/Desktop/proyecto"</span>)
+datos &lt;- <span class="k">read_rds</span>(<span class="s">"data/processed/resenas.rds"</span>)
+
+<span class="c"># Desde reports/reporte.qmd Quarto busca en</span>
+<span class="c"># reports/data/processed/... y no existe</span></pre>
+      </div>
+      <div>
+        <span class="marbete bien">Funciona en cualquier lado</span>
+<pre class="codigo"><span class="k">library</span>(here)
+datos &lt;- <span class="k">read_rds</span>(<span class="k">here</span>(<span class="s">"data"</span>, <span class="s">"processed"</span>, <span class="s">"resenas.rds"</span>))
+
+<span class="c"># here() sube hasta encontrar restmex.Rproj</span>
+<span class="c"># y arma la ruta desde ahí. Igual en consola,</span>
+<span class="c"># en scripts/, en notebooks/ y en reports/</span></pre>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Y el .Rproj, configurado así</span>
+      <p>
+        <code>RestoreWorkspace: No</code> y <code>SaveWorkspace: No</code>. Si R te guarda el
+        ambiente al cerrar, mañana tu código «funciona» con un objeto que ya no crea ningún
+        script. Cada sesión empieza en blanco: <strong>lo que importa está en el código, no en
+        la memoria</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 07 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">07</span><span class="rot">Tres tipos de archivo</span></div>
+    <h2>Script, notebook<br>y reporte</h2>
+    <p class="sumario">
+      Los tres son código, pero tienen <strong>lectores distintos</strong>. Esa es la forma
+      de decidir dónde va algo: ¿quién lo va a leer?
+    </p>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">scripts/ · .R</span>
+        <h3>Lo lee R</h3>
+        <p>Corre de arriba abajo sin que nadie lo mire. Entra un archivo, sale otro. Sin
+        gráficas «para ver», sin <code>View()</code>. Arriba dice <strong>qué lee y qué
+        escribe</strong>.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">notebooks/ · .qmd</span>
+        <h3>Lo lees tú</h3>
+        <p>Para mirar los datos y decidir: ¿qué variable respuesta?, ¿qué modelo? Se vale el
+        desorden. Lo que se decide aquí <strong>se pasa a un script</strong>.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">reports/ · .qmd</span>
+        <h3>Lo lee quien decide</h3>
+        <p><code>echo: false</code>. No limpia ni entrena: <strong>solo lee</strong> de
+        <code>data/processed/</code> y <code>outputs/</code>. Cada cifra del texto sale
+        de un objeto, con <code>`r …`</code>.</p>
+      </div>
+    </div>
+
+    <span class="archivo">reports/reporte.qmd · una cifra que nunca se copia a mano</span>
+<pre class="codigo">De `r <span class="k">num</span>(<span class="k">nrow</span>(resenas))` reseñas, **`r <span class="k">pct</span>(satisfechos)` vienen de turistas satisfechos**.
+
+<span class="c">→ De 207,838 reseñas, 87.3% vienen de turistas satisfechos.</span></pre>
+  </section>
+
+  <!-- ═══════════ 08 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">08</span><span class="rot">La carpeta R/</span></div>
+    <h2>Si lo usan dos,<br>va a <code>R/</code></h2>
+    <p class="sumario">
+      <code>tokenizar()</code> la usan el EDA (para ver qué palabras separan quejas de
+      elogios) y el modelo (para armar sus variables). Si estuviera copiada en los dos,
+      tarde o temprano <strong>dejarían de ser la misma</strong>.
+    </p>
+
+    <span class="archivo">R/funciones.R</span>
+<pre class="codigo"><span class="c"># Una fila por palabra: minúsculas y solo letras.</span>
+tokenizar &lt;- <span class="k">function</span>(d, texto = resena) {
+  d |&gt;
+    <span class="k">mutate</span>(palabra = <span class="k">str_extract_all</span>(<span class="k">str_to_lower</span>({{ texto }}), <span class="s">"[[:alpha:]]+"</span>)) |&gt;
+    <span class="k">select</span>(-{{ texto }}) |&gt;
+    <span class="k">unnest_longer</span>(palabra)
+}
+
+<span class="c"># La prueba más chica posible: si alguien la rompe, source() falla.</span>
+<span class="k">stopifnot</span>(
+  <span class="k">arreglar_mojibake</span>(<span class="s">"CancÃºn"</span>) == <span class="s">"Cancún"</span>,
+  <span class="k">tokenizar</span>(<span class="k">tibble</span>(id = 1, resena = <span class="s">"¡Muy BUENA comida!"</span>)) |&gt; <span class="k">pull</span>(palabra) |&gt;
+    <span class="k">identical</span>(<span class="k">c</span>(<span class="s">"muy"</span>, <span class="s">"buena"</span>, <span class="s">"comida"</span>))
+)</pre>
+
+    <span class="archivo">cualquier archivo del proyecto</span>
+<pre class="codigo"><span class="k">source</span>(<span class="k">here</span>(<span class="s">"R"</span>, <span class="s">"funciones.R"</span>))</pre>
+  </section>
+
+  <!-- ═══════════ 09 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">09</span><span class="rot">Git</span></div>
+    <h2>El repositorio guarda<br>la receta</h2>
+
+    <div class="contraste">
+      <div>
+        <span class="archivo">.gitignore</span>
+<pre class="codigo"><span class="c"># RStudio</span>
+.Rproj.user/
+.Rhistory
+.RData
+
+<span class="c"># Se bajan o se regeneran</span>
+data/raw/*
+data/processed/*
+outputs/*
+
+<span class="c"># Lo que produce Quarto</span>
+*.html
+*_files/
+
+<span class="c"># Mantienen las carpetas vacías</span>
+!.gitkeep</pre>
+      </div>
+      <div>
+        <h3>¿Y el .gitkeep?</h3>
+        <p>Git no guarda carpetas vacías. Si <code>data/raw/</code> no existe al clonar,
+        <code>01_descargar.R</code> no tiene dónde escribir. Un archivo vacío llamado
+        <code>.gitkeep</code> la mantiene viva.</p>
+        <h3>El README dice tres cosas</h3>
+        <ul class="lista">
+          <li>Qué pregunta responde el proyecto.</li>
+          <li>Cómo se corre, en orden.</li>
+          <li>Qué hay en cada carpeta.</li>
+        </ul>
+        <p>Si alguien clona el repo y necesita escribirte para saber por dónde empezar, al
+        README le faltó algo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 10 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">10</span><span class="rot">El caso</span></div>
+    <h2>Rest-Mex 2025:<br>208 mil reseñas</h2>
+    <p class="sumario">
+      Opiniones de turistas sobre <strong>40 Pueblos Mágicos</strong> de 19 estados: hoteles,
+      restaurantes y atractivos, cada una con la calificación de 1 a 5 que puso quien la
+      escribió.
+    </p>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">02_limpiar.R encontró</span>
+        <p><strong>5,077</strong> reseñas con acentos rotos («CancÃºn»). Se arreglan todas
+        menos <strong>301</strong> que mezclan los dos errores.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">y también</span>
+        <p><strong>213</strong> reseñas duplicadas en el mismo pueblo. Quedan
+        <strong>207,838</strong>.</p>
+      </div>
+      <div class="bloque relleno">
+        <span class="clave">todo eso</span>
+        <p>Se imprime en la consola cada vez que corre. <strong>Nada se arregló a mano</strong>
+        en el CSV.</p>
+      </div>
+    </div>
+
+    <h3>01_eda.qmd: lo primero que salta</h3>
+    <div class="barras">
+      <div class="barra"><span class="et">5 · muy bueno</span><span class="riel"><span class="llena" style="width:65.6%"></span></span><span class="val">65.6%</span></div>
+      <div class="barra"><span class="et">4 · bueno</span><span class="riel"><span class="llena" style="width:21.6%"></span></span><span class="val">21.6%</span></div>
+      <div class="barra"><span class="et">3 · neutral</span><span class="riel"><span class="llena tenue" style="width:7.5%"></span></span><span class="val">7.5%</span></div>
+      <div class="barra"><span class="et">2 · malo</span><span class="riel"><span class="llena tenue" style="width:2.6%"></span></span><span class="val">2.6%</span></div>
+      <div class="barra"><span class="et">1 · muy malo</span><span class="riel"><span class="llena tenue" style="width:2.6%"></span></span><span class="val">2.6%</span></div>
+    </div>
+
+    <div class="bloques">
+      <div class="bloque">
+        <span class="clave">Por tipo</span>
+        <p>Calificaciones de 1 a 3: <strong>17%</strong> en hoteles, 12.5% en restaurantes,
+        9.8% en atractivos.</p>
+      </div>
+      <div class="bloque">
+        <span class="clave">Por longitud</span>
+        <p>Quien se queja escribe más: mediana de <strong>51 palabras</strong> contra 45.</p>
+      </div>
+      <div class="bloque invertido">
+        <span class="clave">La decisión</span>
+        <p>Variable respuesta: <strong>satisfecho (4–5) contra no (1–3)</strong>. 87% contra
+        13%. Se decide en el EDA y se escribe <strong>una sola vez</strong>, en <code>02_limpiar.R</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 11 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">11</span><span class="rot">02_modelo.qmd</span></div>
+    <h2>Tres modelos,<br>dos recetas, cinco pliegues</h2>
+    <p class="sumario">
+      Con <code>workflow_set()</code> se cruzan las recetas (<strong>básica</strong>: tipo y
+      longitud; <strong>palabras</strong>: además 60 palabras) con los modelos, y cada
+      combinación se califica con validación cruzada. La prueba no se toca.
+    </p>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>receta + modelo</th><th>accuracy</th><th>kappa</th><th>AUC</th><th>quejas detectadas</th></tr>
+        </thead>
+        <tbody>
+          <tr class="si"><td>palabras + logística</td><td class="a">0.890</td><td class="a">0.331</td><td class="a">0.841</td><td class="a">26%</td></tr>
+          <tr><td>básica + logística</td><td class="a">0.872</td><td class="a">0.000</td><td class="a">0.623</td><td class="a">0%</td></tr>
+          <tr><td>palabras + árbol</td><td class="a">0.879</td><td class="a">0.198</td><td class="a">0.567</td><td class="a">15%</td></tr>
+          <tr class="no"><td>nulo (siempre «satisfecho»)</td><td class="a">0.872</td><td class="a">0.000</td><td class="a">0.500</td><td class="a">0%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="duelo">
+      <div class="enganoso">
+        <span class="rotulo">Accuracy en prueba</span>
+        <span class="cifra">88.6%</span>
+        <span class="nota">Suena muy bien. El modelo nulo, que no lee nada, saca 87.2%.</span>
+      </div>
+      <div class="real">
+        <span class="rotulo">Kappa en prueba</span>
+        <span class="cifra">0.30</span>
+        <span class="nota">Lo que queda al descontar el acierto gratis. La misma kappa de Cohen de la clase pasada.</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      <span class="titulo">Lo que pesa, según los coeficientes</span>
+      <p>
+        Hacia la queja: <strong>mala, mal, normal, dijeron, falta, esperaba, lento</strong>.
+        Hacia el elogio: <strong>deliciosos, ampliamente, inolvidable, delicia,
+        encarecidamente</strong> (de «lo recomiendo ampliamente»). El modelo aprendió frases
+        hechas, no gastronomía.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 12 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">12</span><span class="rot">Antes de entregar</span></div>
+    <h2>La lista<br>de cinco minutos</h2>
+
+    <div class="checklist">
+      <div><span class="caja"></span><p>Cerré RStudio, abrí el <code>.Rproj</code> y corrí <code>correr_todo.R</code> <strong>en una sesión limpia</strong>.</p></div>
+      <div><span class="caja"></span><p>No hay ningún <code>setwd()</code> ni ninguna ruta que empiece con <code>C:/</code>.</p></div>
+      <div><span class="caja"></span><p>Cada script dice arriba <strong>qué lee y qué escribe</strong>.</p></div>
+      <div><span class="caja"></span><p>Ninguna función está copiada en dos archivos.</p></div>
+      <div><span class="caja"></span><p>El reporte no limpia ni entrena, y <strong>ninguna cifra del texto está escrita a mano</strong>.</p></div>
+      <div><span class="caja"></span><p>Los datos y los <code>outputs/</code> no están en git, y el README dice cómo regenerarlos.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 13 ═══════════ -->
+  <section class="lamina">
+    <div class="cinta"><span class="num">13</span><span class="rot">Fuentes</span></div>
+    <h2>Fuentes</h2>
+
+    <div class="biblio">
+      <div class="grupo">
+        <h3>Cómo organizar un proyecto</h3>
+        <ol>
+          <li>
+            Noble, W. S. (2009). <span class="obra">A Quick Guide to Organizing Computational
+            Biology Projects.</span> PLoS Computational Biology, 5(7), e1000424.
+            <span class="nota">El origen de la separación entre datos, código y resultados, y
+            de los scripts que lo corren todo.</span>
+          </li>
+          <li>
+            Wilson, G., Bryan, J., Cranston, K., Kitzes, J., Nederbragt, L. y Teal, T. K. (2017).
+            <span class="obra">Good Enough Practices in Scientific Computing.</span> PLoS
+            Computational Biology, 13(6), e1005510.
+            <span class="nota">La versión «suficientemente buena»: crudo intocable, una función
+            una vez, README en la raíz.</span>
+          </li>
+          <li>
+            DrivenData. <span class="obra">Cookiecutter Data Science.</span>
+            <span class="nota">La plantilla de carpetas más usada en la industria; de ahí
+            salen <code>data/raw</code> y <code>data/processed</code>.</span>
+          </li>
+          <li>
+            Bryan, J. (2017). <span class="obra">Project-oriented workflow.</span> Blog de
+            tidyverse.
+            <span class="nota">Por qué <code>setwd()</code> y <code>rm(list = ls())</code> no
+            van, y el paquete <code>here</code>.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grupo">
+        <h3>Los datos y el código</h3>
+        <ol>
+          <li>
+            <span class="obra">Rest-Mex 2025: Sentiment Analysis Magical Mexican Towns.</span>
+            IberLEF 2025.
+            <span class="nota">Conjunto de entrenamiento, 208,051 reseñas. Uso exclusivamente
+            académico y de investigación.</span>
+          </li>
+          <li>
+            <span class="obra">El proyecto completo.</span>
+            <span class="nota">Todas las cifras de estas láminas salen de
+            <code>restmex/</code>, que se descarga desde el instructivo del ejercicio.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <img src="__LOGO__" alt="Tecnológico de Monterrey">
+    <span class="texto">
+      <span>Manuel Toral · Escuela de Ingeniería y Ciencias</span>
+      <span>Ciencia de Datos para la Toma de Decisiones II</span>
+    </span>
+  </footer>
+
+</main>

@@ -1,0 +1,19 @@
+# RStudio
+.Rproj.user/
+.Rhistory
+.RData
+
+# Datos: los crudos se bajan con scripts/01_descargar.R y los procesados
+# los regenera scripts/02_limpiar.R. Ninguno va a git.
+data/raw/*
+data/processed/*
+
+# Todo lo que sale de los scripts se regenera con correr_todo.R
+outputs/*
+
+# Lo que produce Quarto al renderizar
+*.html
+*_files/
+
+# Las .gitkeep sí van: son las que mantienen las carpetas vacías en git
+!.gitkeep

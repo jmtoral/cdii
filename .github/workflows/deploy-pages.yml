@@ -94,6 +94,20 @@ jobs:
           (cd 03_machine_learning/kappa && zip -r ../../site/kappa/ejercicio_kappa.zip ejercicio_kappa.qmd datos)
           ls -la site/kappa site/kappa/datos
 
+      # El proyecto de arquitectura: instructivo, la carpeta restmex/ en un zip (sin
+      # datos ni outputs, que se regeneran con correr_todo.R) y los notebooks y el
+      # reporte ya renderizados en vistas/. Esos HTML se renderizan en local y se
+      # versionan: renderizarlos aquí exigiría R, los paquetes y bajar 30 MB.
+      - name: Copy project exercise
+        run: |
+          set -euo pipefail
+          mkdir -p site/proyecto
+          cp 03_machine_learning/proyecto/index.html logo.jpg site/proyecto/
+          cp -r 03_machine_learning/proyecto/vistas site/proyecto/
+          (cd 03_machine_learning/proyecto && zip -r ../../site/proyecto/restmex.zip restmex)
+          unzip -l site/proyecto/restmex.zip
+          ls -la site/proyecto site/proyecto/vistas
+
       # La portada vive en portada/index.html (no inline aquí): así se puede abrir
       # y editar como HTML normal, y export_wasm.ps1 usa exactamente la misma.
       - name: Copy index page

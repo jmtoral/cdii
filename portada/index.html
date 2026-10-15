@@ -200,6 +200,7 @@ footer { margin-top: 1rem; padding: 0.6rem 1.2rem; border-radius: 999px; color: 
   <a href="#sql" id="nav-sql"><b>01</b>SQL con DuckDB</a>
   <a href="#alpha" id="nav-alpha"><b>02</b>Alpha de Krippendorff</a>
   <a href="#kappa" id="nav-kappa"><b>03</b>Kappa de Cohen</a>
+  <a href="#proyecto" id="nav-proyecto"><b>04</b>Proyecto de datos</a>
 </nav>
 
 <main style="width:100%; display:flex; flex-direction:column; align-items:center;">
@@ -231,6 +232,17 @@ footer { margin-top: 1rem; padding: 0.6rem 1.2rem; border-radius: 999px; color: 
       <a class="card vidrio" id="card-pres-kappa" href="presentaciones/07_kappa_cohen.html"><span class="badge badge-metodo">MÉTODO</span><h3>La kappa de Cohen</h3><p>El coeficiente paso a paso, sus tres muros, en qué se separa del alpha y por qué al final casi da lo mismo</p></a>
       <a class="card vidrio" id="card-pres-kappa-jev" href="presentaciones/08_kappa_contra_jev.html"><span class="badge badge-metodo">MÉTODO</span><h3>Tú contra otro, y tú contra Jev</h3><p>La kappa calculada dos veces: humano contra humano y humano contra modelo, con el script en R</p></a>
       <a class="card vidrio" id="card-ej-kappa" href="kappa/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Tú, tu pareja y un modelo</h3><p>La kappa de Cohen en parejas, en la hoja y en R, y un modelo de tidymodels que compite contra ti</p></a>
+    </div>
+  </section>
+
+  <section class="tema" id="proyecto">
+    <header class="tema-head"><span class="tema-num vidrio">04</span><div><h2>Proyecto de datos</h2><p>Dónde vive cada cosa: de los datos crudos al reporte, con 208 mil reseñas de Pueblos Mágicos</p></div></header>
+    <div class="cards">
+      <a class="card vidrio" id="card-pres-arquitectura" href="presentaciones/09_arquitectura_proyecto.html"><span class="badge badge-metodo">MÉTODO</span><h3>Dónde vive cada cosa</h3><p>Las carpetas de un proyecto de ciencia de datos, qué va en cada una, rutas con here() y por qué el reporte solo lee</p></a>
+      <a class="card vidrio" id="card-ej-proyecto" href="proyecto/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Arma tu primer proyecto de datos</h3><p>Descarga la carpeta completa, córrela de punta a punta y luego ármala tú desde cero</p></a>
+      <a class="card vidrio" id="card-nb-eda" href="proyecto/vistas/01_eda.html"><span class="badge badge-leccion">NOTEBOOK</span><h3>Rest-Mex · primer EDA</h3><p>Polaridad, tipo de lugar, longitud y las palabras que separan una queja de un elogio</p></a>
+      <a class="card vidrio" id="card-nb-modelo" href="proyecto/vistas/02_modelo.html"><span class="badge badge-leccion">NOTEBOOK</span><h3>Rest-Mex · comparar modelos</h3><p>Nulo, logística y árbol, con y sin palabras, en validación cruzada con workflow_set()</p></a>
+      <a class="card vidrio" id="card-reporte" href="proyecto/vistas/reporte.html"><span class="badge badge-presentacion">REPORTE</span><h3>Rest-Mex · el reporte</h3><p>Lo que lee quien decide: sin código y sin ninguna cifra escrita a mano</p></a>
     </div>
   </section>
 </main>
