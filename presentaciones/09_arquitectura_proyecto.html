@@ -740,7 +740,7 @@ outputs/*
     <div class="cinta"><span class="num">10</span><span class="rot">El caso</span></div>
     <h2>Rest-Mex 2025:<br>208 mil reseñas</h2>
     <p class="sumario">
-      Opiniones de turistas sobre <strong>40 Pueblos Mágicos</strong> de 19 estados: hoteles,
+      Opiniones de TripAdvisor (2002–2024) sobre <strong>40 Pueblos Mágicos</strong> de 19 estados: hoteles,
       restaurantes y atractivos, cada una con la calificación de 1 a 5 que puso quien la
       escribió.
     </p>
@@ -865,26 +865,33 @@ outputs/*
           <li>
             Noble, W. S. (2009). <span class="obra">A Quick Guide to Organizing Computational
             Biology Projects.</span> PLoS Computational Biology, 5(7), e1000424.
-            <span class="nota">El origen de la separación entre datos, código y resultados, y
-            de los scripts que lo corren todo.</span>
+            https://doi.org/10.1371/journal.pcbi.1000424
+            <span class="nota">Una de las primeras guías del tema. Propone carpetas
+            <code>data</code>, <code>results</code>, <code>doc</code>, <code>src</code> y
+            <code>bin</code>, un script de control (<code>runall</code>) que corre el experimento
+            completo, y no editar a mano los archivos intermedios.</span>
           </li>
           <li>
             Wilson, G., Bryan, J., Cranston, K., Kitzes, J., Nederbragt, L. y Teal, T. K. (2017).
             <span class="obra">Good Enough Practices in Scientific Computing.</span> PLoS
             Computational Biology, 13(6), e1005510.
-            <span class="nota">La versión «suficientemente buena»: crudo intocable, una función
-            una vez, README en la raíz.</span>
+            https://doi.org/10.1371/journal.pcbi.1005510
+            <span class="nota">Guardar los datos como se generaron, un README en la raíz,
+            eliminar la duplicación con funciones y no versionar archivos grandes (usan el
+            límite de 100 MB de GitHub como referencia).</span>
           </li>
           <li>
-            DrivenData. <span class="obra">Cookiecutter Data Science.</span>
-            <span class="nota">La plantilla de carpetas más usada en la industria; de ahí
-            salen <code>data/raw</code> y <code>data/processed</code>.</span>
+            DrivenData. <span class="obra">Cookiecutter Data Science</span> (v2).
+            https://cookiecutter-data-science.drivendata.org
+            <span class="nota">La plantilla de carpetas más difundida. De ahí salen
+            <code>data/raw</code>, que describe como el volcado original e inmutable, y
+            <code>data/processed</code>, los datos finales para modelar.</span>
           </li>
           <li>
-            Bryan, J. (2017). <span class="obra">Project-oriented workflow.</span> Blog de
-            tidyverse.
+            Bryan, J. (2017, diciembre). <span class="obra">Project-oriented workflow.</span>
+            Blog de tidyverse. https://www.tidyverse.org/blog/2017/12/workflow-vs-script/
             <span class="nota">Por qué <code>setwd()</code> y <code>rm(list = ls())</code> no
-            van, y el paquete <code>here</code>.</span>
+            van, y la alternativa: proyectos con <code>here::here()</code>.</span>
           </li>
         </ol>
       </div>
@@ -893,9 +900,11 @@ outputs/*
         <h3>Los datos y el código</h3>
         <ol>
           <li>
-            <span class="obra">Rest-Mex 2025: Sentiment Analysis Magical Mexican Towns.</span>
-            IberLEF 2025.
-            <span class="nota">Conjunto de entrenamiento, 208,051 reseñas. Uso exclusivamente
+            Álvarez-Carmona, M. Á. et al. (2025). <span class="obra">Overview of Rest-Mex at
+            IberLEF 2025: Researching Sentiment Evaluation in Text for Mexican Magical
+            Towns.</span> Procesamiento del Lenguaje Natural, 75, 499–511.
+            <span class="nota">Reseñas de TripAdvisor de 2002 a 2024: 297,217 en total, de las
+            que 208,051 (70%) forman el conjunto de entrenamiento que usamos. Uso exclusivamente
             académico y de investigación.</span>
           </li>
           <li>

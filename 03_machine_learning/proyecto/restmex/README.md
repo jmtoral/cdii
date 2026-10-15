@@ -23,5 +23,9 @@
 
 ## Los datos
 
-Rest-Mex 2025, conjunto de entrenamiento: 208,051 reseñas de 40 Pueblos Mágicos con
+Rest-Mex 2025, conjunto de entrenamiento: 208,051 reseñas de TripAdvisor (2002–2024) sobre 40 Pueblos Mágicos con
 su polaridad (1 a 5). Uso exclusivamente académico y de investigación.
+
+Álvarez-Carmona, M. Á. et al. (2025). Overview of Rest-Mex at IberLEF 2025: Researching
+Sentiment Evaluation in Text for Mexican Magical Towns. *Procesamiento del Lenguaje
+Natural*, 75, 499–511.

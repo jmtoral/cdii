@@ -87,57 +87,123 @@ modelos <- list(
 )
 ```
 
-# 5. Validación cruzada: 6 combinaciones × 5 pliegues
+# 5. Antes de entrenar: ¿cómo se califica?
+
+Escoger la métrica es parte del diseño, no un trámite del final. Aquí el problema
+tiene dos rasgos que lo deciden casi todo:
+
+1. **Las clases están desbalanceadas**: 87% satisfechos, 13% quejas.
+2. **Lo que interesa son las quejas.** Por eso `"no"` es el primer nivel del factor:
+   yardstick lo toma como el **evento**, la clase "positiva" que se quiere detectar.
+
+## La matriz de confusión
+
+Todas las métricas de clase salen de cuatro conteos:
+
+|                       | real: queja (`no`)        | real: satisfecho (`si`)   |
+|-----------------------|---------------------------|---------------------------|
+| **predice queja**     | VP · verdadero positivo   | FP · falsa alarma         |
+| **predice satisfecho**| FN · queja que se escapó  | VN · verdadero negativo   |
+
+## Las métricas, y qué pregunta responde cada una
+
+| métrica | fórmula | pregunta | el modelo nulo saca |
+|---|---|---|---|
+| `accuracy` | (VP + VN) / n | ¿qué fracción acierta? | 0.87 |
+| `sens` (sensibilidad, *recall*) | VP / (VP + FN) | de las quejas reales, ¿cuántas encuentra? | 0 |
+| `spec` (especificidad) | VN / (VN + FP) | de los satisfechos, ¿cuántos deja en paz? | 1 |
+| `precision` | VP / (VP + FP) | cuando grita «queja», ¿cuántas veces tiene razón? | indefinida (nunca grita) |
+| `f_meas` (F1) | media armónica de precisión y sensibilidad | ¿equilibra las dos? | indefinida |
+| `kap` (kappa de Cohen) | (P~o~ − P~e~) / (1 − P~e~) | ¿cuánto acierta **por encima del azar**? | 0 |
+| `roc_auc` | área bajo la curva ROC | si tomo una queja y un satisfecho al azar, ¿qué tan seguido le da más probabilidad de queja a la queja? | 0.5 |
+| `pr_auc` | área bajo la curva precisión-*recall* | ¿qué tan bien encuentra quejas sin llenarse de falsas alarmas? | 0.13 en teoría (ver abajo) |
+
+Dos familias:
+
+- **Dependen del umbral** (`accuracy`, `sens`, `spec`, `precision`, `f_meas`, `kap`):
+  califican la *clase* predicha, que sale de cortar la probabilidad en 50%.
+- **No dependen del umbral** (`roc_auc`, `pr_auc`): califican la *probabilidad*,
+  todos los cortes a la vez. Sirven para comparar modelos; el umbral se escoge
+  después.
+
+> **La trampa:** con 87% de satisfechos, `accuracy` premia al modelo que no hace
+> nada. Por eso se compara con `roc_auc` y `pr_auc`, y se revisa `kap` y `sens`. La
+> kappa es la misma de la clase de acuerdo entre anotadores: aquí los «dos
+> anotadores» son el modelo y la etiqueta real.
+
+```{r}
+metricas <- metric_set(roc_auc, pr_auc, kap, accuracy, sens, spec, precision, f_meas)
+```
+
+# 6. Validación cruzada: 6 combinaciones × 5 pliegues
 
 `workflow_set()` cruza cada receta con cada modelo. Cada combinación se entrena 5
-veces, cada vez dejando fuera un quinto del entrenamiento para calificarse.
+veces, cada vez dejando fuera un quinto del entrenamiento para calificarse. Se
+guardan las predicciones de esos quintos (`save_pred = TRUE`) porque más abajo
+sirven para escoger el umbral sin tocar la prueba.
 
 ```{r}
 set.seed(2025)
 pliegues <- vfold_cv(X_entrenamiento, v = 5, strata = satisfecho)
 
-metricas <- metric_set(roc_auc, kap, accuracy, sens)
-
 comparacion <- workflow_set(
   preproc = list(basica = receta_basica, palabras = receta_palabras),
   models  = modelos
 ) |>
-  workflow_map("fit_resamples", resamples = pliegues, metrics = metricas, seed = 2025)
+  workflow_map("fit_resamples", resamples = pliegues, metrics = metricas, seed = 2025,
+               control = control_resamples(save_pred = TRUE))
 ```
 
-```{r}
-#| fig-height: 4.5
-autoplot(comparacion, metric = c("roc_auc", "kap")) +
-  theme_minimal()
-```
+Cada cifra es el **promedio de los 5 pliegues ± su error estándar**. Si dos modelos
+quedan dentro de ese margen, no hay razón para preferir uno.
 
 ```{r}
 comparacion |>
   collect_metrics() |>
-  select(wflow_id, .metric, mean) |>
-  pivot_wider(names_from = .metric, values_from = mean) |>
-  arrange(desc(roc_auc))
+  mutate(valor = sprintf("%.3f ± %.3f", mean, std_err)) |>
+  select(wflow_id, .metric, valor) |>
+  pivot_wider(names_from = .metric, values_from = valor) |>
+  select(wflow_id, roc_auc, pr_auc, kap, accuracy, sens, spec, precision, f_meas) |>
+  arrange(desc(roc_auc)) |>
+  knitr::kable()
+```
+
+```{r}
+#| fig-height: 6
+autoplot(comparacion, metric = c("roc_auc", "pr_auc", "kap", "sens")) +
+  theme_minimal()
 ```
 
 **Cómo leerlo:**
 
-- El **nulo** tiene AUC de 0.5 y kappa 0, pero *accuracy* de 87%. Por eso la
-  exactitud sola no sirve aquí.
-- Con la receta **básica** ningún modelo despega: el tipo y la longitud dicen
-  poco.
-- Las **palabras** son las que hacen el trabajo. Con ellas, la logística le gana
-  al árbol en AUC.
+- El **nulo** saca *accuracy* de 0.87 con AUC de 0.5, kappa 0 y sensibilidad 0: no
+  encuentra ni una queja. Cualquier modelo que no le gane a esa fila en `roc_auc`,
+  `pr_auc` y `kap` no sirve, por alta que sea su exactitud.
+- Con la receta **básica** la logística ordena algo (AUC > 0.5) pero nunca llega al
+  50% de probabilidad de queja, así que no predice ninguna: kappa 0. Por eso
+  hay que ver las métricas con y sin umbral juntas.
+- Las **palabras** hacen el trabajo. Con ellas la logística le gana al árbol en
+  todas las métricas sin umbral.
 - El árbol apenas se ramifica: con solo 13% de quejas, casi ningún corte mejora lo
-  suficiente para pagar su costo (`cost_complexity`). Ajustar ese parámetro con
-  `tune_grid()` es el siguiente paso si se quiere darle otra oportunidad.
+  suficiente para pagar su costo (`cost_complexity`). Afinarlo con `tune_grid()` es
+  el siguiente paso si se le quiere dar otra oportunidad.
+- La **precisión** de la logística con palabras es aceptable y la **sensibilidad**
+  baja: cuando dice «queja» acierta 7 de cada 10 veces, pero se le escapan tres de
+  cada cuatro quejas. Es lo que pasa al cortar en 50% con una clase rara.
+- **Ojo con el `pr_auc` del nulo**: sale 0.56, más que la logística. Es un artefacto.
+  Un modelo que da la misma probabilidad a todos produce un solo punto en la curva
+  (*recall* 1, precisión 0.13), y yardstick lo une en línea recta con el punto de
+  partida (*recall* 0, precisión 1): el área de ese trapecio es (1 + 0.13) / 2 ≈ 0.56.
+  La referencia correcta para `pr_auc` es la proporción de quejas, **0.13**. Contra
+  eso, el 0.51 de la logística es casi cuatro veces el azar.
+- Por eso el `NaN` en precisión y F1: el nulo y los modelos con la receta básica nunca predicen
+  «queja», así que VP + FP = 0 y la división no existe.
 
-> La sensibilidad (`sens`) es la fracción de quejas que se detectan. Con el corte
-> por defecto (50%) todos se quedan cortos, porque las quejas son solo el 13%.
+# 7. El ganador, contra la prueba
 
-# 6. El ganador, contra la prueba
-
-Solo ahora se abre la prueba, **una vez**. `last_fit()` entrena con todo el
-entrenamiento y califica en la prueba.
+Gana el que tiene mejor `roc_auc` en validación cruzada. Solo ahora se abre la
+prueba, **una vez**: `last_fit()` entrena con todo el entrenamiento y califica en
+la prueba.
 
 ```{r}
 mejor <- comparacion |>
@@ -153,17 +219,161 @@ final <- comparacion |>
   extract_workflow(mejor) |>
   last_fit(make_splits(X_entrenamiento, X_prueba), metrics = metricas)
 
-collect_metrics(final)
+pred_prueba <- collect_predictions(final)
 ```
 
-Si la prueba sale parecida a la validación cruzada, el modelo no se sobreajustó a
-los pliegues. Ese es el número que va al reporte.
+¿Se parece la prueba a la validación cruzada? Si sí, el modelo no se sobreajustó a
+los pliegues.
+
+```{r}
+comparacion |>
+  collect_metrics() |>
+  filter(wflow_id == mejor) |>
+  select(.metric, validacion_cruzada = mean) |>
+  left_join(collect_metrics(final) |> select(.metric, prueba = .estimate), by = ".metric") |>
+  mutate(diferencia = prueba - validacion_cruzada)
+```
+
+# 8. La matriz de confusión, y las métricas a mano
+
+```{r}
+#| fig-height: 3.5
+pred_prueba |>
+  conf_mat(truth = satisfecho, estimate = .pred_class) |>
+  autoplot(type = "heatmap") +
+  labs(x = "real", y = "predicho")
+```
+
+Las mismas métricas, sacadas de los cuatro conteos con `summarise()`. Si coinciden con
+las de yardstick, entendiste de dónde salen.
+
+```{r}
+a_mano <- pred_prueba |>
+  summarise(
+    VP = sum(satisfecho == "no" & .pred_class == "no"),
+    FN = sum(satisfecho == "no" & .pred_class == "si"),
+    FP = sum(satisfecho == "si" & .pred_class == "no"),
+    VN = sum(satisfecho == "si" & .pred_class == "si"),
+    n  = n()
+  ) |>
+  mutate(
+    accuracy  = (VP + VN) / n,
+    sens      = VP / (VP + FN),
+    spec      = VN / (VN + FP),
+    precision = VP / (VP + FP),
+    f_meas    = 2 * precision * sens / (precision + sens),
+    # kappa: el acuerdo esperado por azar sale de los totales de fila y columna
+    Pe        = ((VP + FN) * (VP + FP) + (FP + VN) * (FN + VN)) / n^2,
+    kap       = (accuracy - Pe) / (1 - Pe)
+  )
+
+a_mano |> select(VP, FN, FP, VN)
+
+a_mano |>
+  select(accuracy, sens, spec, precision, f_meas, kap) |>
+  pivot_longer(everything(), names_to = ".metric", values_to = "a_mano") |>
+  left_join(collect_metrics(final) |> select(.metric, yardstick = .estimate), by = ".metric")
+```
+
+# 9. Las curvas: todos los umbrales a la vez
+
+La **ROC** pone sensibilidad contra (1 − especificidad) para cada umbral posible. La
+diagonal es el azar; el área bajo la curva es `roc_auc`.
+
+```{r}
+#| fig-height: 4.5
+#| fig-width: 4.5
+pred_prueba |>
+  roc_curve(truth = satisfecho, .pred_no) |>
+  autoplot()
+```
+
+Con clases desbalanceadas la ROC puede verse optimista, porque los muchos
+verdaderos negativos inflan la especificidad. La curva **precisión-*recall*** no
+los mira: la línea punteada es lo que saca adivinar (la proporción de quejas).
+
+```{r}
+#| fig-height: 4.5
+#| fig-width: 4.5
+prevalencia <- pred_prueba |> summarise(p = mean(satisfecho == "no")) |> pull(p)
+
+pred_prueba |>
+  pr_curve(truth = satisfecho, .pred_no) |>
+  autoplot() +
+  geom_hline(yintercept = prevalencia, linetype = "dashed")
+```
+
+# 10. El umbral también se escoge
+
+Cortar en 50% es una costumbre, no una ley. Con 13% de quejas, un umbral más bajo
+encuentra más quejas a cambio de más falsas alarmas. **¿Cuál conviene depende de
+qué cuesta más**: una queja que se escapa o una alarma de más.
+
+El umbral se escoge con las predicciones **fuera de pliegue** de la validación
+cruzada, no con la prueba: escogerlo mirando la prueba sería volver a hacer trampa.
+
+```{r}
+metricas_clase <- metric_set(kap, sens, spec, precision, f_meas)
+
+con_umbral <- function(pred, u) {
+  pred |>
+    mutate(.pred_class = factor(if_else(.pred_no >= u, "no", "si"), levels = c("no", "si")))
+}
+
+pred_validacion <- comparacion |>
+  extract_workflow_set_result(mejor) |>
+  collect_predictions()
+
+barrido <- tibble(umbral = seq(0.05, 0.60, by = 0.05)) |>
+  mutate(m = map(umbral, \(u) con_umbral(pred_validacion, u) |>
+                   metricas_clase(truth = satisfecho, estimate = .pred_class))) |>
+  unnest(m) |>
+  select(umbral, .metric, .estimate)
+
+barrido |>
+  ggplot(aes(umbral, .estimate, color = .metric)) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  geom_vline(xintercept = 0.5, linetype = "dotted") +
+  labs(x = "umbral: predice queja si p(no) ≥ umbral", y = NULL, color = NULL) +
+  theme_minimal()
+```
+
+Si no hay un costo claro, una regla razonable es el umbral que **maximiza la
+kappa**: el que más acierta por encima del azar.
+
+```{r}
+umbral_kappa <- barrido |>
+  filter(.metric == "kap") |>
+  slice_max(.estimate, n = 1) |>
+  pull(umbral)
+umbral_kappa
+```
+
+Y ahora sí, una sola vez contra la prueba, el umbral de 50% contra el escogido:
+
+```{r}
+bind_rows(
+  `50%`     = pred_prueba |> metricas_clase(truth = satisfecho, estimate = .pred_class),
+  escogido = con_umbral(pred_prueba, umbral_kappa) |>
+    metricas_clase(truth = satisfecho, estimate = .pred_class),
+  .id = "umbral"
+) |>
+  select(umbral, .metric, .estimate) |>
+  pivot_wider(names_from = umbral, values_from = .estimate)
+```
 
 # Lo que me llevo
 
-- Gana **`r mejor`**. Lo entrena `scripts/03_modelo.R` y lo lee el reporte.
+- Gana **`r mejor`**, con AUC de `r sprintf("%.2f", collect_metrics(final) |> filter(.metric == "roc_auc") |> pull(.estimate))`
+  en prueba. Lo entrena `scripts/03_modelo.R` y lo lee el reporte.
+- *Accuracy* no sirve para escoger aquí: el nulo saca 0.87 sin encontrar una sola
+  queja. Se compara con `roc_auc` y `pr_auc`, y se revisan `kap` y `sens`.
+- Con el umbral de 50% el modelo es **preciso pero tímido**. Bajarlo a
+  `r umbral_kappa` encuentra muchas más quejas a cambio de falsas alarmas; si eso
+  conviene es una decisión del negocio, no del modelo.
 - El vocabulario se escogió con todo el entrenamiento antes de partir en pliegues,
   así que la validación cruzada sale un poco optimista. La prueba no tiene ese
   problema: nunca la vio.
-- Siguiente intento: bajar el umbral para detectar más quejas, o usar todas las
-  palabras con `textrecipes`.
+- Siguiente intento: usar todas las palabras con `textrecipes`, o afinar el árbol
+  con `tune_grid()`.

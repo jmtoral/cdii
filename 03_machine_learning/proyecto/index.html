@@ -457,7 +457,12 @@ comparacion &lt;- workflow_set(
   models  = modelos
 ) |&gt;
   workflow_map(<span class="s">"fit_resamples"</span>, resamples = pliegues, metrics = metricas, seed = 2025)</pre>
-          <p>Al final abre la prueba <strong>una vez</strong> con <code>last_fit()</code>.</p>
+          <p>Antes de entrenar explica <strong>cada métrica</strong> y qué saca con ella el modelo
+          que no hace nada: <code>accuracy</code>, sensibilidad, especificidad, precisión, F1,
+          kappa, <code>roc_auc</code> y <code>pr_auc</code>. Al final abre la prueba <strong>una
+          vez</strong> con <code>last_fit()</code>, rehace la matriz de confusión a mano, dibuja
+          las curvas ROC y precisión-<i>recall</i>, y escoge el umbral con la validación
+          cruzada, no con la prueba.</p>
         </div>
       </div>
       <div class="paso">

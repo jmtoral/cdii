@@ -44,7 +44,7 @@ simple de palabras clave las distingue (AUC `r round(m[["roc_auc"]], 2)`), pero
 
 ## Los datos
 
-Reseñas en línea del corpus Rest-Mex 2025 (conjunto de entrenamiento), con
+Reseñas de TripAdvisor (2002–2024) del corpus Rest-Mex 2025 (conjunto de entrenamiento; Álvarez-Carmona et al., 2025), con
 la calificación que puso el propio turista: 1 = muy malo a 5 = muy bueno.
 
 ```{r}
@@ -129,7 +129,7 @@ coeficientes |>
 ## Limitaciones
 
 - Cortar en 4 es una decisión: el 3 («neutral») cuenta como no satisfecho.
-- Las reseñas en línea no son una muestra de todos los turistas: escribe quien
+- Las reseñas de TripAdvisor no son una muestra de todos los turistas: escribe quien
   quiere escribir.
 - El modelo solo ve 60 palabras, una por una, sin orden. «No estuvo mal» le parece una queja.
 
@@ -137,3 +137,10 @@ coeficientes |>
 
 Bajar el umbral de decisión para detectar más quejas a cambio de más falsas
 alarmas, y probar con todas las palabras (`textrecipes`) en vez de 60.
+
+## Fuente
+
+Álvarez-Carmona, M. Á. et al. (2025). Overview of Rest-Mex at IberLEF 2025:
+Researching Sentiment Evaluation in Text for Mexican Magical Towns.
+*Procesamiento del Lenguaje Natural*, 75, 499–511. Datos de uso exclusivamente
+académico y de investigación.
