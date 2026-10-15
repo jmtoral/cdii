@@ -8,6 +8,8 @@
 2. Instala lo necesario: `install.packages(c("tidyverse", "tidymodels", "here"))`.
 3. Corre `correr_todo.R`: baja los datos, los limpia y entrena el modelo.
 4. Dale **Render** a `notebooks/01_eda.qmd`, `notebooks/02_modelo.qmd` y `reports/reporte.qmd`.
+5. Opcional: `notebooks/03_texto.qmd` hace lo mismo con textrecipes y lasso. Pide
+   `install.packages(c("textrecipes", "glmnet", "stopwords", "SnowballC"))`.
 
 ## Qué hay en cada carpeta
 

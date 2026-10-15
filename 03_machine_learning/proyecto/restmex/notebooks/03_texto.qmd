@@ -1,0 +1,265 @@
+---
+title: "Rest-Mex 2025 · texto con textrecipes"
+subtitle: "Del texto a la matriz, dentro de la receta"
+lang: es
+format:
+  html:
+    toc: true
+    embed-resources: true
+    df-print: tibble
+execute:
+  warning: false
+  message: false
+---
+
+En `02_modelo.qmd` las palabras se volvieron columnas **a mano**: `tokenizar()`,
+`elegir_vocabulario()` y `con_palabras()`. Aquí se hace lo mismo con
+**textrecipes**, la extensión de `recipes` para texto. La ventaja no es escribir
+menos: es que el vocabulario se aprende **dentro de la receta**, así que en
+validación cruzada se vuelve a aprender en cada pliegue y nunca ve los datos con
+que se califica.
+
+Paquetes extra para este notebook:
+`install.packages(c("textrecipes", "glmnet", "stopwords", "SnowballC"))`.
+
+> **Tarda:** unos 20 minutos en una laptop, porque tokeniza 26 mil reseñas en cada
+> pliegue y para cada tamaño de vocabulario (3 recetas × 3 tamaños × 5 pliegues).
+> Para probar rápido, baja `slice_sample(n = 40000)` a 10 mil.
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(textrecipes)
+library(here)
+```
+
+# 1. Una receta de texto, paso a paso
+
+Dos reseñas inventadas para ver qué hace cada paso. `step_untokenize()` vuelve a
+pegar los tokens para poder leerlos.
+
+```{r}
+ejemplo <- tibble(resena = c(
+  "La comida NO estaba buena, el servicio muy lento.",
+  "Excelente comida y muy buen servicio, lo recomiendo ampliamente."
+))
+
+ver <- function(receta) {
+  receta |> step_untokenize(resena) |> prep() |> bake(new_data = NULL)
+}
+
+base <- recipe(~ resena, data = ejemplo) |> step_tokenize(resena)
+
+ver(base)                                                       # minúsculas, sin puntuación
+ver(base |> step_stopwords(resena, language = "es"))            # sin palabras vacías
+ver(base |> step_stopwords(resena, language = "es") |>
+      step_stem(resena, options = list(language = "spanish")))  # raíces
+```
+
+## La trampa de las *stopwords*
+
+La primera reseña era una queja y, sin palabras vacías, dice **«comida buena
+servicio lento»**. La lista de Snowball en español trae 308 palabras, y entre ellas
+están justo las que cargan el sentimiento:
+
+```{r}
+c("no", "muy", "sin", "nada", "ni", "poco", "mucho") |>
+  set_names() |>
+  map_lgl(\(p) p %in% stopwords::stopwords("es"))
+```
+
+Para clasificar temas, quitarlas ayuda. Para clasificar **sentimiento**, hay que
+probarlo antes de creerlo. Eso se hace abajo.
+
+## n-gramas: el orden importa un poco
+
+```{r}
+ver(base |> step_ngram(resena, num_tokens = 2, min_num_tokens = 1))
+```
+
+Con bigramas, `no_estaba` y `muy_lento` son columnas propias.
+
+## De tokens a números
+
+```{r}
+base |> step_tf(resena) |> prep() |> bake(new_data = NULL) |> select(1:6)
+base |> step_tfidf(resena) |> prep() |> bake(new_data = NULL) |> select(1:6)
+```
+
+`step_tf()` cuenta; `step_tfidf()` además castiga las palabras que salen en todos
+los documentos. Con miles de reseñas, `comida` pesa poco y `pésimo` mucho.
+
+# 2. Los datos
+
+La misma muestra y la misma partición que `02_modelo.qmd`, para que la comparación
+sea justa. Ahora el texto entra crudo: lo procesa la receta.
+
+```{r}
+set.seed(2025)
+datos <- read_rds(here("data", "processed", "resenas.rds")) |>
+  slice_sample(n = 40000) |>
+  select(id, satisfecho, tipo, n_palabras, resena)
+
+particion     <- initial_split(datos, prop = 0.8, strata = satisfecho)
+entrenamiento <- training(particion)
+prueba        <- testing(particion)
+
+set.seed(2025)
+pliegues <- vfold_cv(entrenamiento, v = 5, strata = satisfecho)
+```
+
+# 3. Tres recetas
+
+Las tres terminan en tf-idf y dejan que la validación cruzada decida cuántas
+palabras guardar (`max_tokens = tune()`). Cambia lo de en medio:
+
+```{r}
+inicio <- recipe(satisfecho ~ resena + tipo, data = entrenamiento) |>
+  step_dummy(tipo) |>
+  step_tokenize(resena)
+
+final_tfidf <- function(receta) {
+  receta |>
+    step_tokenfilter(resena, max_tokens = tune()) |>
+    step_tfidf(resena)
+}
+
+recetas <- list(
+  palabras        = inicio |> final_tfidf(),
+  sin_stopwords   = inicio |> step_stopwords(resena, language = "es") |> final_tfidf(),
+  palabras_y_pares = inicio |> step_ngram(resena, num_tokens = 2, min_num_tokens = 1) |>
+                      final_tfidf()
+)
+```
+
+# 4. El modelo: regresión logística con lasso
+
+Miles de columnas, casi todas en cero. Dos decisiones para eso:
+
+- **Lasso** (`mixture = 1`): castiga los coeficientes y manda a cero los de las
+  palabras que no aportan. `penalty` dice qué tan fuerte, y también se afina.
+- **Matriz dispersa**: el *blueprint* le pasa a glmnet una matriz que solo guarda los
+  valores distintos de cero. Sin eso, 32 mil reseñas × 2 mil palabras son medio
+  giga de ceros.
+
+```{r}
+lasso <- logistic_reg(penalty = tune(), mixture = 1) |>
+  set_engine("glmnet")
+
+dispersa <- hardhat::default_recipe_blueprint(composition = "dgCMatrix")
+
+rejilla <- grid_regular(
+  penalty(range = c(-4, -1)),
+  max_tokens(range = c(500, 2000)),
+  levels = c(penalty = 6, max_tokens = 3)
+)
+rejilla |> count(max_tokens)
+```
+
+# 5. Afinar: 3 recetas × 18 combinaciones × 5 pliegues
+
+```{r}
+metricas <- metric_set(roc_auc, pr_auc, kap, sens, spec)
+
+afinados <- recetas |>
+  map(\(r) workflow() |> add_recipe(r, blueprint = dispersa) |> add_model(lasso)) |>
+  map(\(wf) tune_grid(wf, resamples = pliegues, grid = rejilla, metrics = metricas))
+```
+
+```{r}
+#| fig-height: 4
+autoplot(afinados |> pluck("palabras"), metric = "roc_auc") +
+  theme_minimal()
+```
+
+Con poca penalización el AUC baja un poco: el lasso se queda con casi todo, incluido
+el ruido. Con mucha se desploma: en `penalty = 0.1` borra todas las palabras y el
+AUC cae a 0.5, el del modelo nulo. El punto alto está en medio, alrededor de 0.002.
+
+## La mejor combinación de cada receta
+
+```{r}
+mejores <- afinados |>
+  imap(\(a, nombre) show_best(a, metric = "roc_auc", n = 1) |> mutate(receta = nombre)) |>
+  list_rbind() |>
+  select(receta, max_tokens, penalty, roc_auc = mean, std_err)
+
+mejores |> arrange(desc(roc_auc)) |> knitr::kable(digits = 4)
+
+auc <- function(r) mejores |> filter(receta == r) |> pull(roc_auc) |> sprintf(fmt = "%.3f")
+```
+
+Contra lo que se hizo a mano en `02_modelo.qmd` (60 palabras, logística sin
+penalizar): AUC de **0.841** en validación cruzada.
+
+**Cómo leerlo:**
+
+- Cualquiera de las tres le gana por mucho a las 60 palabras escogidas a mano.
+- Quitar *stopwords* **empeora** el modelo: de `r auc("palabras")` a
+  `r auc("sin_stopwords")`, una diferencia de varios errores estándar. Se llevó «no»,
+  «muy» y «sin».
+- Los pares de palabras **no** ayudaron (`r auc("palabras_y_pares")`). Con el mismo tope
+  de columnas, los pares compiten por esos lugares con las palabras sueltas. Con un
+  tope mayor podría cambiar: no se probó.
+- Las tres recetas escogieron `max_tokens = 2000`, **el borde de la rejilla**. Cuando
+  el mejor valor queda en la orilla, el rango era corto: el siguiente intento es
+  probar 3,000 o 5,000.
+
+# 6. La ganadora, contra la prueba
+
+```{r}
+gana <- mejores |> slice_max(roc_auc, n = 1) |> pull(receta)
+gana
+
+flujo_final <- workflow() |>
+  add_recipe(recetas |> pluck(gana), blueprint = dispersa) |>
+  add_model(lasso) |>
+  finalize_workflow(afinados |> pluck(gana) |> select_best(metric = "roc_auc"))
+
+final <- last_fit(flujo_final, particion, metrics = metricas)
+collect_metrics(final)
+```
+
+# 7. ¿Qué aprendió?
+
+Los coeficientes del lasso. Los que quedaron en cero son palabras que el modelo
+decidió ignorar.
+
+```{r}
+coeficientes <- final |>
+  extract_fit_parsnip() |>
+  tidy() |>
+  filter(str_starts(term, "tfidf_")) |>
+  mutate(token = str_remove(term, "^tfidf_resena_"))
+
+coeficientes |>
+  summarise(columnas = n(), distintos_de_cero = sum(estimate != 0))
+```
+
+```{r}
+#| fig-height: 6
+coeficientes |>
+  slice_max(abs(estimate), n = 30) |>
+  ggplot(aes(estimate, fct_reorder(token, estimate), fill = estimate > 0)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_manual(values = c("#0432a1", "#0b0b0b")) +
+  labs(x = "← empuja a «queja» (no)      empuja a «satisfecho» (si) →", y = NULL) +
+  theme_minimal()
+```
+
+> Ojo con el signo: aquí glmnet modela la probabilidad del **segundo** nivel,
+> `"si"`. Un coeficiente negativo empuja hacia la queja.
+
+# Lo que me llevo
+
+- `step_tokenize()` → (`step_stopwords()`, `step_stem()`, `step_ngram()`) →
+  `step_tokenfilter()` → `step_tf()` / `step_tfidf()`. El orden importa.
+- El vocabulario y el idf se aprenden en `prep()`, solo con los datos de
+  entrenamiento de cada pliegue. Es la fuga que en `02_modelo.qmd` había que
+  cuidar a mano.
+- Para sentimiento, **no quites stopwords a ciegas**: pruébalo. Aquí «no» terminó
+  siendo de las palabras que más pesan hacia la queja.
+- Si el mejor valor de un hiperparámetro cae en el borde de la rejilla, amplía el
+  rango antes de concluir.
+- Texto = muchas columnas dispersas: lasso o ridge con glmnet y *blueprint*
+  disperso.
