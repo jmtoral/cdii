@@ -26,94 +26,9 @@ if (Test-Path $OutputDir) {
 }
 New-Item -ItemType Directory -Path $OutputDir | Out-Null
 
-# Crear página índice
-$IndexHtml = @"
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CDII - Ciencia de Datos para la Toma de Decisiones II</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(90deg, #00d2ff, #7b2ff7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .subtitle { color: #888; margin-bottom: 2rem; font-size: 1.1rem; }
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 900px; width: 100%; }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: #7b2ff7;
-            box-shadow: 0 8px 32px rgba(123, 47, 247, 0.2);
-        }
-        .card h3 { color: #00d2ff; margin-bottom: 0.5rem; }
-        .card p { color: #aaa; font-size: 0.95rem; line-height: 1.5; }
-        .badge {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        .badge-leccion { background: rgba(0,210,255,0.15); color: #00d2ff; }
-        .badge-ejercicio { background: rgba(255,107,107,0.15); color: #ff6b6b; }
-        footer { margin-top: 3rem; color: #555; font-size: 0.85rem; }
-    </style>
-</head>
-<body>
-    <h1>📊 CDII</h1>
-    <p class="subtitle">Ciencia de Datos para la Toma de Decisiones II</p>
-    <div class="cards">
-        <a class="card" href="01_introduccion_sql/index.html">
-            <span class="badge badge-leccion">LECCIÓN</span>
-            <h3>01 — Introducción a SQL</h3>
-            <p>SELECT, WHERE, LIKE, ORDER BY, LIMIT — los fundamentos de SQL con DuckDB.</p>
-        </a>
-        <a class="card" href="02_agregaciones/index.html">
-            <span class="badge badge-leccion">LECCIÓN</span>
-            <h3>02 — Agregaciones</h3>
-            <p>count, avg, min, max, GROUP BY, HAVING y el manejo de NULL.</p>
-        </a>
-        <a class="card" href="03_joins/index.html">
-            <span class="badge badge-leccion">LECCIÓN</span>
-            <h3>03 — JOINs</h3>
-            <p>JOIN/ON, alias, fan-out, INNER contra LEFT y COALESCE.</p>
-        </a>
-        <a class="card" href="ejercicio_01/index.html">
-            <span class="badge badge-ejercicio">EJERCICIO</span>
-            <h3>Ejercicio 01 — SQL</h3>
-            <p>7 preguntas para practicar todo lo aprendido. ¡Buena suerte!</p>
-        </a>
-    </div>
-    <footer>CDII · Powered by Marimo + DuckDB</footer>
-</body>
-</html>
-"@
-$IndexHtml | Out-File -FilePath (Join-Path $OutputDir "index.html") -Encoding UTF8
+# Página índice: la misma portada que publica el workflow (portada/index.html),
+# para que el sitio local y el publicado no se separen.
+Copy-Item (Join-Path $ProjectRoot "portada/index.html") (Join-Path $OutputDir "index.html") -Force
 
 # Buscar y exportar todos los notebooks .py de Marimo
 # Las LECCIONES van en modo edit: es lo único que le da al alumno el botón de ▶ ejecutar

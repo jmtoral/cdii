@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDII - Ciencia de Datos para la Toma de Decisiones II</title>
+<meta name="description" content="Material del curso CDII: SQL con DuckDB, alpha de Krippendorff y kappa de Cohen. Presentaciones, lecciones interactivas y ejercicios.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --texto: #f4f6ff;
+  --texto-suave: rgba(235, 240, 255, 0.68);
+  --vidrio: rgba(255, 255, 255, 0.07);
+  --vidrio-hover: rgba(255, 255, 255, 0.12);
+  --sombra: 0 8px 32px rgba(5, 8, 30, 0.45);
+  --resorte: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --radio: 24px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  color: var(--texto);
+  background: #070916;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 1.25rem 1.25rem 3rem;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Fondo: manchas de color que el vidrio refracta ---------- */
+.fondo { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+.fondo span {
+  position: absolute; border-radius: 50%; opacity: 0.75;
+  animation: flotar 26s ease-in-out infinite alternate;
+}
+.fondo span:nth-child(1) { width: 55vmax; height: 55vmax; left: -15vmax; top: -18vmax;
+  background: radial-gradient(circle, #1fb6ff 0%, transparent 65%); }
+.fondo span:nth-child(2) { width: 50vmax; height: 50vmax; right: -18vmax; top: 10vh;
+  background: radial-gradient(circle, #8b3dff 0%, transparent 65%); animation-duration: 32s; animation-delay: -8s; }
+.fondo span:nth-child(3) { width: 45vmax; height: 45vmax; left: 15vw; bottom: -25vmax;
+  background: radial-gradient(circle, #ff3d8b 0%, transparent 62%); animation-duration: 38s; animation-delay: -14s; opacity: 0.5; }
+.fondo span:nth-child(4) { width: 30vmax; height: 30vmax; right: 10vw; bottom: -5vmax;
+  background: radial-gradient(circle, #ffb547 0%, transparent 65%); animation-duration: 29s; animation-delay: -4s; opacity: 0.35; }
+.fondo::after { /* retícula tenue para que se note la refracción */
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+}
+@keyframes flotar {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(6vw, 4vh) scale(1.12); }
+  100% { transform: translate(-4vw, 8vh) scale(0.95); }
+}
+
+/* ---------- Vidrio líquido ---------- */
+.vidrio {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(140deg, rgba(255,255,255,0.13), rgba(255,255,255,0.03) 55%, rgba(255,255,255,0.06));
+  -webkit-backdrop-filter: blur(22px) saturate(185%);
+  backdrop-filter: blur(22px) saturate(185%);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255,255,255,0.45),
+    inset 0 -1px 1px rgba(255,255,255,0.08),
+    inset 0 0 24px rgba(255,255,255,0.04),
+    var(--sombra);
+}
+/* Borde de luz: más brillante arriba-izquierda y abajo-derecha, como un canto pulido */
+.vidrio::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(255,255,255,0.08) 35%,
+              rgba(255,255,255,0.04) 65%, rgba(255,255,255,0.4));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none; z-index: 1;
+}
+/* Brillo especular que sigue al puntero */
+.vidrio::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 20%) var(--my, -20%),
+              rgba(255,255,255,0.20), transparent 45%);
+  opacity: 0.55; transition: opacity 0.4s ease; z-index: -1;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .vidrio { background: rgba(28, 30, 60, 0.88); }
+}
+
+/* ---------- Encabezado ---------- */
+.hero { text-align: center; margin: 3.5rem 0 2rem; }
+.hero h1 {
+  font-size: clamp(3rem, 9vw, 5.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1;
+  background: linear-gradient(180deg, #ffffff 20%, rgba(255,255,255,0.55));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 24px rgba(120, 140, 255, 0.35));
+}
+.hero .chip {
+  display: inline-block; margin-top: 1.1rem; padding: 0.55rem 1.2rem; border-radius: 999px;
+  color: var(--texto-suave); font-size: 1rem; font-weight: 500;
+}
+
+/* ---------- Índice flotante con píldora líquida ---------- */
+.indice {
+  position: sticky; top: 1rem; z-index: 10;
+  display: flex; gap: 0.25rem; padding: 0.35rem; border-radius: 999px; margin-bottom: 3rem;
+  max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.indice a {
+  position: relative; z-index: 2;
+  color: var(--texto-suave); text-decoration: none; white-space: nowrap;
+  font-size: 0.92rem; font-weight: 500; padding: 0.55rem 1.1rem; border-radius: 999px;
+  transition: color 0.3s ease;
+}
+.indice a:hover, .indice a.activo { color: var(--texto); }
+.indice a b { font-weight: 700; opacity: 0.55; margin-right: 0.35rem; }
+.pildora {
+  position: absolute; z-index: 1; top: 0.35rem; bottom: 0.35rem; left: 0; width: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.10));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(255,255,255,0.1),
+              0 4px 14px rgba(0,0,0,0.25);
+  transition: transform 0.55s var(--resorte), width 0.55s var(--resorte), opacity 0.3s;
+  opacity: 0;
+}
+
+/* ---------- Temas ---------- */
+.tema { width: 100%; max-width: 1040px; margin-bottom: 4rem; scroll-margin-top: 6rem; }
+.tema-head { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 1.5rem; padding: 0 0.25rem; }
+.tema-num {
+  flex: none; display: grid; place-items: center;
+  width: 3.4rem; height: 3.4rem; border-radius: 18px;
+  font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
+}
+.tema-head h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+.tema-head p { color: var(--texto-suave); font-size: 0.98rem; margin-top: 0.2rem; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem; }
+.card {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 1.5rem 1.5rem 1.6rem; border-radius: var(--radio);
+  text-decoration: none; color: inherit; overflow: hidden;
+  transition: transform 0.5s var(--resorte), background 0.3s ease, box-shadow 0.4s ease;
+  opacity: 0; animation: aparecer 0.8s var(--resorte) forwards;
+}
+.card:hover {
+  transform: translateY(-6px) scale(1.015);
+  background: linear-gradient(140deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.09));
+  box-shadow: inset 0 1px 0.5px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(255,255,255,0.1),
+              0 18px 50px rgba(5, 8, 30, 0.55);
+}
+.card:hover::after { opacity: 1; }
+.card:active { transform: translateY(-2px) scale(0.985); transition-duration: 0.15s; }
+.card:focus-visible { outline: 2px solid rgba(255,255,255,0.8); outline-offset: 3px; }
+.card h3 { font-size: 1.12rem; font-weight: 650; line-height: 1.3; letter-spacing: -0.01em; }
+.card p { color: var(--texto-suave); font-size: 0.93rem; line-height: 1.55; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+/* Insignias de vidrio teñido */
+.badge {
+  align-self: flex-start; padding: 0.28rem 0.7rem; border-radius: 999px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.badge-leccion      { background: rgba(31, 182, 255, 0.22); color: #9fe0ff; }
+.badge-ejercicio    { background: rgba(255, 92, 122, 0.22); color: #ffb3c1; }
+.badge-presentacion { background: rgba(139, 92, 255, 0.24); color: #d3c2ff; }
+.badge-metodo       { background: rgba(255, 190, 70, 0.20); color: #ffe0a3; }
+
+footer { margin-top: 1rem; padding: 0.6rem 1.2rem; border-radius: 999px; color: var(--texto-suave); font-size: 0.85rem; }
+
+@media (max-width: 600px) {
+  .hero { margin-top: 2rem; }
+  .tema-head h2 { font-size: 1.3rem; }
+  .indice a { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .fondo span, .card { animation: none; opacity: 1; }
+  .card, .pildora { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="fondo" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+<header class="hero">
+  <h1>CDII</h1>
+  <p class="chip vidrio">Ciencia de Datos para la Toma de Decisiones II</p>
+</header>
+
+<nav class="indice vidrio" id="indice" aria-label="Temas">
+  <span class="pildora" aria-hidden="true"></span>
+  <a href="#sql" id="nav-sql"><b>01</b>SQL con DuckDB</a>
+  <a href="#alpha" id="nav-alpha"><b>02</b>Alpha de Krippendorff</a>
+  <a href="#kappa" id="nav-kappa"><b>03</b>Kappa de Cohen</a>
+</nav>
+
+<main style="width:100%; display:flex; flex-direction:column; align-items:center;">
+  <section class="tema" id="sql">
+    <header class="tema-head"><span class="tema-num vidrio">01</span><div><h2>SQL con DuckDB</h2><p>Preguntarle a los datos: filtrar, agregar y cruzar tablas del corpus</p></div></header>
+    <div class="cards">
+      <a class="card vidrio" id="card-pres-sql" href="presentaciones/01_intro_sql.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>SQL: cómo se le pregunta a los datos</h3><p>Qué es SQL, modelo relacional, diagrama entidad-relación y orden de ejecución</p></a>
+      <a class="card vidrio" id="card-leccion-01" href="01_introduccion_sql/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>01 — Introducción a SQL</h3><p>SELECT, WHERE, LIKE, ORDER BY, LIMIT</p></a>
+      <a class="card vidrio" id="card-pres-agregaciones" href="presentaciones/02_agregaciones.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>Agregaciones: de muchas filas a un número</h3><p>count, avg, min, max, GROUP BY, HAVING y cómo no sobreinterpretar un promedio</p></a>
+      <a class="card vidrio" id="card-leccion-02" href="02_agregaciones/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>02 — Agregaciones</h3><p>count/avg/min/max, GROUP BY, HAVING, NULL</p></a>
+      <a class="card vidrio" id="card-pres-joins" href="presentaciones/03_joins.html"><span class="badge badge-presentacion">PRESENTACIÓN</span><h3>JOINs: cruzar tablas sin arruinar los números</h3><p>JOIN/ON, fan-out, INNER contra LEFT, COALESCE y anti-join</p></a>
+      <a class="card vidrio" id="card-leccion-03" href="03_joins/index.html"><span class="badge badge-leccion">LECCIÓN</span><h3>03 — JOINs</h3><p>Cruzar tablas por su llave sin multiplicar filas por accidente</p></a>
+      <a class="card vidrio" id="card-ejercicio-01" href="ejercicio_01/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Ejercicio 01 — SQL</h3><p>7 preguntas para practicar SQL</p></a>
+    </div>
+  </section>
+
+  <section class="tema" id="alpha">
+    <header class="tema-head"><span class="tema-num vidrio">02</span><div><h2>Alpha de Krippendorff</h2><p>¿Son confiables las etiquetas? Medir el acuerdo entre varios anotadores</p></div></header>
+    <div class="cards">
+      <a class="card vidrio" id="card-pres-alpha" href="presentaciones/04_alpha_krippendorff.html"><span class="badge badge-metodo">MÉTODO</span><h3>El alpha de Krippendorff</h3><p>Cómo se mide si las etiquetas son confiables, y por qué el porcentaje de acuerdo miente</p></a>
+      <a class="card vidrio" id="card-ej-una-pregunta" href="presentaciones/06_ejercicio_una_pregunta.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Una pregunta, cinco pedazos</h3><p>Versión corta: por qué una sola unidad no da alpha, segmentar la pregunta y medir el desacuerdo que la unanimidad escondía</p></a>
+      <a class="card vidrio" id="card-ej-alpha-jev" href="presentaciones/05_ejercicio_alpha_jev.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>El alpha de tu equipo, y Jev</h3><p>Versión larga: diez preguntas, dos rondas, el alpha a mano y la comparación contra Jev</p></a>
+    </div>
+  </section>
+
+  <section class="tema" id="kappa">
+    <header class="tema-head"><span class="tema-num vidrio">03</span><div><h2>Kappa de Cohen</h2><p>El acuerdo entre dos: humano contra humano y humano contra modelo</p></div></header>
+    <div class="cards">
+      <a class="card vidrio" id="card-pres-kappa" href="presentaciones/07_kappa_cohen.html"><span class="badge badge-metodo">MÉTODO</span><h3>La kappa de Cohen</h3><p>El coeficiente paso a paso, sus tres muros, en qué se separa del alpha y por qué al final casi da lo mismo</p></a>
+      <a class="card vidrio" id="card-pres-kappa-jev" href="presentaciones/08_kappa_contra_jev.html"><span class="badge badge-metodo">MÉTODO</span><h3>Tú contra otro, y tú contra Jev</h3><p>La kappa calculada dos veces: humano contra humano y humano contra modelo, con el script en R</p></a>
+      <a class="card vidrio" id="card-ej-kappa" href="kappa/index.html"><span class="badge badge-ejercicio">EJERCICIO</span><h3>Tú, tu pareja y un modelo</h3><p>La kappa de Cohen en parejas, en la hoja y en R, y un modelo de tidymodels que compite contra ti</p></a>
+    </div>
+  </section>
+</main>
+
+<footer class="vidrio">CDII · Marimo + DuckDB</footer>
+
+<script>
+  // Entrada escalonada de las tarjetas
+  document.querySelectorAll('.cards').forEach(function (grupo) {
+    grupo.querySelectorAll('.card').forEach(function (c, i) { c.style.animationDelay = (i * 60) + 'ms'; });
+  });
+
+  // Brillo especular: sigue al puntero sobre cada superficie de vidrio
+  document.querySelectorAll('.vidrio').forEach(function (el) {
+    el.addEventListener('pointermove', function (e) {
+      var r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      el.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  // Píldora líquida del índice: se desliza al tema visible
+  var indice = document.getElementById('indice');
+  var pildora = indice.querySelector('.pildora');
+  var enlaces = Array.prototype.slice.call(indice.querySelectorAll('a'));
+
+  function mover(a) {
+    enlaces.forEach(function (x) { x.classList.toggle('activo', x === a); });
+    pildora.style.width = a.offsetWidth + 'px';
+    pildora.style.transform = 'translateX(' + a.offsetLeft + 'px)';
+    pildora.style.opacity = '1';
+  }
+
+  var visibles = {};
+  var observador = new IntersectionObserver(function (entradas) {
+    entradas.forEach(function (en) { visibles[en.target.id] = en.isIntersecting ? en.intersectionRatio : 0; });
+    var mejor = null, max = 0;
+    for (var id in visibles) { if (visibles[id] > max) { max = visibles[id]; mejor = id; } }
+    if (mejor) mover(document.getElementById('nav-' + mejor));
+  }, { threshold: [0, 0.15, 0.3, 0.5, 0.75, 1], rootMargin: '-80px 0px -30% 0px' });
+  document.querySelectorAll('.tema').forEach(function (s) { observador.observe(s); });
+
+  enlaces.forEach(function (a) { a.addEventListener('click', function () { mover(a); }); });
+  window.addEventListener('resize', function () {
+    var activo = indice.querySelector('a.activo');
+    if (activo) mover(activo);
+  });
+</script>
+</body>
+</html>
